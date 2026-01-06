@@ -6,11 +6,11 @@
 
 ## 기술 스택
 
-- **Next.js**
-- **TypeScript**
-- **TanStack Query**
-- **Zustand**
-- **Tailwind CSS**
+- Next.js
+- TypeScript
+- TanStack Query
+- Zustand
+- Tailwind CSS
 
 ---
 
