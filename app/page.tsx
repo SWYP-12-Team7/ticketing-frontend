@@ -1,7 +1,9 @@
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
     <main>
-      <div>초기 세팅</div>
+      <Button variant="outline">버튼</Button>
     </main>
   );
 }
