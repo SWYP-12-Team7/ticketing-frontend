@@ -24,3 +24,93 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* --- FullCalendar minimal styles (v6+) ---
+   NOTE: 패키지에 CSS가 포함돼 있지 않아(현재 설치 상태 기준) 화면이 깨지지 않도록 최소 스타일만 제공합니다.
+*/
+.fc {
+  --fc-border-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+  --fc-today-bg-color: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --fc-neutral-bg-color: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --fc-page-bg-color: transparent;
+  --fc-small-font-size: 0.85em;
+  font-size: 14px;
+}
+
+.fc .fc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.fc .fc-button {
+  border: 1px solid var(--fc-border-color);
+  background: var(--fc-neutral-bg-color);
+  color: var(--foreground);
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.fc .fc-button:disabled {
+  opacity: 0.5;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid table {
+  border: 1px solid var(--fc-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.fc .fc-col-header-cell,
+.fc .fc-daygrid-day {
+  border: 1px solid var(--fc-border-color);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 8px;
+  font-weight: 500;
+}
+
+.fc .fc-event {
+  border: 1px solid var(--fc-border-color);
+  background: color-mix(in oklab, var(--background) 78%, var(--foreground) 22%);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
+/* Calendar event interactions (hover/selected) */
+.fc .pw-fc-event {
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.fc .pw-fc-event.pw-fc-event--hover {
+  filter: brightness(1.1) saturate(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* 여러 날 일정(block event)이 그리드 세로선을 덮도록 */
+.fc .fc-daygrid-block-event {
+  @apply relative z-[3];
+  margin-left: -2px;
+  margin-right: -2px;
+  background: color-mix(in oklab, var(--background) 78%, var(--foreground) 22%);
+}
