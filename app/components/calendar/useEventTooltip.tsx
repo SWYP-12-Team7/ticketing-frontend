@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { EventHoveringArg } from "@fullcalendar/core";
 import { FILTER_BY_KEY, getEventDateLabel, type CategoryKey } from "./domain";
+import { EVENT_TOOLTIP } from "./fullcalendar.constants";
 
 type TooltipState = Readonly<{
   open: boolean;
@@ -18,24 +19,23 @@ function clamp(n: number, min: number, max: number): number {
 }
 
 function computeTooltipPosition(anchorRect: DOMRect): { left: number; top: number } {
-  const TOOLTIP_W = 280;
-  const TOOLTIP_H = 92;
-  const padding = 12;
-  const gap = 12;
+  const { width: tooltipW, height: tooltipH } = EVENT_TOOLTIP.size;
+  const padding = EVENT_TOOLTIP.paddingPx;
+  const gap = EVENT_TOOLTIP.gapPx;
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
   // 기본은 오른쪽, 공간이 없으면 왼쪽
   let left = anchorRect.right + gap;
-  if (left + TOOLTIP_W + padding > vw) {
-    left = anchorRect.left - TOOLTIP_W - gap;
+  if (left + tooltipW + padding > vw) {
+    left = anchorRect.left - tooltipW - gap;
   }
-  left = clamp(left, padding, vw - TOOLTIP_W - padding);
+  left = clamp(left, padding, vw - tooltipW - padding);
 
   // 세로는 중앙 정렬, 화면 밖이면 clamp
-  let top = anchorRect.top + anchorRect.height / 2 - TOOLTIP_H / 2;
-  top = clamp(top, padding, vh - TOOLTIP_H - padding);
+  let top = anchorRect.top + anchorRect.height / 2 - tooltipH / 2;
+  top = clamp(top, padding, vh - tooltipH - padding);
 
   return { left, top };
 }
@@ -46,8 +46,12 @@ export function EventTooltip({ state }: { state: TooltipState }) {
   return (
     <div
       role="tooltip"
-      className="pointer-events-none fixed z-[60] w-[280px] select-none rounded-xl border border-black/10 bg-white/95 p-3 text-sm shadow-lg backdrop-blur dark:border-white/10 dark:bg-zinc-950/95"
-      style={{ left: state.left, top: state.top }}
+      className="calendarTooltip pointer-events-none fixed z-[60] select-none rounded-xl border border-black/10 bg-white/95 p-3 text-sm shadow-lg backdrop-blur dark:border-white/10 dark:bg-zinc-950/95"
+      style={{
+        left: state.left,
+        top: state.top,
+        width: EVENT_TOOLTIP.size.width,
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -150,3 +154,22 @@ export function useEventTooltip(): UseEventTooltipResult {
 
   return { tooltip, closeTooltip, onEventMouseEnter, onEventMouseLeave };
 }
+
+// #region agent log
+(() => {
+  const isServer = typeof window === "undefined";
+  fetch("http://127.0.0.1:7243/ingest/8ac4a727-08b3-4c34-a88c-c654febad19e", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: "debug-session",
+      runId: "pre-fix",
+      hypothesisId: "H3",
+      location: "useEventTooltip.tsx:155",
+      message: "useEventTooltip module evaluated",
+      data: { isServer },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+})();
+// #endregion

@@ -13,7 +13,18 @@ export type FilterMeta = Readonly<{
 export type ActiveMap = Record<CategoryKey, boolean>;
 
 export type CategorizedEvent = Omit<EventInput, "extendedProps"> & {
-  extendedProps: { category: CategoryKey };
+  extendedProps: {
+    category: CategoryKey;
+
+    /** ===== Event list panel (backend-ready, optional) ===== */
+    businessHours?: Readonly<{ open: string; close: string }>; // "HH:MM" 24h
+    backendCategory?: string;
+    theme?: string;
+    ticketPrice?: number | null; // null/undefined => 무료
+    popularityScore?: number; // 인기순
+    recommendedScore?: number; // 추천순
+    createdAt?: string; // ISO
+  };
 };
 
 /** ===== Constants ===== */
@@ -37,22 +48,53 @@ export const DEMO_EVENTS = [
     id: "popup-1",
     title: "짱구 팝업스토어",
     date: "2026-01-06",
-    extendedProps: { category: "popup" },
+    extendedProps: {
+      category: "popup",
+      businessHours: { open: "10:00", close: "20:00" },
+      backendCategory: "팝업",
+      theme: "캐릭터",
+      ticketPrice: null,
+      popularityScore: 80,
+      recommendedScore: 65,
+      createdAt: "2026-01-02T09:00:00+09:00",
+    },
   },
   {
     id: "exhibition-1",
     title: "요시고 전시회",
     date: "2026-01-08",
-    extendedProps: { category: "exhibition" },
+    extendedProps: {
+      category: "exhibition",
+      businessHours: { open: "11:00", close: "19:00" },
+      backendCategory: "전시",
+      theme: "사진",
+      ticketPrice: 18000,
+      popularityScore: 70,
+      recommendedScore: 90,
+      createdAt: "2026-01-03T10:00:00+09:00",
+    },
   },
   {
     id: "event-1",
     title: "광화문 새해 퍼레이드 축제",
     start: "2026-01-12",
     end: "2026-01-15",
-    extendedProps: { category: "event" },
+    extendedProps: {
+      category: "event",
+      businessHours: { open: "13:00", close: "21:00" },
+      backendCategory: "행사",
+      theme: "축제",
+      ticketPrice: null,
+      popularityScore: 95,
+      recommendedScore: 85,
+      createdAt: "2026-01-05T08:30:00+09:00",
+    },
   },
 ] as const satisfies readonly CategorizedEvent[];
+
+export function getActiveCategoryKeys(active: ActiveMap): CategoryKey[] {
+  return FILTERS.filter((f) => active[f.key]).map((f) => f.key);
+}
 
 /** ===== Pure helpers ===== */
 export const createActiveMap = (initialValue: boolean): ActiveMap =>
