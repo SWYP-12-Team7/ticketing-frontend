@@ -1,0 +1,90 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import { Menu, Search, Bell, Heart, User } from "lucide-react";
+import Link from "next/link";
+
+interface HeaderProps {
+  className?: string;
+}
+
+export function Header({ className }: HeaderProps) {
+  return (
+    <header
+      className={cn(
+        "flex h-14 items-center justify-between border-b border-border px-4",
+        className
+      )}
+    >
+      {/* 왼쪽 영역 */}
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          className="flex size-9 items-center justify-center"
+          aria-label="메뉴"
+        >
+          <Menu className="size-6" />
+        </button>
+
+        <Link
+          href="/"
+          className="flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
+        >
+          BI
+        </Link>
+
+        <nav className="flex items-center gap-4">
+          <Link
+            href="/map"
+            className="text-sm font-medium text-foreground hover:text-foreground/80"
+          >
+            지도
+          </Link>
+          <Link
+            href="/calendar"
+            className="text-sm font-medium text-foreground hover:text-foreground/80"
+          >
+            캘린더
+          </Link>
+        </nav>
+      </div>
+
+      {/* 오른쪽 영역 */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 items-center gap-2 rounded-full border border-border px-4">
+          <input
+            type="text"
+            placeholder="검색어를 입력해주세요"
+            className="w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <Search className="size-4 text-muted-foreground" />
+        </div>
+
+        <button
+          type="button"
+          className="flex size-9 items-center justify-center"
+          aria-label="알림"
+        >
+          <Bell className="size-5" />
+        </button>
+
+        <button
+          type="button"
+          className="flex size-9 items-center justify-center"
+          aria-label="좋아요"
+        >
+          <Heart className="size-5" />
+        </button>
+
+        <button
+          type="button"
+          className="flex size-9 items-center justify-center"
+          aria-label="프로필"
+        >
+          <User className="size-5" />
+        </button>
+      </div>
+    </header>
+  );
+}
+
