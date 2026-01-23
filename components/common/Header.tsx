@@ -12,7 +12,7 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-14 items-center justify-between border-b border-border px-4",
+        "sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-4",
         className
       )}
     >
