@@ -9,10 +9,10 @@ export function AdBanner({ className }: AdBannerProps) {
     <section className={className}>
       <div
         className={cn(
-          "flex h-24 items-center justify-center rounded-lg bg-muted"
+          "flex h-35 items-center justify-center rounded-lg bg-[#767676] "
         )}
       >
-        <span className="text-sm text-muted-foreground">광고</span>
+        <span className="text-2xl font-semibold  text-[#000000]">배너</span>
       </div>
     </section>
   );

@@ -50,13 +50,12 @@ export function Footer({ className }: FooterProps) {
   return (
     <footer
       className={cn(
-        "border-t border-border bg-muted px-4 py-10",
+        "border-t border-border bg-muted px-4 py-10 mt-10",
         className
       )}
     >
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
-          {/* 로고 영역 */}
           <div className="col-span-2 md:col-span-1">
             <Link
               href="/"

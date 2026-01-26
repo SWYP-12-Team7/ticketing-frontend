@@ -1,6 +1,6 @@
 export { MainCarousel } from "./MainCarousel";
-export { CategoryTabs } from "./CategoryTabs";
-export { TodayPick } from "./TodayPick";
-export { UpcomingEvents } from "./UpcomingEvents";
+export { FilterSection } from "./FilterSection";
+export { EventSchedule } from "./EventSchedule";
+export { Ranking } from "./Ranking";
+export { ShowPick } from "./ShowPick";
 export { AdBanner } from "./AdBanner";
-export { EventSection } from "./EventSection";
