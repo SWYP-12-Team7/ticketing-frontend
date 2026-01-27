@@ -5,7 +5,7 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 
 export const metadata: Metadata = {
-  title: "ticketing Project",
+  title: "와르르",
   description: "SWYP 7th Team front",
 };
 

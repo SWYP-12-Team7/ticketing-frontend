@@ -1,16 +1,21 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useViewModeStore } from "@/store/view-mode";
-import { Menu, Search, Bell, Heart, User, Map } from "lucide-react";
+import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
+import { SearchDropdown } from "./SearchDropdown";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface HeaderProps {
   className?: string;
 }
 
 export function Header({ className }: HeaderProps) {
-  const { viewMode, setViewMode } = useViewModeStore();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const isViewPage = pathname === "/view";
+  const currentMode = searchParams.get("mode");
 
   return (
     <header
@@ -55,42 +60,34 @@ export function Header({ className }: HeaderProps) {
       {/* 오른쪽 영역 */}
       <div className="flex items-center gap-3">
         {/* 뷰 토글 */}
-        <div className="flex h-9 items-center rounded-full border border-border">
-          <button
-            type="button"
-            onClick={() => setViewMode("map")}
+        <div className="flex h-9 items-center gap-0.5 rounded-full border border-border p-1">
+          <Link
+            href="/view?mode=map"
             className={cn(
-              "flex h-full items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-              viewMode === "map"
-                ? "border border-orange-500 text-orange-500"
+              "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+              isViewPage && currentMode === "map"
+                ? "bg-orange-500 text-white"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             지도뷰
             <Map className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("calendar")}
+          </Link>
+          <Link
+            href="/view?mode=calendar"
             className={cn(
-              "flex h-full items-center rounded-full px-3 text-sm font-medium transition-colors",
-              viewMode === "calendar"
-                ? "border border-orange-500 text-orange-500"
+              "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+              isViewPage && currentMode === "calendar"
+                ? "bg-orange-500 text-white"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             캘린더뷰
-          </button>
+            <Calendar className="size-4" />
+          </Link>
         </div>
 
-        <div className="flex h-9 items-center gap-2 rounded-full border border-border px-4">
-          <input
-            type="text"
-            placeholder="검색어를 입력해주세요"
-            className="w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          <Search className="size-4 text-muted-foreground" />
-        </div>
+        <SearchDropdown />
 
         <button
           type="button"
