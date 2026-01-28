@@ -24,42 +24,82 @@ interface NearbyPlacesProps {
 const mockPlaces: Place[] = [
   {
     id: "1",
-    name: "Generic Metal Pizza",
+    name: "카페 온도",
     category: "카페",
     location: "성수동",
-    imageUrl: "/images/mockImg.png",
+    imageUrl: "https://picsum.photos/seed/cafe1/400/400",
     rating: 4.5,
   },
   {
     id: "2",
-    name: "Generic Metal Pizza",
-    category: "식당",
+    name: "스시 오마카세",
+    category: "일식",
     location: "성수동",
-    imageUrl: "/images/mockImg.png",
+    imageUrl: "https://picsum.photos/seed/sushi/400/400",
     rating: 4.3,
   },
   {
     id: "3",
-    name: "Generic Metal Pizza",
-    category: "카페",
+    name: "브런치 가든",
+    category: "브런치",
     location: "성수동",
-    imageUrl: "/images/mockImg.png",
+    imageUrl: "https://picsum.photos/seed/brunch/400/400",
     rating: 4.7,
   },
   {
     id: "4",
-    name: "Generic Metal Pizza",
-    category: "식당",
+    name: "파스타 공방",
+    category: "양식",
     location: "성수동",
-    imageUrl: "/images/mockImg.png",
+    imageUrl: "https://picsum.photos/seed/pasta/400/400",
     rating: 4.2,
   },
   {
     id: "5",
-    name: "Generic Metal Pizza",
+    name: "로스터리 커피",
     category: "카페",
     location: "성수동",
-    imageUrl: "/images/mockImg.png",
+    imageUrl: "https://picsum.photos/seed/coffee/400/400",
+    rating: 4.6,
+  },
+  {
+    id: "6",
+    name: "한정식 담",
+    category: "한식",
+    location: "성수동",
+    imageUrl: "https://picsum.photos/seed/korean/400/400",
+    rating: 4.6,
+  },
+  {
+    id: "7",
+    name: "디저트 라운지",
+    category: "디저트",
+    location: "성수동",
+    imageUrl: "https://picsum.photos/seed/dessert/400/400",
+    rating: 4.6,
+  },
+  {
+    id: "8",
+    name: "피자 팩토리",
+    category: "양식",
+    location: "성수동",
+    imageUrl: "https://picsum.photos/seed/pizza/400/400",
+    rating: 4.6,
+  },
+  {
+    id: "9",
+    name: "라멘 하우스",
+    category: "일식",
+    location: "성수동",
+    imageUrl: "https://picsum.photos/seed/ramen/400/400",
+    rating: 4.6,
+  },
+  {
+    id: "10",
+    name: "베이커리 숲",
+    category: "베이커리",
+    location: "성수동",
+    imageUrl: "https://picsum.photos/seed/bakery/400/400",
     rating: 4.6,
   },
 ];
@@ -77,7 +117,7 @@ export function NearbyPlaces({ className, places }: NearbyPlacesProps) {
 
   return (
     <section className={cn("border-t border-border py-10", className)}>
-      <div className="mx-auto max-w-[1200px] px-5">
+      <div className="mx-auto max-w-300 px-5">
         {/* 헤더 */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">
@@ -113,7 +153,7 @@ export function NearbyPlaces({ className, places }: NearbyPlacesProps) {
               className="group"
             >
               {/* 이미지 */}
-              <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-muted">
+              <div className="relative mb-3 h-64.5 w-48.25 overflow-hidden rounded-lg bg-muted">
                 <Image
                   src={place.imageUrl}
                   alt={place.name}

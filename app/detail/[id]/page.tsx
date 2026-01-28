@@ -12,6 +12,7 @@ import {
   OfficialChannel,
   RelatedPopups,
 } from "@/components/detail";
+import { ScrollToTop } from "@/components/common/ScrollToTop";
 
 // 임시 목데이터
 const mockDetailData = {
@@ -148,6 +149,9 @@ export default function DetailPage() {
 
       {/* 가까운 팝업스토어 */}
       <RelatedPopups />
+
+      {/* 맨 위로 버튼 */}
+      <ScrollToTop />
     </div>
   );
 }

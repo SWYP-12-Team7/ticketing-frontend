@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface Channel {
@@ -26,20 +26,20 @@ export function OfficialChannel({
 
   return (
     <section className={cn("border-t border-border py-10", className)} id={id}>
-      <div className="mx-auto max-w-[1200px] px-5">
-        <h2 className="mb-6 text-lg font-bold text-foreground">공식채널</h2>
+      <div className="mx-auto max-w-300 px-5">
+        <h2 className="mb-6 text-heading-medium">공식채널</h2>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {channels.map((channel, index) => (
             <Link
               key={index}
               href={channel.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-[#6A8DFF] hover:underline"
+              className="flex items-center gap-1 text-body-medium text-[#4B5462] hover:opacity-80"
             >
-              {channel.name}
-              <ExternalLink className="size-3" />
+              <span>{channel.name}</span>
+              <ChevronRight className="size-4" />
             </Link>
           ))}
         </div>

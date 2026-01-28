@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight, MapPin, Calendar } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -9,10 +9,12 @@ import { useState } from "react";
 interface Popup {
   id: string;
   title: string;
-  location: string;
-  date: string;
+  category: string;
+  period: string;
   imageUrl: string;
-  tags: string[];
+  viewCount: number;
+  likeCount: number;
+  isLiked?: boolean;
 }
 
 interface RelatedPopupsProps {
@@ -24,43 +26,48 @@ interface RelatedPopupsProps {
 const mockPopups: Popup[] = [
   {
     id: "1",
-    title: "현대미술 컬렉션: 새로운 시선",
-    location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
-    imageUrl: "/images/mockImg.png",
-    tags: ["전시", "현대미술"],
+    title: "빵고미 팝업 - 대구",
+    category: "캐릭터",
+    period: "26.88.88 - 26.88.88",
+    imageUrl: "https://picsum.photos/seed/popup1/400/500",
+    viewCount: 99999,
+    likeCount: 99999,
   },
   {
     id: "2",
-    title: "팝업스토어 2",
-    location: "서울 성수",
-    date: "2024.02.01 - 2024.02.28",
-    imageUrl: "/images/mockImg.png",
-    tags: ["팝업", "패션"],
+    title: "패션 브랜드 팝업",
+    category: "패션",
+    period: "26.01.15 - 26.02.15",
+    imageUrl: "https://picsum.photos/seed/popup2/400/500",
+    viewCount: 85000,
+    likeCount: 12000,
   },
   {
     id: "3",
-    title: "팝업스토어 3",
-    location: "서울 강남",
-    date: "2024.03.01 - 2024.03.31",
-    imageUrl: "/images/mockImg.png",
-    tags: ["팝업", "뷰티"],
+    title: "뷰티 팝업스토어",
+    category: "뷰티",
+    period: "26.02.01 - 26.03.01",
+    imageUrl: "https://picsum.photos/seed/popup3/400/500",
+    viewCount: 72000,
+    likeCount: 9500,
   },
   {
     id: "4",
-    title: "팝업스토어 4",
-    location: "서울 홍대",
-    date: "2024.04.01 - 2024.04.30",
-    imageUrl: "/images/mockImg.png",
-    tags: ["팝업", "F&B"],
+    title: "푸드 페스티벌",
+    category: "F&B",
+    period: "26.03.10 - 26.03.20",
+    imageUrl: "https://picsum.photos/seed/popup4/400/500",
+    viewCount: 45000,
+    likeCount: 6800,
   },
   {
     id: "5",
-    title: "팝업스토어 5",
-    location: "서울 이태원",
-    date: "2024.05.01 - 2024.05.31",
-    imageUrl: "/images/mockImg.png",
-    tags: ["팝업", "라이프스타일"],
+    title: "아트 전시회",
+    category: "전시",
+    period: "26.04.01 - 26.05.31",
+    imageUrl: "https://picsum.photos/seed/popup5/400/500",
+    viewCount: 120000,
+    likeCount: 25000,
   },
 ];
 
@@ -107,66 +114,67 @@ export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
         {/* 카드 리스트 */}
         <div className="grid grid-cols-5 gap-4">
           {visiblePopups.map((popup) => (
-            <Link
-              key={popup.id}
-              href={`/detail/${popup.id}`}
-              className="group relative overflow-hidden rounded-xl"
-            >
+            <div key={popup.id} className="group">
               {/* 이미지 */}
-              <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-                <Image
-                  src={popup.imageUrl}
-                  alt={popup.title}
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
+              <Link href={`/detail/${popup.id}`}>
+                <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-xl bg-muted">
+                  <Image
+                    src={popup.imageUrl}
+                    alt={popup.title}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
 
-                {/* 좋아요 버튼 */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                  }}
-                  className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/30 transition-colors hover:bg-black/50"
-                >
-                  <Heart className="size-4 text-white" strokeWidth={1.5} />
-                </button>
+                  {/* 좋아요 버튼 */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // 좋아요 토글 로직
+                    }}
+                    className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-white/80 transition-colors hover:bg-white"
+                  >
+                    <Heart
+                      className={cn(
+                        "size-5",
+                        popup.isLiked
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-600"
+                      )}
+                    />
+                  </button>
+                </div>
+              </Link>
 
-                {/* 하단 그라데이션 + 텍스트 */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-16">
-                  {/* 태그 */}
-                  <div className="mb-2 flex gap-1">
-                    {popup.tags.slice(0, 2).map((tag, index) => (
-                      <span
-                        key={index}
-                        className={cn(
-                          "rounded-md px-2 py-0.5 text-xs text-white",
-                          index === 0 ? "bg-[#6A8DFF]" : "bg-[#FA7228]"
-                        )}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+              {/* 정보 */}
+              <Link href={`/detail/${popup.id}`}>
+                {/* 카테고리 */}
+                <p className="mb-1 text-caption-medium text-muted-foreground">
+                  {popup.category}
+                </p>
+
+                {/* 제목 */}
+                <h3 className="mb-1 truncate text-body-medium-bold group-hover:underline">
+                  {popup.title}
+                </h3>
+
+                {/* 기간 */}
+                <p className="mb-2 text-caption-medium text-muted-foreground">
+                  {popup.period}
+                </p>
+
+                {/* 조회수 / 좋아요 */}
+                <div className="flex items-center gap-3 text-caption-medium text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Eye className="size-3" />
+                    <span>{popup.viewCount.toLocaleString()}+</span>
                   </div>
-
-                  {/* 제목 */}
-                  <h3 className="mb-2 truncate text-sm font-medium text-white">
-                    {popup.title}
-                  </h3>
-
-                  {/* 위치 */}
-                  <div className="mb-1 flex items-center gap-1 text-xs text-white/80">
-                    <MapPin className="size-3" />
-                    <span>{popup.location}</span>
-                  </div>
-
-                  {/* 날짜 */}
-                  <div className="flex items-center gap-1 text-xs text-white/80">
-                    <Calendar className="size-3" />
-                    <span>{popup.date}</span>
+                  <div className="flex items-center gap-1">
+                    <Heart className="size-3" />
+                    <span>{popup.likeCount.toLocaleString()}+</span>
                   </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       </div>
