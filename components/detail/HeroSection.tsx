@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Heart, ChevronLeft, Eye, Share } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { ShareBox } from "./ShareBox";
 
 interface HeroSectionProps {
   className?: string;
@@ -39,6 +40,7 @@ export function HeroSection({
   onLikeClick,
 }: HeroSectionProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const currentImage = images[currentImageIndex] || "";
 
   return (
@@ -180,10 +182,22 @@ export function HeroSection({
           </div>
 
           {/* 오른쪽: 공유하기 버튼 */}
-          <button className="flex shrink-0 flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-foreground">
-            <Share className="size-5" />
-            <span className="text-xs">공유하기</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsShareOpen((prev) => !prev)}
+              className="flex shrink-0 flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Share className="size-5" />
+              <span className="text-xs">공유하기</span>
+            </button>
+
+            {isShareOpen && (
+              <div className="absolute right-0 bottom-[calc(100%+12px)] z-10">
+                <ShareBox onClose={() => setIsShareOpen(false)} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
