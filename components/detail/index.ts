@@ -1,8 +1,7 @@
 export { HeroSection } from "./HeroSection";
 export { TabNavigation } from "./TabNavigation";
-export { IntroSection } from "./IntroSection";
+export { ContentSection } from "./ContentSection";
 export { InfoSection } from "./InfoSection";
-export { NoticeSection } from "./NoticeSection";
 export { LocationSection } from "./LocationSection";
 export { NearbyPlaces } from "./NearbyPlaces";
 export { PriceSection } from "./PriceSection";

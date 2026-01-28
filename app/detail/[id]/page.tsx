@@ -4,9 +4,8 @@ import { useState } from "react";
 import {
   HeroSection,
   TabNavigation,
-  IntroSection,
+  ContentSection,
   InfoSection,
-  NoticeSection,
   LocationSection,
   NearbyPlaces,
   PriceSection,
@@ -44,27 +43,11 @@ Beatae qui a aut. Placeat id officia itaque assumenda amet cumque. Minima atque 
   closedDays: "월요일",
   contactNumber: "02-0000-0000",
 
-  // 공지사항 (이벤트)
-  notices: [
-    {
-      title: "Lucky draw",
-      content: `Lorem ipsum dolor sit amet consectetur. Odio eu altefend neque amet libero vivamus neque diam a. Egestas massa amet blandit mauris facilisis tellus leo nec. Viverra gravida nec alicias tincidunt amet cras. At sed tempus scelerisque urna risue integer at est.
+  // 공지사항
+  noticeText: `Lorem ipsum dolor sit amet consectetur. Odio eu altefend neque amet libero vivamus neque diam a. Egestas massa amet blandit mauris facilisis tellus leo nec. Viverra gravida nec alicias tincidunt amet cras. At sed tempus scelerisque urna risue integer at est.
 
 Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.`,
-    },
-    {
-      title: "Event",
-      content: `Lorem ipsum dolor sit amet consectetur. Odio eu altefend neque amet libero vivamus neque diam a. Egestas massa amet blandit mauris facilisis tellus leo nec. Viverra gravida nec alicias tincidunt amet cras. At sed tempus scelerisque urna risue integer at est.
-
-Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.
-
-Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.
-
-Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.
-
-Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.`,
-    },
-  ],
+  noticeImageUrl: "https://picsum.photos/seed/notice/800/600",
 
   // 가격
   prices: [
@@ -126,8 +109,9 @@ export default function DetailPage() {
       <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* 소개 섹션 */}
-      <IntroSection
+      <ContentSection
         id="intro"
+        title="소개"
         text={mockDetailData.introText}
         imageUrl={mockDetailData.introImageUrl}
       />
@@ -142,7 +126,13 @@ export default function DetailPage() {
       />
 
       {/* 공지사항 섹션 */}
-      <NoticeSection id="notice" notices={mockDetailData.notices} />
+      <ContentSection
+        id="notice"
+        title="공지사항"
+        text={mockDetailData.noticeText}
+        imageUrl={mockDetailData.noticeImageUrl}
+        maxHeight={280}
+      />
 
       {/* 장소 섹션 */}
       <LocationSection id="location" address={mockDetailData.address} />
