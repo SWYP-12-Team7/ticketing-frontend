@@ -4,13 +4,16 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  devIndicators: true, // 오버레이 아이콘 표시 여부
 
   async rewrites() {
+    const apiUrl = process.env.API_URL;
+    if (!apiUrl) {
+      return [];
+    }
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.API_URL}/:path*`,
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },
