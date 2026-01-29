@@ -154,22 +154,3 @@ export function useEventTooltip(): UseEventTooltipResult {
 
   return { tooltip, closeTooltip, onEventMouseEnter, onEventMouseLeave };
 }
-
-// #region agent log
-(() => {
-  const isServer = typeof window === "undefined";
-  fetch("http://127.0.0.1:7243/ingest/8ac4a727-08b3-4c34-a88c-c654febad19e", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sessionId: "debug-session",
-      runId: "pre-fix",
-      hypothesisId: "H3",
-      location: "useEventTooltip.tsx:155",
-      message: "useEventTooltip module evaluated",
-      data: { isServer },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-})();
-// #endregion

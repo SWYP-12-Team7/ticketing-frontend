@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./vendor/fullcalendar/core.css";
+@import "./vendor/fullcalendar/daygrid.css";
 
 :root {
   --background: #ffffff;
@@ -25,72 +27,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* --- FullCalendar minimal styles (v6+) ---
-   NOTE: 패키지에 CSS가 포함돼 있지 않아(현재 설치 상태 기준) 화면이 깨지지 않도록 최소 스타일만 제공합니다.
+/* --- FullCalendar theme overrides ---
+   - FullCalendar ESM 번들에 CSS가 포함되지 않는 환경을 위해, 공식 CSS를 `app/vendor/fullcalendar/*.css`로 vendoring 합니다.
+   - 여기서는 컬러/상호작용 등 "프로덕트 스킨"만 최소 오버라이드합니다.
 */
 .fc {
-  --fc-border-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+  --fc-border-color: color-mix(in oklab, var(--foreground) 16%, transparent);
   --fc-today-bg-color: color-mix(in oklab, var(--foreground) 6%, transparent);
-  --fc-neutral-bg-color: color-mix(in oklab, var(--foreground) 4%, transparent);
   --fc-page-bg-color: transparent;
-  --fc-small-font-size: 0.85em;
+  --fc-neutral-bg-color: color-mix(in oklab, var(--foreground) 4%, transparent);
   font-size: 14px;
-}
-
-.fc .fc-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.fc .fc-toolbar-title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.fc .fc-button {
-  border: 1px solid var(--fc-border-color);
-  background: var(--fc-neutral-bg-color);
-  color: var(--foreground);
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-.fc .fc-button:disabled {
-  opacity: 0.5;
-}
-
-.fc .fc-scrollgrid,
-.fc .fc-scrollgrid table {
-  border: 1px solid var(--fc-border-color);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.fc .fc-col-header-cell,
-.fc .fc-daygrid-day {
-  border: 1px solid var(--fc-border-color);
-}
-
-.fc .fc-daygrid-day.fc-day-today {
-  background: var(--fc-today-bg-color);
-}
-
-.fc .fc-daygrid-day-number {
-  padding: 8px;
-  font-weight: 500;
-}
-
-.fc .fc-event {
-  border: 1px solid var(--fc-border-color);
-  background: color-mix(in oklab, var(--background) 78%, var(--foreground) 22%);
-  color: var(--foreground);
-  border-radius: 10px;
-  padding: 2px 6px;
 }
 
 /* Calendar event interactions (hover/selected) */
@@ -110,7 +56,4 @@ body {
 /* 여러 날 일정(block event)이 그리드 세로선을 덮도록 */
 .fc .fc-daygrid-block-event {
   @apply relative z-[3];
-  margin-left: -2px;
-  margin-right: -2px;
-  background: color-mix(in oklab, var(--background) 78%, var(--foreground) 22%);
 }

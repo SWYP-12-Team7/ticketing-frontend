@@ -24,24 +24,6 @@ export function CalendarSurface({
   onEventMouseEnter,
   onEventMouseLeave,
 }: CalendarSurfaceProps) {
-  // #region agent log
-  React.useEffect(() => {
-    fetch("http://127.0.0.1:7243/ingest/8ac4a727-08b3-4c34-a88c-c654febad19e", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: "debug-session",
-        runId: "pre-fix",
-        hypothesisId: "H3",
-        location: "CalendarSurface.tsx:22",
-        message: "CalendarSurface mounted",
-        data: { eventsCount: Array.from(events).length, showEmptyState },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }, [events, showEmptyState]);
-  // #endregion
-
   const onEventMouseEnterWithHighlight = React.useCallback(
     (arg: EventHoveringArg) => {
       arg.el.classList.add("pw-fc-event--hover");
