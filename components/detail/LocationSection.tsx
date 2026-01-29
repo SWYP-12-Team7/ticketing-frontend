@@ -34,7 +34,7 @@ export function LocationSection({
   return (
     <section className={cn("border-t border-border py-10", className)} id={id}>
       <div className="mx-auto max-w-[1200px] px-5">
-        <h2 className="mb-6 text-lg font-bold text-foreground">장소</h2>
+        <h2 className="mb-6 text-heading-medium text-[#202937]">장소</h2>
 
         {/* 주소 */}
         <div className="mb-4 flex items-center gap-2">

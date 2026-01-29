@@ -11,7 +11,7 @@ export function ShareBox({ onClose }: ShareBoxProps) {
   return (
     <div className="w-[240px] rounded-2xl bg-white px-4 py-6 shadow-[0px_1px_2px_rgba(0,0,0,0.1),0px_0px_2px_rgba(0,0,0,0.1)]">
       <div className="flex items-center justify-between rounded-xl py-1">
-        <p className="text-lg font-normal leading-[1.5] text-[#222]">공유하기</p>
+        <p className="text-body-small text-[#222222]">공유하기</p>
         <button
           type="button"
           onClick={onClose}

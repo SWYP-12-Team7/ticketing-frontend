@@ -25,7 +25,7 @@ export function TabNavigation({
   return (
     <nav
       className={cn(
-        "sticky top-14 z-40 border-b border-border bg-white",
+        "sticky top-14 z-40 border-y border-[#6C7180] bg-white",
         className
       )}
     >
@@ -44,7 +44,7 @@ export function TabNavigation({
             >
               {tab.label}
               {activeTab === tab.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#F36012]" />
+                <span className="absolute -bottom-px left-0 right-0 z-10 h-1 bg-[#F36012]" />
               )}
             </button>
           ))}
