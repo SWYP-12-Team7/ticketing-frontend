@@ -12,6 +12,8 @@ type CalendarMonthTableProps = Readonly<{
   gridDays: readonly Date[];
   activeCategories: CalendarCategoryActiveMap;
   countsByDate: ReadonlyMap<IsoDate, Record<CalendarCategory, number>>;
+  selectedDate?: IsoDate | null;
+  onDateClick?: (date: IsoDate) => void;
 }>;
 
 export function CalendarMonthTable({
@@ -19,6 +21,8 @@ export function CalendarMonthTable({
   gridDays,
   activeCategories,
   countsByDate,
+  selectedDate,
+  onDateClick,
 }: CalendarMonthTableProps) {
   return (
     <div className="calendarGrid__container mt-3 overflow-hidden rounded-2xl bg-[#FFF6EC] p-4">
@@ -55,17 +59,45 @@ export function CalendarMonthTable({
                   activeCategories.exhibition && counts.exhibition > 0;
                 const showPopup = activeCategories.popup && counts.popup > 0;
 
+                const isSelected = selectedDate === iso;
+                const isClickable = inMonth;
+
                 return (
                   <td key={iso} className="calendarDayCell__td align-top">
                     <div
                       className={cn(
-                        "calendarDayCell__card h-full min-h-24 rounded-xl border-2 bg-white p-3",
-                        inMonth
-                          ? "border-[#FFF0E2]"
-                          : "border-[#FFF0E2]/60 opacity-60"
+                        "calendarDayCell__card h-full min-h-24 rounded-xl bg-white p-3 transition-all",
+                        // 기본 border
+                        isSelected
+                          ? "border-[3px] border-[#FFD8B7] bg-[#FFF6EC]"
+                          : inMonth
+                            ? "border-2 border-[#FFF0E2]"
+                            : "border-2 border-[#FFF0E2]/60 opacity-60",
+                        // 클릭 가능 스타일
+                        isClickable &&
+                          "cursor-pointer hover:border-[#FFD8B7] hover:shadow-sm"
                       )}
+                      onClick={() => {
+                        if (isClickable && onDateClick) {
+                          onDateClick(iso);
+                        }
+                      }}
+                      role={isClickable ? "button" : undefined}
+                      tabIndex={isClickable ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (
+                          isClickable &&
+                          onDateClick &&
+                          (e.key === "Enter" || e.key === " ")
+                        ) {
+                          e.preventDefault();
+                          onDateClick(iso);
+                        }
+                      }}
                       aria-label={
-                        inMonth ? `${day.getDate()}일` : "해당 월이 아닌 날짜"
+                        inMonth
+                          ? `${day.getDate()}일${isSelected ? " (선택됨)" : ""}`
+                          : "해당 월이 아닌 날짜"
                       }
                     >
                       <div className="calendarDayCell__dateRow flex items-start justify-between">
@@ -75,42 +107,37 @@ export function CalendarMonthTable({
                       </div>
 
                       <div className="calendarDayCell__countList mt-2 flex flex-col gap-2">
-                        {showExhibition && (
-                          <div
-                            className="calendarDayCell__countPill flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold"
-                            style={{
-                              background:
-                                CALENDAR_CATEGORY_META.exhibition
-                                  .pillBackgroundColor,
-                              borderLeft: `6px solid ${CALENDAR_CATEGORY_META.exhibition.accentBorderColor}`,
-                            }}
-                          >
-                            {CALENDAR_CATEGORY_META.exhibition.label}{" "}
-                            {counts.exhibition}개
-                          </div>
-                        )}
+                        {/* 전시회 pill - 항상 렌더링, 조건부 표시 */}
+                        <div
+                          className={cn(
+                            "calendarDayCell__countPill flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold",
+                            !showExhibition && "opacity-0 pointer-events-none"
+                          )}
+                          style={{
+                            background:
+                              CALENDAR_CATEGORY_META.exhibition
+                                .pillBackgroundColor,
+                            borderLeft: `6px solid ${CALENDAR_CATEGORY_META.exhibition.accentBorderColor}`,
+                          }}
+                        >
+                          {CALENDAR_CATEGORY_META.exhibition.label}{" "}
+                          {counts.exhibition}개
+                        </div>
 
-                        {showPopup && (
-                          <div
-                            className="calendarDayCell__countPill flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold"
-                            style={{
-                              background:
-                                CALENDAR_CATEGORY_META.popup
-                                  .pillBackgroundColor,
-                              borderLeft: `6px solid ${CALENDAR_CATEGORY_META.popup.accentBorderColor}`,
-                            }}
-                          >
-                            {CALENDAR_CATEGORY_META.popup.label} {counts.popup}
-                            개
-                          </div>
-                        )}
-
-                        {!showExhibition && !showPopup && (
-                          <div
-                            className="calendarDayCell__emptySpacer h-[68px]"
-                            aria-hidden="true"
-                          />
-                        )}
+                        {/* 팝업 pill - 항상 렌더링, 조건부 표시 */}
+                        <div
+                          className={cn(
+                            "calendarDayCell__countPill flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold",
+                            !showPopup && "opacity-0 pointer-events-none"
+                          )}
+                          style={{
+                            background:
+                              CALENDAR_CATEGORY_META.popup.pillBackgroundColor,
+                            borderLeft: `6px solid ${CALENDAR_CATEGORY_META.popup.accentBorderColor}`,
+                          }}
+                        >
+                          {CALENDAR_CATEGORY_META.popup.label} {counts.popup}개
+                        </div>
                       </div>
                     </div>
                   </td>

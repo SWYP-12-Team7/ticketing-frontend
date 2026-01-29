@@ -26,7 +26,13 @@ export function parseRegionIdParam(value: string | null): string {
 export function parseCategoriesParam(
   value: string | null
 ): CalendarCategoryActiveMap {
+  // 빈 문자열 = 명시적으로 모두 해제
+  if (value === "") {
+    return { exhibition: false, popup: false };
+  }
+  // null 또는 undefined = 기본값 (둘 다 체크)
   if (!value) return DEFAULT_ACTIVE_CATEGORIES;
+
   const tokens = new Set(
     value
       .split(",")
@@ -45,7 +51,8 @@ export function serializeCategoriesParam(
   const selected = (Object.keys(active) as CalendarCategory[]).filter(
     (k) => active[k]
   );
-  if (selected.length === 0) return null;
+  // 모두 해제 → 빈 문자열 반환 (null이 아님!)
+  if (selected.length === 0) return "";
   return selected.join(",");
 }
 

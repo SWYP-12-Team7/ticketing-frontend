@@ -25,6 +25,7 @@ import {
 import { CalendarMonthNav } from "./CalendarMonthNav";
 import { CalendarMonthTable } from "./CalendarMonthTable";
 import { CalendarToolbar } from "./CalendarToolbar";
+import { HotEventSection } from "./HotEventSection";
 
 const FALLBACK_REGIONS: readonly CalendarRegion[] = [
   { id: "all", label: "부산시 전체" },
@@ -43,7 +44,12 @@ function getMonthDateFromIsoMonth(month: string): Date {
   return new Date(y, m - 1, 1);
 }
 
-export function CalendarView() {
+interface CalendarViewProps {
+  selectedDate?: IsoDate | null;
+  onDateClick?: (date: IsoDate) => void;
+}
+
+export function CalendarView({ selectedDate, onDateClick }: CalendarViewProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -178,8 +184,17 @@ export function CalendarView() {
           gridDays={gridDays}
           activeCategories={activeCategories}
           countsByDate={countsByDate}
+          selectedDate={selectedDate}
+          onDateClick={onDateClick}
         />
       </div>
+
+      {/* HOT EVENT 섹션 - activeCategories 전달 */}
+      <HotEventSection
+        className="mt-10"
+        selectedDate={selectedDate}
+        activeCategories={activeCategories}
+      />
     </section>
   );
 }

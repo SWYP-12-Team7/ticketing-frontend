@@ -1,8 +1,12 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useState } from "react";
 import { CalendarView } from "@/components/calendarview/CalendarView";
-import { HotEventSection } from "@/components/calendarview/HotEventSection";
+import type { IsoDate } from "@/types/calendar";
 
 export default function CalendarViewPage() {
+  const [selectedDate, setSelectedDate] = useState<IsoDate | null>(null);
+
   return (
     <main className="calendarViewPage__main mx-auto w-full max-w-7xl px-4 py-6">
       {/* 캘린더 */}
@@ -16,11 +20,11 @@ export default function CalendarViewPage() {
           </div>
         }
       >
-        <CalendarView />
+        <CalendarView
+          selectedDate={selectedDate}
+          onDateClick={setSelectedDate}
+        />
       </Suspense>
-
-      {/* HOT EVENT 섹션 */}
-      <HotEventSection className="mt-10" />
     </main>
   );
 }
