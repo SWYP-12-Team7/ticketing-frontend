@@ -1,0 +1,9 @@
+export { HeroSection } from "./HeroSection";
+export { TabNavigation } from "./TabNavigation";
+export { ContentSection } from "./ContentSection";
+export { InfoSection } from "./InfoSection";
+export { LocationSection } from "./LocationSection";
+export { NearbyPlaces } from "./NearbyPlaces";
+export { PriceSection } from "./PriceSection";
+export { OfficialChannel } from "./OfficialChannel";
+export { RelatedPopups } from "./RelatedPopups";

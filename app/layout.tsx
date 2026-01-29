@@ -1,18 +1,27 @@
 /* // 이전 기본 레이아웃(주석 처리됨)
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Providers from "./providers";
+import { Header } from "@/components/common/Header";
+import { Footer } from "@/components/common/Footer";
 
 export const metadata: Metadata = {
-  title: "ticketing Project",
+  title: "와르르",
   description: "SWYP 7th Team front",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body>
-        <Providers>{children}</Providers>
+      <body className="flex min-h-screen flex-col">
+        <Providers>
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
