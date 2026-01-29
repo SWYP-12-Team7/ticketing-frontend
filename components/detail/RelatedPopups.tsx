@@ -1,29 +1,18 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight, Eye } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-
-interface Popup {
-  id: string;
-  title: string;
-  category: string;
-  period: string;
-  imageUrl: string;
-  viewCount: number;
-  likeCount: number;
-  isLiked?: boolean;
-}
+import { EventCard } from "@/components/common/EventCard";
+import type { Event } from "@/types/event";
 
 interface RelatedPopupsProps {
   className?: string;
-  popups?: Popup[];
+  popups?: Event[];
 }
 
 // 임시 목데이터
-const mockPopups: Popup[] = [
+const mockPopups: Event[] = [
   {
     id: "1",
     title: "빵고미 팝업 - 대구",
@@ -78,105 +67,64 @@ export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
   const maxIndex = Math.max(0, displayPopups.length - visibleCount);
 
   const handlePrev = () => setStartIndex((prev) => Math.max(0, prev - 1));
-  const handleNext = () => setStartIndex((prev) => Math.min(maxIndex, prev + 1));
+  const handleNext = () =>
+    setStartIndex((prev) => Math.min(maxIndex, prev + 1));
 
-  const visiblePopups = displayPopups.slice(startIndex, startIndex + visibleCount);
+  const visiblePopups = displayPopups.slice(
+    startIndex,
+    startIndex + visibleCount
+  );
+
+  const handleLikeClick = (id: string) => {
+    console.log("좋아요 클릭:", id);
+    // TODO: 좋아요 API 호출
+  };
 
   return (
-    <section className={cn("border-t border-border py-10", className)}>
-      <div className="mx-auto max-w-[1200px] px-5">
+    <section
+      className={cn("relatedPopups border-t border-border py-10", className)}
+      aria-labelledby="relatedPopupsHeading"
+    >
+      <div className="relatedPopups__container mx-auto max-w-[1200px] px-5">
         {/* 헤더 */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground">
+        <div className="relatedPopups__header mb-4 flex items-center justify-between">
+          <h2
+            id="relatedPopupsHeading"
+            className="relatedPopups__title text-lg font-bold text-foreground"
+          >
             가까운 팝업스토어
           </h2>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
+          <div className="relatedPopups__navigation flex items-center gap-2">
+            <span className="relatedPopups__pageIndicator text-sm text-muted-foreground">
               {startIndex + 1} / {displayPopups.length}
             </span>
             <button
               onClick={handlePrev}
               disabled={startIndex === 0}
-              className="flex size-8 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-50"
+              className="relatedPopups__prevButton flex size-8 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="이전 페이지"
             >
               <ChevronLeft className="size-4" />
             </button>
             <button
               onClick={handleNext}
               disabled={startIndex >= maxIndex}
-              className="flex size-8 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-50"
+              className="relatedPopups__nextButton flex size-8 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="다음 페이지"
             >
               <ChevronRight className="size-4" />
             </button>
           </div>
         </div>
 
-        {/* 카드 리스트 */}
-        <div className="grid grid-cols-5 gap-4">
+        {/* 카드 그리드 - 5열 고정 */}
+        <ul className="relatedPopups__grid grid grid-cols-5 gap-4">
           {visiblePopups.map((popup) => (
-            <div key={popup.id} className="group">
-              {/* 이미지 */}
-              <Link href={`/detail/${popup.id}`}>
-                <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-                  <Image
-                    src={popup.imageUrl}
-                    alt={popup.title}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
-                  />
-
-                  {/* 좋아요 버튼 */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // 좋아요 토글 로직
-                    }}
-                    className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-white/80 transition-colors hover:bg-white"
-                  >
-                    <Heart
-                      className={cn(
-                        "size-5",
-                        popup.isLiked
-                          ? "fill-red-500 text-red-500"
-                          : "text-gray-600"
-                      )}
-                    />
-                  </button>
-                </div>
-              </Link>
-
-              {/* 정보 */}
-              <Link href={`/detail/${popup.id}`}>
-                {/* 카테고리 */}
-                <p className="mb-1 text-caption-medium text-muted-foreground">
-                  {popup.category}
-                </p>
-
-                {/* 제목 */}
-                <h3 className="mb-1 truncate text-body-medium-bold group-hover:underline">
-                  {popup.title}
-                </h3>
-
-                {/* 기간 */}
-                <p className="mb-2 text-caption-medium text-muted-foreground">
-                  {popup.period}
-                </p>
-
-                {/* 조회수 / 좋아요 */}
-                <div className="flex items-center gap-3 text-caption-medium text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Eye className="size-3" />
-                    <span>{popup.viewCount.toLocaleString()}+</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="size-3" />
-                    <span>{popup.likeCount.toLocaleString()}+</span>
-                  </div>
-                </div>
-              </Link>
-            </div>
+            <li key={popup.id}>
+              <EventCard event={popup} onLikeClick={handleLikeClick} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
