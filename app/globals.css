@@ -1,7 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "./vendor/fullcalendar/core.css";
-@import "./vendor/fullcalendar/daygrid.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -230,35 +228,4 @@
     font-weight: 400;
     line-height: 150%;
   }
-}
-
-/* --- FullCalendar theme overrides ---
-   - FullCalendar ESM 번들에 CSS가 포함되지 않는 환경을 위해, 공식 CSS를 `app/vendor/fullcalendar/*.css`로 vendoring 합니다.
-   - 여기서는 컬러/상호작용 등 "프로덕트 스킨"만 최소 오버라이드합니다.
-*/
-.fc {
-  --fc-border-color: color-mix(in oklab, var(--foreground) 16%, transparent);
-  --fc-today-bg-color: color-mix(in oklab, var(--foreground) 6%, transparent);
-  --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: color-mix(in oklab, var(--foreground) 4%, transparent);
-  font-size: 14px;
-}
-
-/* Calendar event interactions (hover/selected) */
-.fc .pw-fc-event {
-  transition:
-    transform 120ms ease,
-    filter 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.fc .pw-fc-event.pw-fc-event--hover {
-  filter: brightness(1.1) saturate(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-}
-
-/* 여러 날 일정(block event)이 그리드 세로선을 덮도록 */
-.fc .fc-daygrid-block-event {
-  @apply relative z-[3];
 }

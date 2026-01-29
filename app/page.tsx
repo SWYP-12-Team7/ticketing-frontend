@@ -15,10 +15,6 @@ import {
 //   return res.json();
 // }
 
-import { Suspense } from "react";
-import Calendar from "./components/Calendar";
-import { CALENDAR_COPY } from "./components/calendar/calendar.copy";
-
 export default async function Home() {
   // const data = await getHomeData();
 
