@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   HeroSection,
   TabNavigation,
@@ -63,19 +63,54 @@ Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices di
   ],
 };
 
+const TAB_IDS = ["intro", "info", "notice", "location", "price", "channel"];
+
 export default function DetailPage() {
   const [activeTab, setActiveTab] = useState("intro");
   const [isLiked, setIsLiked] = useState(false);
+  const isClickScrolling = useRef(false);
+
+  // 스크롤에 따라 탭 변경
+  useEffect(() => {
+    const headerHeight = 56;
+    const tabHeight = 49;
+    const offset = headerHeight + tabHeight + 50; // 여유 공간 추가
+
+    const handleScroll = () => {
+      if (isClickScrolling.current) return;
+
+      for (const id of TAB_IDS) {
+        const element = document.getElementById(id);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= offset && rect.bottom > offset) {
+            setActiveTab(id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleTabChange = (tab: string) => {
+    isClickScrolling.current = true;
     setActiveTab(tab);
+
     const element = document.getElementById(tab);
     if (element) {
-      const headerHeight = 56; // h-14
-      const tabHeight = 49; // TabNavigation 높이
+      const headerHeight = 56;
+      const tabHeight = 49;
       const offset = headerHeight + tabHeight;
       const top = element.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: "smooth" });
+
+      // 스크롤 완료 후 플래그 해제
+      setTimeout(() => {
+        isClickScrolling.current = false;
+      }, 1000);
     }
   };
 

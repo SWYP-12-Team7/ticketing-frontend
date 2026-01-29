@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ChevronUp } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface ScrollToTopProps {
@@ -31,12 +31,12 @@ export function ScrollToTop({ className, showAfter = 200 }: ScrollToTopProps) {
     <button
       onClick={scrollToTop}
       className={cn(
-        "fixed bottom-6 right-6 z-50 flex size-12 items-center justify-center rounded-full border border-border bg-white shadow-lg transition-all hover:bg-muted",
+        "fixed bottom-6 right-6 z-50 transition-all hover:opacity-80",
         className
       )}
       aria-label="맨 위로 이동"
     >
-      <ChevronUp className="size-6" />
+      <Image src="/images/fab.svg" alt="맨 위로" width={48} height={48} />
     </button>
   );
 }
