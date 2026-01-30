@@ -94,42 +94,129 @@ const MOCK_TIMELINE = {
 };
 
 /**
- * 임시 이벤트 데이터
+ * 지역 목록 (순환용)
+ */
+const REGIONS: WishlistRegionFilter[] = [
+  "seoul",
+  "busan",
+  "gyeonggi",
+  "incheon",
+  "daejeon",
+  "gwangju",
+  "ulsan",
+  "gyeongnam",
+  "jeonbuk",
+  "jeonnam",
+  "chungbuk",
+  "chungnam",
+  "gyeongbuk",
+];
+
+/**
+ * 임시 이벤트 데이터 (다양한 데이터)
  * TODO: 실제 API 연동 시 제거
  */
-const MOCK_WISHLIST_EVENTS: Event[] = Array.from({ length: 53 }, (_, i) => ({
-  id: `event-${i + 1}`,
-  title: "현대미술을 담백한: 새로운 시선",
-  category: i % 2 === 0 ? "전시" : "캐러터",
-  period: "2024.12.19 - 2025.3.22",
-  imageUrl: "/images/mockImg.png",
-  viewCount: 2444,
-  likeCount: 18353,
-  isLiked: true,
-}));
+const MOCK_WISHLIST_EVENTS: Event[] = Array.from({ length: 53 }, (_, i) => {
+  const now = new Date();
+  const createdAt = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+  const deadline = new Date(now.getTime() + (53 - i) * 24 * 60 * 60 * 1000);
+
+  return {
+    id: `event-${i + 1}`,
+    title: `현대미술을 담백한: 새로운 시선 #${i + 1}`,
+    category: i % 2 === 0 ? "전시" : "캐러터",
+    region: REGIONS[i % REGIONS.length],
+    location: `${REGIONS[i % REGIONS.length]} 지역`,
+    period: "2024.12.19 - 2025.3.22",
+    imageUrl: "/images/mockImg.png",
+    viewCount: Math.floor(1000 + Math.random() * 10000),
+    likeCount: Math.floor(500 + Math.random() * 20000),
+    isLiked: true,
+    createdAt,
+    deadline,
+  };
+});
+
+interface WishlistContainerProps {
+  userNickname?: string;
+}
 
 /**
  * 찜 목록 메인 컨테이너 컴포넌트
  * - 상태 관리
  * - 이벤트 핸들러
  * - 자식 컴포넌트 조합
+ * - 정렬/필터링 로직
  *
  * 아키텍처:
  * - Container/Presenter 패턴
  * - 상태 로직과 UI 로직 분리
  * - 재사용 가능한 컴포넌트 구조
+ *
+ * @param userNickname 유저 닉네임 (타임라인 섹션에 전달)
  */
-export function WishlistContainer() {
+export function WishlistContainer({ userNickname }: WishlistContainerProps) {
   // ============================================
   // 상태 관리
   // ============================================
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [events, setEvents] = useState<Event[]>(MOCK_WISHLIST_EVENTS);
   const [sortOption, setSortOption] = useState<WishlistSortOption>("popular");
   const [selectedRegions, setSelectedRegions] = useState<
     Set<WishlistRegionFilter>
   >(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [removedEventIds, setRemovedEventIds] = useState<Set<string>>(
+    new Set()
+  );
+
+  // ============================================
+  // 필터링 & 정렬 로직
+  // ============================================
+
+  /**
+   * 필터링 & 정렬된 이벤트 목록
+   * - 지역 필터 적용
+   * - 정렬 적용
+   * - 좋아요 해제된 항목 제외
+   */
+  const filteredAndSortedEvents = useMemo(() => {
+    let result = MOCK_WISHLIST_EVENTS.filter(
+      (event) => !removedEventIds.has(event.id)
+    );
+
+    // 1. 지역 필터 적용
+    if (selectedRegions.size > 0) {
+      result = result.filter(
+        (event) => event.region && selectedRegions.has(event.region)
+      );
+    }
+
+    // 2. 정렬 적용
+    result = [...result].sort((a, b) => {
+      switch (sortOption) {
+        case "popular":
+          // 인기순 (좋아요 많은 순)
+          return b.likeCount - a.likeCount;
+
+        case "latest":
+          // 최신순 (생성일 기준)
+          return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
+
+        case "deadline":
+          // 마감순 (마감일 가까운 순)
+          return (a.deadline?.getTime() || 0) - (b.deadline?.getTime() || 0);
+
+        case "views":
+          // 조회순 (조회수 많은 순)
+          return b.viewCount - a.viewCount;
+
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [sortOption, selectedRegions, removedEventIds]);
 
   // ============================================
   // 페이지네이션 계산
@@ -138,15 +225,15 @@ export function WishlistContainer() {
     WISHLIST_PAGINATION_CONFIG;
 
   const totalPages = useMemo(
-    () => Math.ceil(events.length / ITEMS_PER_PAGE),
-    [events.length, ITEMS_PER_PAGE]
+    () => Math.ceil(filteredAndSortedEvents.length / ITEMS_PER_PAGE),
+    [filteredAndSortedEvents.length, ITEMS_PER_PAGE]
   );
 
   const currentEvents = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return events.slice(startIndex, endIndex);
-  }, [events, currentPage, ITEMS_PER_PAGE]);
+    return filteredAndSortedEvents.slice(startIndex, endIndex);
+  }, [filteredAndSortedEvents, currentPage, ITEMS_PER_PAGE]);
 
   // ============================================
   // 이벤트 핸들러
@@ -171,15 +258,16 @@ export function WishlistContainer() {
 
   /**
    * 정렬 옵션 변경
+   * - 정렬 변경 시 첫 페이지로 이동
    */
   const handleSortChange = useCallback((option: WishlistSortOption) => {
     setSortOption(option);
     setCurrentPage(1);
-    // TODO: API 호출하여 정렬된 데이터 가져오기
   }, []);
 
   /**
    * 지역 필터 토글
+   * - 필터 변경 시 첫 페이지로 이동
    */
   const handleRegionToggle = useCallback((region: WishlistRegionFilter) => {
     setSelectedRegions((prev) => {
@@ -192,7 +280,6 @@ export function WishlistContainer() {
       return newSet;
     });
     setCurrentPage(1);
-    // TODO: API 호출하여 필터링된 데이터 가져오기
   }, []);
 
   /**
@@ -201,11 +288,11 @@ export function WishlistContainer() {
   const handleClearFilters = useCallback(() => {
     setSelectedRegions(new Set());
     setCurrentPage(1);
-    // TODO: API 호출하여 전체 데이터 가져오기
   }, []);
 
   /**
    * 페이지 변경
+   * - 페이지 상단으로 부드럽게 스크롤
    */
   const handlePageChange = useCallback(
     (page: number) => {
@@ -220,24 +307,25 @@ export function WishlistContainer() {
 
   /**
    * 이벤트 좋아요 해제
+   * - removedEventIds에 추가하여 필터링
+   * - 현재 페이지가 비어있으면 이전 페이지로 이동
    */
   const handleUnlike = useCallback(
     (eventId: string) => {
-      setEvents((prev) => {
-        const filtered = prev.filter((event) => event.id !== eventId);
-        // 현재 페이지가 비어있고 이전 페이지가 있으면 이전 페이지로 이동
-        if (
-          filtered.length > 0 &&
-          (currentPage - 1) * ITEMS_PER_PAGE >= filtered.length
-        ) {
-          setCurrentPage((prev) => Math.max(1, prev - 1));
-        }
-        return filtered;
-      });
+      setRemovedEventIds((prev) => new Set([...prev, eventId]));
+
+      // 현재 페이지가 비어있는지 확인
+      const remainingCount = filteredAndSortedEvents.length - 1;
+      const maxPage = Math.ceil(remainingCount / ITEMS_PER_PAGE);
+
+      if (currentPage > maxPage && maxPage > 0) {
+        setCurrentPage(maxPage);
+      }
+
       // TODO: API 호출하여 백엔드에 좋아요 해제 요청
       // await unlikeEvent(eventId);
     },
-    [currentPage, ITEMS_PER_PAGE]
+    [currentPage, filteredAndSortedEvents.length, ITEMS_PER_PAGE]
   );
 
   // ============================================
@@ -245,7 +333,7 @@ export function WishlistContainer() {
   // ============================================
 
   // 빈 상태
-  if (events.length === 0) {
+  if (filteredAndSortedEvents.length === 0) {
     return <WishlistEmptyState />;
   }
 
@@ -282,6 +370,7 @@ export function WishlistContainer() {
       <WishlistTimelineSection
         year={MOCK_TIMELINE.year}
         groups={MOCK_TIMELINE.groups}
+        userNickname={userNickname}
       />
     </div>
   );

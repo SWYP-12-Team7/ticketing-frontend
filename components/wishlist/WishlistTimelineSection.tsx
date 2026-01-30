@@ -23,6 +23,7 @@ interface WishlistTimelineSectionProps {
   year: number;
   groups: TimelineGroup[];
   className?: string;
+  userNickname?: string;
 }
 
 /**
@@ -30,11 +31,13 @@ interface WishlistTimelineSectionProps {
  * - 연도별 이벤트 타임라인
  * - 그룹별 이벤트 표시
  * - 세로 타임라인 UI
+ * - 유저 닉네임 표시
  */
 export const WishlistTimelineSection = memo(function WishlistTimelineSection({
   year,
   groups,
   className,
+  userNickname = "스위프",
 }: WishlistTimelineSectionProps) {
   if (!groups || groups.length === 0) {
     return null;
@@ -47,14 +50,14 @@ export const WishlistTimelineSection = memo(function WishlistTimelineSection({
     >
       {/* 섹션 타이틀 */}
       <h2 className="wishlistTimelineSection__title mb-10 text-heading-medium text-foreground">
-        <span className="text-primary">스위프 넘이</span> 찜한 행사
+        <span className="text-primary">{userNickname}</span> 님이 찜한 행사
         타임라인이에요!
       </h2>
 
       {/* 타임라인 컨테이너 */}
       <div className="wishlistTimelineSection__timeline relative pl-12">
         {/* 타임라인 세로선 */}
-        <div className="wishlistTimelineSection__verticalLine absolute left-[15px] top-0 h-full w-[2px] bg-gradient-to-b from-border via-border to-transparent" />
+        <div className="wishlistTimelineSection__verticalLine absolute left-[15px] top-0 h-full w-[2px] bg-linear-to-b from-border via-border to-transparent" />
 
         {/* 연도 노드 */}
         <div className="wishlistTimelineSection__yearNode relative mb-10">
@@ -92,7 +95,7 @@ export const WishlistTimelineSection = memo(function WishlistTimelineSection({
                   className="wishlistTimelineSection__eventCard group flex gap-4 rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:border-primary/50 hover:shadow-md"
                 >
                   {/* 이벤트 썸네일 */}
-                  <div className="wishlistTimelineSection__eventThumbnail relative h-28 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                  <div className="wishlistTimelineSection__eventThumbnail relative h-28 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                     <Image
                       src={event.imageUrl}
                       alt={event.title}

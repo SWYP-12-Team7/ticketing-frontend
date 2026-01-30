@@ -1,3 +1,5 @@
+import type { WishlistRegionFilter } from "./wishlist";
+
 /**
  * 전시/팝업 이벤트 공통 타입
  * - RelatedPopups의 Popup 타입
@@ -10,6 +12,7 @@ export interface Event {
   title: string;
   category: string;
   location?: string; // ShowPick에서 사용
+  region?: WishlistRegionFilter; // 지역 필터용
   period: string;
   date?: string; // ShowPick에서 사용
   imageUrl: string;
@@ -21,6 +24,8 @@ export interface Event {
   originalPrice?: number; // hotdeal variant용
   discountRate?: number;
   discountPrice?: number;
+  createdAt?: Date; // 최신순 정렬용
+  deadline?: Date; // 마감순 정렬용
 }
 
 /**

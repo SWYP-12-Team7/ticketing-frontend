@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { formatDdayStartFromDateString } from "@/lib/date";
+import { useUserNickname } from "@/contexts/UserContext";
 import Image from "next/image";
 import { Calendar, MapPin } from "lucide-react";
 
@@ -26,9 +27,11 @@ interface SavedEventsProps {
 
 export function EventSchedule({
   className,
-  userName = "스뮤트",
+  userName,
   events,
 }: SavedEventsProps) {
+  const defaultUserName = useUserNickname("스뮤트");
+  const displayUserName = userName ?? defaultUserName;
   // 더미 데이터
   const defaultEvents: SavedEvent[] = [
     {
@@ -71,11 +74,9 @@ export function EventSchedule({
         <div>
           <div className="mb-2.5 flex flex-wrap items-center gap-1 text-base md:text-lg">
             <span className="font-semibold text-[#FA7228]">
-              {userName}
+              {displayUserName}
             </span>
-            <span className="text-[#000000]">
-              님! 저장하신 행사일정이에요!
-            </span>
+            <span className="text-[#000000]">님! 저장하신 행사일정이에요!</span>
           </div>
           <p className="text-sm text-[#000000]">
             저장하신 행사를 타임라인으로 확인해보세요
@@ -92,9 +93,9 @@ export function EventSchedule({
       <div className="relative flex flex-col gap-4 px-7.5 pb-4">
         <div className="absolute left-9.5 top-2 h-[calc(100%-16px)] w-px border-l border-dashed border-[#50505078]" />
         <div className="h-9">
-           <div className="mt-2 flex w-4 justify-center">
-              <span className="size-3 rounded-full bg-[#505050]" />
-            </div>
+          <div className="mt-2 flex w-4 justify-center">
+            <span className="size-3 rounded-full bg-[#505050]" />
+          </div>
         </div>
         {displayEvents.map((event) => (
           <div key={event.id} className="relative flex gap-4">
@@ -134,7 +135,10 @@ export function EventSchedule({
                   </h4>
                   {event.location && (
                     <p className="mt-1.25 flex items-center gap-1 text-[12px] text-[#111111]">
-                      <MapPin className="size-4 text-[#111111]" strokeWidth={1.33} />
+                      <MapPin
+                        className="size-4 text-[#111111]"
+                        strokeWidth={1.33}
+                      />
                       {event.location}
                     </p>
                   )}
@@ -145,9 +149,13 @@ export function EventSchedule({
                         : "mt-1.25 flex items-center gap-1 text-[12px] text-[#111111]"
                     }
                   >
-                    <Calendar className="size-4 text-[#111111]" strokeWidth={1.33} />
+                    <Calendar
+                      className="size-4 text-[#111111]"
+                      strokeWidth={1.33}
+                    />
                     {event.status === "upcoming"
-                      ? formatDdayStartFromDateString(event.date) ?? event.date
+                      ? (formatDdayStartFromDateString(event.date) ??
+                        event.date)
                       : event.date}
                   </p>
                 </div>

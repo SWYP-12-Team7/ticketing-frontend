@@ -1,4 +1,7 @@
+"use client";
+
 import { WishlistContainer } from "@/components/wishlist";
+import { useUserNickname } from "@/contexts/UserContext";
 import { Suspense } from "react";
 
 /**
@@ -17,13 +20,16 @@ import { Suspense } from "react";
  * - 명확한 className
  */
 export default function WishlistPage() {
+  const userNickname = useUserNickname("스위프");
+
   return (
     <div className="wishlistPage min-h-screen bg-background">
       <div className="wishlistPage__container mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         {/* 페이지 헤더 */}
         <header className="wishlistPage__header mb-8">
           <h1 className="wishlistPage__title text-heading-large text-foreground">
-            스위프 넘이 찜한 행사들이에요!
+            <span className="text-primary">{userNickname}</span> 님이 찜한
+            행사들이에요!
           </h1>
         </header>
 
@@ -35,7 +41,7 @@ export default function WishlistPage() {
             </div>
           }
         >
-          <WishlistContainer />
+          <WishlistContainer userNickname={userNickname} />
         </Suspense>
       </div>
     </div>
