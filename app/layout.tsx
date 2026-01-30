@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: "SWYP 7th Team front",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ko">
       <body className="flex min-h-screen flex-col">

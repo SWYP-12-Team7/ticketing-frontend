@@ -110,9 +110,13 @@ export function ShowPick({
   const maxIndex = Math.max(0, displayEvents.length - visibleCount);
 
   const handlePrev = () => setStartIndex((prev) => Math.max(0, prev - 1));
-  const handleNext = () => setStartIndex((prev) => Math.min(maxIndex, prev + 1));
+  const handleNext = () =>
+    setStartIndex((prev) => Math.min(maxIndex, prev + 1));
 
-  const visibleEvents = displayEvents.slice(startIndex, startIndex + visibleCount);
+  const visibleEvents = displayEvents.slice(
+    startIndex,
+    startIndex + visibleCount
+  );
 
   // HotDeal 카드 렌더링
   const renderHotDealCard = (event: Event) => (
@@ -256,9 +260,7 @@ export function ShowPick({
         </div>
 
         {/* 제목 */}
-        <h3 className="mb-2 text-sm font-medium text-white">
-          {event.title}
-        </h3>
+        <h3 className="mb-2 text-sm font-medium text-white">{event.title}</h3>
 
         {/* 위치 */}
         <div className="mb-1 flex items-center gap-1 text-xs text-white/80">
@@ -285,15 +287,11 @@ export function ShowPick({
         <div className="flex items-center gap-3 text-white/80">
           <div className="flex items-center gap-1">
             <Eye className="size-3" />
-            <span className="text-xs">
-              {event.viewCount.toLocaleString()}
-            </span>
+            <span className="text-xs">{event.viewCount.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <Heart className="size-3" />
-            <span className="text-xs">
-              {event.likeCount.toLocaleString()}
-            </span>
+            <span className="text-xs">{event.likeCount.toLocaleString()}</span>
           </div>
         </div>
       </div>

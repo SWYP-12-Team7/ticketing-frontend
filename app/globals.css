@@ -228,4 +228,14 @@
     font-weight: 400;
     line-height: 150%;
   }
+
+  /* Scrollbar 숨기기 - 카테고리 섹션용 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
