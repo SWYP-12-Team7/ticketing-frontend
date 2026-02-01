@@ -166,15 +166,20 @@ const MENU_DATA: MenuCategory[] = [
 
 /**
  * Sidebar 너비
- * 현재: 320px 고정
+ * Figma 스펙: 382px (콘텐츠 286px + 패딩 96px)
  * 향후: 반응형 대응 시 breakpoint별로 다른 값 적용 가능
- * 예: 모바일(< 768px)에서는 90vw 등
  */
-const SIDEBAR_WIDTH = 250;
+const SIDEBAR_WIDTH = 382;
+
+/**
+ * Sidebar 왼쪽 시작 위치
+ * Figma 스펙: 화면 왼쪽에서 80px
+ */
+const SIDEBAR_LEFT_OFFSET = 80;
 
 /**
  * 애니메이션 속도
- * 호버 시 메뉴가 펼쳐지는 애니메이션 속도 (600ms)
+ * 메뉴 펼침/접힘 및 Sidebar 슬라이드 애니메이션 (600ms)
  */
 const ANIMATION_DURATION = 600;
 
@@ -197,6 +202,7 @@ const ANIMATION_DURATION = 600;
  * - Header 아래에서 시작 (top-14)
  * - Sidebar 내부 헤더 제거
  * - Footer 간소화
+ * - Figma 디자인 스펙 적용 (382px, left-20)
  */
 export function HeaderSideBar({
   isOpen,
@@ -332,18 +338,19 @@ export function HeaderSideBar({
                   <Link
                     href={subcategory.href}
                     className={cn(
-                      "sidebar__submenuLink flex h-[43px] w-full items-center gap-3",
-                      "py-1 pl-12 pr-4 text-body-small transition-all duration-200",
+                      "sidebar__submenuLink flex h-[43px] w-full items-center",
+                      "gap-3 p-1 pl-8 pr-2 transition-all duration-200",
+                      "text-body-large rounded-[4px]",
                       isActive
-                        ? "bg-gray-50 font-medium text-[#F36012]"
-                        : "text-foreground hover:bg-gray-50/50 hover:text-muted-foreground"
+                        ? "bg-[#F3F4F6] font-semibold text-[#F36012]"
+                        : "text-[#6C7180] hover:bg-[#F3F4F6]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
                     <IconComponent
                       className={cn(
-                        "sidebar__submenuIcon size-5 shrink-0 transition-colors",
-                        isActive ? "text-[#F36012]" : "text-muted-foreground"
+                        "sidebar__submenuIcon size-6 shrink-0 transition-colors",
+                        isActive ? "text-[#F36012]" : "text-[#6C7180]"
                       )}
                       aria-hidden={true}
                     />
@@ -381,29 +388,35 @@ export function HeaderSideBar({
       />
 
       {/* ============================================
-          [SWYP-108] Sidebar Container 위치 및 높이 조정
+          [SWYP-108] Sidebar Container - Figma 스펙 적용
           작성일: 2026-02-01
-          변경 이유: Header 아래에서 시작하도록 (이미지 active 상태)
+          변경 이유: Figma 디자인 스펙에 맞춰 크기 및 위치 조정
           
           이전 코드:
           className={cn(
             "sidebar fixed left-0 top-0 flex h-full flex-col bg-white shadow-2xl",
-            ...
+            "transition-transform ease-in-out",
+            isOpen ? "translate-x-0" : "-translate-x-full",
           )}
+          style={{ width: 250 }}
           
           변경 후:
-          - top-0 → top-14 (Header 높이만큼 아래에서 시작)
-          - h-full → h-[calc(100vh-3.5rem)] (전체 높이 - Header 높이)
-          - z-70 유지 (Tailwind 기본 클래스)
+          - width: 250px → 382px
+          - left: 0 → 80px (left-20)
+          - top: 0 → 56px (top-14, Header 아래)
+          - h-full → h-[calc(100vh-3.5rem)]
+          - 애니메이션: transform → left 동적 변경
+          - shadow: Figma 스펙 적용
       ============================================ */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "sidebar fixed left-0 top-14 flex flex-col bg-white shadow-2xl",
+          "sidebar fixed top-14 flex flex-col bg-white",
           "h-[calc(100vh-3.5rem)]",
-          "transition-transform ease-in-out",
+          "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
+          "transition-all ease-in-out",
           "z-70",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          isOpen ? "left-20" : "left-[-382px]",
           className
         )}
         style={{
