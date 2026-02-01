@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local
+.cursor/
+.DS_Store
+
 # claude
 CLAUDE.md
 .claude/

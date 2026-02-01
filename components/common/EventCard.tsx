@@ -1,113 +1,126 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { formatDdayStart } from "@/lib/date";
-import { Heart, MapPin, Calendar, Eye } from "lucide-react";
+import { Heart, Eye } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-
-export interface EventCardData {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  imageUrl: string;
-  likeCount: number;
-  viewCount: number;
-  tags: string[];
-  openDate?: Date;
-}
+import type { Event } from "@/types/event";
 
 interface EventCardProps {
-  event: EventCardData;
-  variant?: "normal" | "countdown";
+  event: Event;
+  onLikeClick?: (id: string) => void;
   className?: string;
-  onLikeClick?: (e: React.MouseEvent) => void;
+  /**
+   * 이미지 aspect ratio 커스터마이징
+   * @default "aspect-[3/4]" (세로형 카드)
+   */
+  imageAspectRatio?: string;
 }
 
+/**
+ * 재사용 가능한 이벤트 카드 컴포넌트
+ *
+ * @example
+ * // 6열 그리드 (HOT EVENT)
+ * <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+ *   {events.map(event => <EventCard key={event.id} event={event} />)}
+ * </div>
+ *
+ * @example
+ * // 5열 그리드 (가까운 팝업스토어)
+ * <div className="grid grid-cols-5 gap-4">
+ *   {events.map(event => <EventCard key={event.id} event={event} />)}
+ * </div>
+ */
 export function EventCard({
   event,
-  variant = "normal",
-  className,
   onLikeClick,
+  className,
+  imageAspectRatio = "aspect-[3/4]",
 }: EventCardProps) {
+  const {
+    id,
+    title,
+    category,
+    period,
+    imageUrl,
+    viewCount,
+    likeCount,
+    isLiked = false,
+  } = event;
+
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    onLikeClick?.(e);
+    e.stopPropagation();
+    onLikeClick?.(id);
   };
 
   return (
-    <Link
-      href={`/event/${event.id}`}
-      className={cn("group relative aspect-3/4 overflow-hidden rounded-xl", className)}
-    >
-      {/* 배경 이미지 */}
-      <div
-        className="absolute inset-0 bg-muted bg-contain bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
-      />
+    <article className={cn("eventCard group", className)}>
+      {/* 이미지 섹션 */}
+      <Link href={`/detail/${id}`} className="eventCard__imageLink">
+        <div
+          className={cn(
+            "eventCard__imageContainer relative mb-3 overflow-hidden rounded-xl bg-muted",
+            imageAspectRatio
+          )}
+        >
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+            className="eventCard__image object-cover transition-transform duration-300 group-hover:scale-105"
+          />
 
-      {/* 우측 상단: 하트 버튼 */}
-      <button
-        onClick={handleLikeClick}
-        className="absolute right-5.5 top-4 flex size-8 items-center justify-center rounded-full bg-[#BBBBBB]/73 transition-colors hover:bg-[#BBBBBB]/90"
-      >
-        <Heart className="size-5 text-black" strokeWidth={1.5} />
-      </button>
-
-      {/* 하단 그라데이션 + 텍스트 */}
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 via-black/70 to-transparent p-4 pt-20">
-        {/* 태그 */}
-        <div className="mb-2 flex gap-1">
-          {event.tags.map((tag, index) => (
-            <span
-              key={index}
-              className={
-                index === 0
-                  ? "rounded-md bg-[#6A8DFF] px-2 py-0.5 text-xs text-white"
-                  : "rounded-md border-[1.5px] border-[#6A8DFF] bg-white px-2 py-0.5 text-xs text-[#6A8DFF]"
-              }
-            >
-              {tag}
-            </span>
-          ))}
+          {/* 좋아요 버튼 */}
+          <button
+            type="button"
+            onClick={handleLikeClick}
+            className="eventCard__likeButton absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            aria-label={isLiked ? "좋아요 취소" : "좋아요"}
+          >
+            <Heart
+              className={cn(
+                "eventCard__likeIcon size-5 transition-colors",
+                isLiked
+                  ? "fill-red-500 text-red-500"
+                  : "text-gray-600 group-hover:text-gray-800"
+              )}
+            />
+          </button>
         </div>
+      </Link>
+
+      {/* 정보 섹션 */}
+      <Link href={`/detail/${id}`} className="eventCard__infoLink block">
+        {/* 카테고리 */}
+        <p className="eventCard__category mb-1 text-caption-medium text-muted-foreground">
+          {category}
+        </p>
 
         {/* 제목 */}
-        <h3 className="mb-2 text-sm font-medium text-white">{event.title}</h3>
+        <h3 className="eventCard__title mb-1 truncate text-body-medium-bold text-foreground transition-colors group-hover:underline">
+          {title}
+        </h3>
 
-        {/* 위치 */}
-        <div className="mb-1 flex items-center gap-1 text-xs text-white/80">
-          <MapPin className="size-3" />
-          <span>{event.location}</span>
-        </div>
+        {/* 기간 */}
+        <p className="eventCard__period mb-2 text-caption-medium text-muted-foreground">
+          {period}
+        </p>
 
-        {/* 날짜: variant에 따라 D-day 또는 날짜 표시 */}
-        <div className="mb-2 flex items-center gap-1 text-xs">
-          <Calendar className="size-3 text-white/80" />
-          {variant === "countdown" && event.openDate ? (
-            <span className="font-medium text-[#FF0000]">
-              {formatDdayStart(event.openDate)}
-            </span>
-          ) : (
-            <span className="text-white/80">{event.date}</span>
-          )}
-        </div>
-
-        {/* 경계선 */}
-        <div className="mb-2 border-t border-white/30" />
-
-        {/* 조회수 + 좋아요 */}
-        <div className="flex items-center gap-3 text-white/80">
-          <div className="flex items-center gap-1">
-            <Eye className="size-3" />
-            <span className="text-xs">{event.viewCount.toLocaleString()}</span>
+        {/* 조회수 / 좋아요 */}
+        <div className="eventCard__metaRow flex items-center gap-3 text-caption-medium text-muted-foreground">
+          <div className="eventCard__viewCount flex items-center gap-1">
+            <Eye className="size-3" aria-hidden="true" />
+            <span>{viewCount.toLocaleString()}+</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Heart className="size-3" />
-            <span className="text-xs">{event.likeCount.toLocaleString()}</span>
+          <div className="eventCard__likeCount flex items-center gap-1">
+            <Heart className="size-3" aria-hidden="true" />
+            <span>{likeCount.toLocaleString()}+</span>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </article>
   );
 }
