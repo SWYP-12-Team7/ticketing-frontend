@@ -18,17 +18,27 @@ const SORT_OPTIONS = [
   { value: "views" as const, label: "조회순" },
 ];
 
-// 임시 목데이터 (HOT EVENT용)
-const mockHotEvents: Event[] = Array.from({ length: 18 }, (_, i) => ({
-  id: `hot-${i + 1}`,
-  title: `나이가 에이즈스 랑 스토어 에이 나.${i + 1}`,
-  category: i % 2 === 0 ? "패션" : "라이프스타일",
-  period: "26.88.88 - 26.88.88",
-  imageUrl: `https://picsum.photos/seed/hot${i + 1}/400/500`,
-  viewCount: Math.floor(Math.random() * 100000),
-  likeCount: Math.floor(Math.random() * 50000),
-  isLiked: i % 5 === 0,
-}));
+// 임시 목데이터 (HOT EVENT용) - 고정값으로 hydration 에러 방지
+const mockHotEvents: Event[] = [
+  { id: "hot-1", title: "나이키 에어맥스 팝업 스토어", category: "패션", period: "2024.01.20 - 2024.02.20", imageUrl: "https://picsum.photos/seed/hot1/400/500", viewCount: 95000, likeCount: 48000, isLiked: true },
+  { id: "hot-2", title: "스타벅스 시즌 한정 팝업", category: "라이프스타일", period: "2024.01.25 - 2024.02.25", imageUrl: "https://picsum.photos/seed/hot2/400/500", viewCount: 88000, likeCount: 45000, isLiked: false },
+  { id: "hot-3", title: "아디다스 오리지널스 전시", category: "패션", period: "2024.02.01 - 2024.03.01", imageUrl: "https://picsum.photos/seed/hot3/400/500", viewCount: 82000, likeCount: 42000, isLiked: false },
+  { id: "hot-4", title: "무인양품 라이프 팝업", category: "라이프스타일", period: "2024.02.05 - 2024.03.05", imageUrl: "https://picsum.photos/seed/hot4/400/500", viewCount: 76000, likeCount: 39000, isLiked: false },
+  { id: "hot-5", title: "뉴발란스 574 컬렉션", category: "패션", period: "2024.02.10 - 2024.03.10", imageUrl: "https://picsum.photos/seed/hot5/400/500", viewCount: 71000, likeCount: 36000, isLiked: true },
+  { id: "hot-6", title: "이케아 홈 페스티벌", category: "라이프스타일", period: "2024.02.15 - 2024.03.15", imageUrl: "https://picsum.photos/seed/hot6/400/500", viewCount: 65000, likeCount: 33000, isLiked: false },
+  { id: "hot-7", title: "컨버스 척 테일러 팝업", category: "패션", period: "2024.02.20 - 2024.03.20", imageUrl: "https://picsum.photos/seed/hot7/400/500", viewCount: 59000, likeCount: 30000, isLiked: false },
+  { id: "hot-8", title: "다이슨 테크 쇼룸", category: "라이프스타일", period: "2024.02.25 - 2024.03.25", imageUrl: "https://picsum.photos/seed/hot8/400/500", viewCount: 54000, likeCount: 27000, isLiked: false },
+  { id: "hot-9", title: "반스 스케이트 컬쳐", category: "패션", period: "2024.03.01 - 2024.04.01", imageUrl: "https://picsum.photos/seed/hot9/400/500", viewCount: 48000, likeCount: 24000, isLiked: false },
+  { id: "hot-10", title: "애플 비전 체험존", category: "라이프스타일", period: "2024.03.05 - 2024.04.05", imageUrl: "https://picsum.photos/seed/hot10/400/500", viewCount: 43000, likeCount: 21000, isLiked: true },
+  { id: "hot-11", title: "노스페이스 아웃도어", category: "패션", period: "2024.03.10 - 2024.04.10", imageUrl: "https://picsum.photos/seed/hot11/400/500", viewCount: 38000, likeCount: 18000, isLiked: false },
+  { id: "hot-12", title: "레고 브릭 월드", category: "라이프스타일", period: "2024.03.15 - 2024.04.15", imageUrl: "https://picsum.photos/seed/hot12/400/500", viewCount: 33000, likeCount: 15000, isLiked: false },
+  { id: "hot-13", title: "푸마 RS-X 런칭", category: "패션", period: "2024.03.20 - 2024.04.20", imageUrl: "https://picsum.photos/seed/hot13/400/500", viewCount: 28000, likeCount: 12000, isLiked: false },
+  { id: "hot-14", title: "삼성 갤럭시 언팩", category: "라이프스타일", period: "2024.03.25 - 2024.04.25", imageUrl: "https://picsum.photos/seed/hot14/400/500", viewCount: 23000, likeCount: 9000, isLiked: false },
+  { id: "hot-15", title: "리복 클래식 전시", category: "패션", period: "2024.04.01 - 2024.05.01", imageUrl: "https://picsum.photos/seed/hot15/400/500", viewCount: 18000, likeCount: 6000, isLiked: true },
+  { id: "hot-16", title: "소니 플레이스테이션 존", category: "라이프스타일", period: "2024.04.05 - 2024.05.05", imageUrl: "https://picsum.photos/seed/hot16/400/500", viewCount: 13000, likeCount: 3000, isLiked: false },
+  { id: "hot-17", title: "아식스 러닝 페스타", category: "패션", period: "2024.04.10 - 2024.05.10", imageUrl: "https://picsum.photos/seed/hot17/400/500", viewCount: 8000, likeCount: 2000, isLiked: false },
+  { id: "hot-18", title: "닌텐도 스위치 팝업", category: "라이프스타일", period: "2024.04.15 - 2024.05.15", imageUrl: "https://picsum.photos/seed/hot18/400/500", viewCount: 5000, likeCount: 1000, isLiked: false },
+];
 
 export function HotEventSection({ className, events }: HotEventSectionProps) {
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
