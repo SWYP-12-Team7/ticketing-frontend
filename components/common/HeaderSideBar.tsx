@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, ComponentType } from "react";
-import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   Layers,
   Shirt,
@@ -166,16 +166,15 @@ const MENU_DATA: MenuCategory[] = [
 
 /**
  * Sidebar 너비
- * Figma 스펙: 382px (콘텐츠 286px + 패딩 96px)
- * 향후: 반응형 대응 시 breakpoint별로 다른 값 적용 가능
+ * Figma 스펙: 382px
  */
 const SIDEBAR_WIDTH = 382;
 
 /**
- * Sidebar 왼쪽 시작 위치
- * Figma 스펙: 화면 왼쪽에서 80px
+ * Sidebar 내부 콘텐츠 패딩
+ * Figma 스펙: padding: 0px 16px 0px 80px
+ * 적용: pl-20 (80px), pr-4 (16px)
  */
-const SIDEBAR_LEFT_OFFSET = 80;
 
 /**
  * 애니메이션 속도
@@ -202,7 +201,7 @@ const ANIMATION_DURATION = 600;
  * - Header 아래에서 시작 (top-14)
  * - Sidebar 내부 헤더 제거
  * - Footer 간소화
- * - Figma 디자인 스펙 적용 (382px, left-20)
+ * - Figma 디자인 스펙 적용 (382px, 내부 패딩 80px/16px)
  */
 export function HeaderSideBar({
   isOpen,
@@ -339,7 +338,7 @@ export function HeaderSideBar({
                     href={subcategory.href}
                     className={cn(
                       "sidebar__submenuLink flex h-[43px] w-full items-center",
-                      "gap-3 p-1 pl-8 pr-2 transition-all duration-200",
+                      "gap-3 px-2 py-1 pl-8 transition-all duration-200",
                       "text-body-large rounded-[4px]",
                       isActive
                         ? "bg-[#F3F4F6] font-semibold text-[#F36012]"
@@ -400,23 +399,30 @@ export function HeaderSideBar({
           )}
           style={{ width: 250 }}
           
+          Figma 스펙:
+          - width: 382px
+          - padding: 0px 16px 0px 80px (내부 콘텐츠 패딩)
+          - 위치: 화면 왼쪽에 붙음 (left-0)
+          - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
+          
           변경 후:
           - width: 250px → 382px
-          - left: 0 → 80px (left-20)
-          - top: 0 → 56px (top-14, Header 아래)
+          - left: 화면 왼쪽 (left-0)
+          - 내부 패딩: pl-20 (80px), pr-4 (16px) 추가
+          - top: 56px (top-14, Header 아래)
           - h-full → h-[calc(100vh-3.5rem)]
-          - 애니메이션: transform → left 동적 변경
-          - shadow: Figma 스펙 적용
+          - 애니메이션: left 동적 변경
       ============================================ */}
       <aside
         ref={sidebarRef}
         className={cn(
           "sidebar fixed top-14 flex flex-col bg-white",
           "h-[calc(100vh-3.5rem)]",
+          "pl-20 pr-4",
           "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
           "transition-all ease-in-out",
           "z-70",
-          isOpen ? "left-20" : "left-[-382px]",
+          isOpen ? "left-0" : "left-[-382px]",
           className
         )}
         style={{
