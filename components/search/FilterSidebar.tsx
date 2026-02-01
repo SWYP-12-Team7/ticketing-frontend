@@ -55,7 +55,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const toggleFilter = (type: keyof FilterState, value: string) => {
+  const toggleFilter = (type: "regions" | "categories" | "status" | "price", value: string) => {
     setFilters((prev) => ({
       ...prev,
       [type]: prev[type].includes(value)

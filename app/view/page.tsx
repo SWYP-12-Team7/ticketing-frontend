@@ -2,17 +2,18 @@
 
 import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { EventCard, type EventCardData } from "@/components/common";
+import { OverlayEventCard, type Event } from "@/components/common";
 import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { X } from "lucide-react";
 import Image from "next/image";
 
 const PAGE_SIZE = 8;
 
-const baseEvent: Omit<EventCardData, "id"> = {
+const baseEvent: Omit<Event, "id"> = {
   title: "현대미술 컬렉션: 새로운 시선",
+  category: "전시",
   location: "서울 코엑스",
-  date: "2024.01.20 - 2024.03.20",
+  period: "2024.01.20 - 2024.03.20",
   imageUrl: "/images/mockImg.png",
   likeCount: 18353,
   viewCount: 2444,
@@ -189,7 +190,7 @@ function ViewContent() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {visibleEvents.map((event, index) => (
             <Fragment key={event.id}>
-              <EventCard event={event} />
+              <OverlayEventCard event={event} />
               {(index + 1) % PAGE_SIZE === 0 &&
                 index + 1 < visibleEvents.length && (
                   <div className="col-span-full py-4">

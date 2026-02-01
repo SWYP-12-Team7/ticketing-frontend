@@ -3,10 +3,8 @@
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { EventCard, type EventCardData } from "@/components/common";
-import { HotDealCard, type HotDealCardData } from "@/components/common";
-
-type Event = EventCardData & Partial<HotDealCardData>;
+import { OverlayEventCard, HotDealCard, type HotDealCardData } from "@/components/common";
+import type { Event } from "@/types/event";
 
 interface ShowPickProps {
   className?: string;
@@ -20,8 +18,9 @@ const mockEvents: Event[] = [
   {
     id: "1",
     title: "현대미술 컬렉션: 새로운 시선",
+    category: "마이아트뮤지엄",
     location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
+    period: "2024.01.20 - 2024.03.20",
     imageUrl: "/images/mockImg.png",
     likeCount: 18353,
     viewCount: 2444,
@@ -34,8 +33,9 @@ const mockEvents: Event[] = [
   {
     id: "2",
     title: "현대미술 컬렉션: 새로운 시선",
+    category: "마이아트뮤지엄",
     location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
+    period: "2024.01.20 - 2024.03.20",
     imageUrl: "/images/mockImg.png",
     likeCount: 18353,
     viewCount: 2444,
@@ -48,8 +48,9 @@ const mockEvents: Event[] = [
   {
     id: "3",
     title: "현대미술 컬렉션: 새로운 시선",
+    category: "마이아트뮤지엄",
     location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
+    period: "2024.01.20 - 2024.03.20",
     imageUrl: "/images/mockImg.png",
     likeCount: 18353,
     viewCount: 2444,
@@ -62,8 +63,9 @@ const mockEvents: Event[] = [
   {
     id: "4",
     title: "현대미술 컬렉션: 새로운 시선",
+    category: "마이아트뮤지엄",
     location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
+    period: "2024.01.20 - 2024.03.20",
     imageUrl: "/images/mockImg.png",
     likeCount: 18353,
     viewCount: 2444,
@@ -125,7 +127,7 @@ export function ShowPick({
       ) : (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {visibleEvents.map((event) => (
-            <EventCard key={event.id} event={event} variant={variant} />
+            <OverlayEventCard key={event.id} event={event} variant={variant} />
           ))}
         </div>
       )}
