@@ -192,6 +192,11 @@ const ANIMATION_DURATION = 600;
  * - dimmed overlay + slide-in 애니메이션
  * - body scroll lock
  * - 키보드 네비게이션 지원 (ESC, Tab)
+ *
+ * [SWYP-108] Sidebar 고도화 (2026-02-01)
+ * - Header 아래에서 시작 (top-14)
+ * - Sidebar 내부 헤더 제거
+ * - Footer 간소화
  */
 export function HeaderSideBar({
   isOpen,
@@ -238,7 +243,10 @@ export function HeaderSideBar({
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = `${scrollbarWidth}px`;
 
-      // Focus trap: 첫 번째 포커스 가능한 요소에 포커스
+      // ============================================
+      // [SWYP-108] Focus trap 개선
+      // Sidebar Header 제거로 인해 첫 번째 카테고리 버튼으로 포커스 이동
+      // ============================================
       setTimeout(() => {
         const firstFocusable = sidebarRef.current?.querySelector<HTMLElement>(
           "button:not([disabled]), a[href]"
@@ -372,11 +380,27 @@ export function HeaderSideBar({
         aria-hidden="true"
       />
 
-      {/* Sidebar Container */}
+      {/* ============================================
+          [SWYP-108] Sidebar Container 위치 및 높이 조정
+          작성일: 2026-02-01
+          변경 이유: Header 아래에서 시작하도록 (이미지 active 상태)
+          
+          이전 코드:
+          className={cn(
+            "sidebar fixed left-0 top-0 flex h-full flex-col bg-white shadow-2xl",
+            ...
+          )}
+          
+          변경 후:
+          - top-0 → top-14 (Header 높이만큼 아래에서 시작)
+          - h-full → h-[calc(100vh-3.5rem)] (전체 높이 - Header 높이)
+          - z-70 유지 (Tailwind 기본 클래스)
+      ============================================ */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "sidebar fixed left-0 top-0 flex h-full flex-col bg-white shadow-2xl",
+          "sidebar fixed left-0 top-14 flex flex-col bg-white shadow-2xl",
+          "h-[calc(100vh-3.5rem)]",
           "transition-transform ease-in-out",
           "z-70",
           isOpen ? "translate-x-0" : "-translate-x-full",
@@ -390,22 +414,28 @@ export function HeaderSideBar({
         aria-label="사이드바 메뉴 네비게이션"
         aria-hidden={!isOpen}
       >
-        {/* Header */}
-        <div className="sidebar__header flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-          <h2 className="sidebar__title text-heading-small text-foreground">
-            메뉴
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="sidebar__closeButton flex size-9 items-center justify-center rounded-full transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36012] focus-visible:ring-offset-2"
-            aria-label="사이드바 닫기"
-          >
-            <X className="size-5 text-foreground" aria-hidden="true" />
-          </button>
-        </div>
+        {/* ============================================
+            [SWYP-108] Sidebar Header 제거
+            작성일: 2026-02-01
+            변경 이유: active 상태에서 Sidebar 내부에 헤더 없음 (이미지 스펙)
+            
+            이전 코드:
+            <div className="sidebar__header flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+              <h2 className="sidebar__title text-heading-small text-foreground">
+                메뉴
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="sidebar__closeButton flex size-9 items-center justify-center rounded-full transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F36012] focus-visible:ring-offset-2"
+                aria-label="사이드바 닫기"
+              >
+                <X className="size-5 text-foreground" aria-hidden="true" />
+              </button>
+            </div>
+        ============================================ */}
 
-        {/* Menu Content */}
+        {/* Menu Content - Header 없이 바로 시작 */}
         <nav className="sidebar__nav flex-1 overflow-y-auto">
           <ul className="sidebar__menuList" role="list">
             {MENU_DATA.map((category) => {
@@ -453,29 +483,40 @@ export function HeaderSideBar({
           </ul>
         </nav>
 
-        {/* Footer */}
-        <div className="sidebar__footer shrink-0 border-t border-border bg-muted px-4 py-4">
-          <Link
-            href="/"
-            className="mb-3 inline-flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
-          >
-            로고
-          </Link>
-          <div className="mb-2 flex gap-3 text-caption-medium">
-            <Link
-              href="/terms"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              이용약관
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              개인정보처리방침
-            </Link>
-          </div>
-          <p className="text-caption-medium text-muted-foreground">
+        {/* ============================================
+            [SWYP-108] Sidebar Footer 간소화
+            작성일: 2026-02-01
+            변경 이유: 중복 정보 제거 (Header에 BI 있음, 페이지 Footer에 링크 있음)
+            
+            이전 코드:
+            <div className="sidebar__footer shrink-0 border-t border-border bg-muted px-4 py-4">
+              <Link
+                href="/"
+                className="mb-3 inline-flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
+              >
+                로고
+              </Link>
+              <div className="mb-2 flex gap-3 text-caption-medium">
+                <Link
+                  href="/terms"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  이용약관
+                </Link>
+                <Link
+                  href="/privacy"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  개인정보처리방침
+                </Link>
+              </div>
+              <p className="text-caption-medium text-muted-foreground">
+                © 2026 와르르. All rights reserved.
+              </p>
+            </div>
+        ============================================ */}
+        <div className="sidebar__footer shrink-0 border-t border-border bg-muted px-4 py-3">
+          <p className="text-caption-medium text-muted-foreground text-center">
             © 2026 와르르. All rights reserved.
           </p>
         </div>

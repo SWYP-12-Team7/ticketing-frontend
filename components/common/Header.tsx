@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
+// ============================================
+// [SWYP-108] Sidebar 고도화 - X 아이콘 추가
+// 작성일: 2026-02-01
+// 변경 이유: Sidebar 열림 상태에서 닫기 버튼 표시
+// 이전 코드: import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
+// ============================================
+import { Menu, Bell, Heart, User, Map, Calendar, X } from "lucide-react";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
@@ -22,22 +28,48 @@ export function Header({ className }: HeaderProps) {
 
   return (
     <>
-      {/* Header: 전역 네비게이션 바 (sticky, z-50) */}
+      {/* ============================================
+          [SWYP-108] Header z-index 상향 조정
+          작성일: 2026-02-01
+          변경 이유: Sidebar Overlay가 Header를 가리지 않도록
+          이전 코드: sticky top-0 z-50
+          변경 후: sticky top-0 z-75
+      ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-4",
+          "sticky top-0 z-75 flex h-14 items-center justify-between border-b border-border bg-background px-4",
           className
         )}
       >
         {/* 왼쪽 영역 */}
         <div className="flex items-center gap-4">
+          {/* ============================================
+              [SWYP-108] Menu/X 토글 버튼 구현
+              작성일: 2026-02-01
+              변경 이유: Sidebar 열림 상태를 Header에 명확히 표시
+              
+              이전 코드:
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex size-9 items-center justify-center"
+                aria-label="메뉴"
+              >
+                <Menu className="size-6" />
+              </button>
+          ============================================ */}
           <button
             type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            className="flex size-9 items-center justify-center"
-            aria-label="메뉴"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="flex size-9 items-center justify-center transition-transform duration-200 hover:bg-gray-100 rounded-md"
+            aria-label={isSidebarOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-expanded={isSidebarOpen}
           >
-            <Menu className="size-6" />
+            {isSidebarOpen ? (
+              <X className="size-6" aria-hidden="true" />
+            ) : (
+              <Menu className="size-6" aria-hidden="true" />
+            )}
           </button>
 
           <Link
