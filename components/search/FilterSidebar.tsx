@@ -1,8 +1,9 @@
 "use client";
 
-import { X, ChevronUp, Calendar } from "lucide-react";
+import { X, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { DateRangePicker } from "@/components/common";
 
 interface FilterSidebarProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface FilterState {
   categories: string[];
   status: string[];
   price: string[];
+  startDate: Date | null;
+  endDate: Date | null;
 }
 
 const REGIONS = [
@@ -44,6 +47,8 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
     categories: [],
     status: [],
     price: [],
+    startDate: null,
+    endDate: null,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -79,7 +84,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
       {/* 사이드바 */}
       <div
         className={cn(
-          "fixed right-0 top-0 z-50 h-full w-full max-w-md bg-white shadow-xl transition-transform duration-300 ease-in-out",
+          "fixed right-0 top-0 z-50 h-full w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -93,7 +98,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
         </div>
 
         {/* 필터 내용 */}
-        <div className="h-[calc(100%-140px)] overflow-y-auto px-6 py-4">
+        <div className="h-[calc(100%-140px)] overflow-y-auto px-6 py-4 scrollbar-hide">
           {/* 지역 */}
           <div className="border-b border-border pb-4">
             <button
@@ -103,8 +108,9 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             >
               <span className="text-lg font-semibold">지역</span>
               <ChevronUp
+                strokeWidth={1.5}
                 className={cn(
-                  "size-5 transition-transform",
+                  "size-6 text-[#121212] transition-transform",
                   !expandedSections.region && "rotate-180"
                 )}
               />
@@ -139,8 +145,9 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             >
               <span className="text-lg font-semibold">카테고리</span>
               <ChevronUp
+                strokeWidth={1.5}
                 className={cn(
-                  "size-5 transition-transform",
+                  "size-6 text-[#121212] transition-transform",
                   !expandedSections.category && "rotate-180"
                 )}
               />
@@ -182,21 +189,22 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             >
               <span className="text-lg font-semibold">일시</span>
               <ChevronUp
+                strokeWidth={1.5}
                 className={cn(
-                  "size-5 transition-transform",
+                  "size-6 text-[#121212] transition-transform",
                   !expandedSections.date && "rotate-180"
                 )}
               />
             </button>
             {expandedSections.date && (
               <div className="mt-3">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground hover:border-orange"
-                >
-                  <span>기간을 선택하세요!</span>
-                  <Calendar className="size-5" />
-                </button>
+                <DateRangePicker
+                  startDate={filters.startDate}
+                  endDate={filters.endDate}
+                  onChange={(start, end) =>
+                    setFilters((prev) => ({ ...prev, startDate: start, endDate: end }))
+                  }
+                />
               </div>
             )}
           </div>
@@ -210,8 +218,9 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             >
               <span className="text-lg font-semibold">현황</span>
               <ChevronUp
+                strokeWidth={1.5}
                 className={cn(
-                  "size-5 transition-transform",
+                  "size-6 text-[#121212] transition-transform",
                   !expandedSections.status && "rotate-180"
                 )}
               />
@@ -227,7 +236,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
                       type="checkbox"
                       checked={filters.status.includes(status)}
                       onChange={() => toggleFilter("status", status)}
-                      className="size-5 accent-orange"
+                      className="custom-checkbox"
                     />
                     <span className="text-sm">{status}</span>
                   </label>
@@ -245,8 +254,9 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             >
               <span className="text-lg font-semibold">가격</span>
               <ChevronUp
+                strokeWidth={1.5}
                 className={cn(
-                  "size-5 transition-transform",
+                  "size-6 text-[#121212] transition-transform",
                   !expandedSections.price && "rotate-180"
                 )}
               />
@@ -262,7 +272,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
                       type="checkbox"
                       checked={filters.price.includes(price)}
                       onChange={() => toggleFilter("price", price)}
-                      className="size-5 accent-orange"
+                      className="custom-checkbox"
                     />
                     <span className="text-sm">{price}</span>
                   </label>

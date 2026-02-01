@@ -164,7 +164,7 @@ function ViewContent() {
             <button
               type="button"
               onClick={handleRemoveKeyword}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-xs font-medium text-orange transition-colors hover:brightness-90"
+              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
             >
               <span>검색어 : {keyword}</span>
               <X className="size-3" />
@@ -177,7 +177,7 @@ function ViewContent() {
               key={tag}
               type="button"
               onClick={() => handleRemoveTag(tag)}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-xs font-medium text-orange transition-colors hover:brightness-90"
+              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
             >
               <span>{tag}</span>
               <X className="size-3" />
