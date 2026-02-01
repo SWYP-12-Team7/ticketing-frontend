@@ -1,231 +1,167 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { CalendarView } from "@/components/calendarview/CalendarView";
+import { HotEventSection } from "@/components/calendarview/HotEventSection";
+import { KakaoMap } from "@/components/map";
 import { OverlayEventCard, type Event } from "@/components/common";
-import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { X } from "lucide-react";
-import Image from "next/image";
 
-const PAGE_SIZE = 8;
+interface Location {
+  id: string;
+  title: string;
+  lat: number;
+  lng: number;
+}
 
-const baseEvent: Omit<Event, "id"> = {
-  title: "현대미술 컬렉션: 새로운 시선",
-  category: "전시",
-  location: "서울 코엑스",
-  period: "2024.01.20 - 2024.03.20",
-  imageUrl: "/images/mockImg.png",
-  likeCount: 18353,
-  viewCount: 2444,
-  tags: ["전시", "현대미술"],
-};
+// 지도용 목데이터 생성
+function generateMockLocations(): (Location & { event: Event })[] {
+  const areas = [
+    { name: "강남", baseLat: 37.4979, baseLng: 127.0276 },
+    { name: "홍대", baseLat: 37.5563, baseLng: 126.9236 },
+    { name: "명동", baseLat: 37.5636, baseLng: 126.9869 },
+    { name: "잠실", baseLat: 37.5145, baseLng: 127.102 },
+    { name: "성수", baseLat: 37.5445, baseLng: 127.0557 },
+    { name: "이태원", baseLat: 37.5345, baseLng: 126.9946 },
+  ];
 
-function ViewContent() {
-  const searchParams = useSearchParams();
+  const categories = ["전시", "팝업"];
+  const titles = [
+    "현대미술 컬렉션",
+    "캐릭터 팝업스토어",
+    "디자인 페스티벌",
+    "브랜드 팝업",
+    "아트 전시회",
+    "패션 팝업",
+    "푸드 페스티벌",
+    "뷰티 팝업",
+  ];
 
-  // URL에서 검색어 추출
-  const keyword = searchParams.get("keyword") || "";
+  const locations: (Location & { event: Event })[] = [];
 
-  // 목데이터 (나중에 API 연동)
-  const events = useMemo(
+  areas.forEach((area, areaIndex) => {
+    for (let i = 0; i < 8; i++) {
+      const id = String(areaIndex * 8 + i + 1);
+      const lat = area.baseLat + (Math.random() - 0.5) * 0.02;
+      const lng = area.baseLng + (Math.random() - 0.5) * 0.02;
+      const title = `${titles[i % titles.length]} - ${area.name}`;
+      const category = categories[i % 2];
+
+      locations.push({
+        id,
+        title,
+        lat,
+        lng,
+        event: {
+          id,
+          title,
+          category,
+          location: `서울 ${area.name}`,
+          period: "2024.01.20 - 2024.03.20",
+          imageUrl: "/images/mockImg.png",
+          likeCount: Math.floor(Math.random() * 20000),
+          viewCount: Math.floor(Math.random() * 5000),
+          tags: [category, area.name],
+        },
+      });
+    }
+  });
+
+  return locations;
+}
+
+const mockLocations = generateMockLocations();
+
+function MapViewContent() {
+  const [selectedLocation, setSelectedLocation] = useState<
+    (typeof mockLocations)[0] | null
+  >(null);
+
+  const locations = useMemo(
     () =>
-      Array.from({ length: 32 }, (_, index) => ({
-        ...baseEvent,
-        id: String(index + 1),
-        // 다양한 태그를 가진 목데이터
-        tags:
-          index % 3 === 0
-            ? ["전시", "현대미술"]
-            : index % 3 === 1
-              ? ["팝업", "캐릭터"]
-              : ["전시", "현대미술"],
+      mockLocations.map(({ id, title, lat, lng }) => ({
+        id,
+        title,
+        lat,
+        lng,
       })),
     []
   );
 
-  // 검색 결과 카드들에서 태그 추출 (중복 제거)
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    events.forEach((event) => {
-      event.tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet);
-  }, [events]);
-
-  // 표시할 태그 목록 (삭제된 태그 제외)
-  const [visibleTags, setVisibleTags] = useState<string[]>([]);
-
-  // allTags가 변경되면 visibleTags 초기화
-  useEffect(() => {
-    setVisibleTags(allTags);
-  }, [allTags]);
-
-  // 태그 삭제
-  const handleRemoveTag = (tag: string) => {
-    setVisibleTags((prev) => prev.filter((t) => t !== tag));
+  const handleMarkerClick = (location: Location) => {
+    const found = mockLocations.find((l) => l.id === location.id);
+    setSelectedLocation(found || null);
   };
 
-  // 검색어 태그 삭제
-  const handleRemoveKeyword = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("keyword");
-    window.history.replaceState(null, "", `?${params.toString()}`);
+  const handleCloseCard = () => {
+    setSelectedLocation(null);
   };
-
-  // 필터링된 이벤트 (삭제되지 않은 태그를 가진 이벤트만)
-  const filteredEvents = useMemo(() => {
-    if (visibleTags.length === allTags.length) return events;
-    return events.filter((event) =>
-      event.tags.some((tag) => visibleTags.includes(tag))
-    );
-  }, [events, visibleTags, allTags.length]);
-
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  // 필터 사이드바 상태
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // 필터 변경 시 visibleCount 리셋
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [visibleTags]);
-
-  useEffect(() => {
-    const target = sentinelRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setVisibleCount((prev) =>
-          Math.min(prev + PAGE_SIZE, filteredEvents.length)
-        );
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [filteredEvents.length]);
-
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
-  const totalCount = filteredEvents.length;
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-300 px-5 py-10">
-        {/* 헤더: 검색 결과 수 + 정렬/필터 */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-medium text-orange">
-              {totalCount}
-            </span>
-            <span className="text-2xl font-medium text-foreground">
-              개의 행사가 검색되었어요!
-            </span>
+    <section aria-label="지도 뷰" className="mapViewPage__section">
+      <div className="mapViewPage__container relative h-[500px] rounded-xl overflow-hidden">
+        <KakaoMap
+          center={{ lat: 37.5665, lng: 126.978 }}
+          level={8}
+          locations={locations}
+          onMarkerClick={handleMarkerClick}
+          className="h-full w-full"
+          enableClustering={true}
+        />
+
+        {/* 선택된 이벤트 카드 */}
+        {selectedLocation && (
+          <div className="absolute bottom-6 left-1/2 z-10 w-[320px] -translate-x-1/2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleCloseCard}
+                className="absolute -top-2 -right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <OverlayEventCard event={selectedLocation.event} />
+            </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* 정렬 드롭다운 */}
-            <button
-              type="button"
-              className="flex items-center gap-1 text-sm font-medium text-foreground"
-            >
-              <span>정렬순</span>
-              <Image
-                src="/images/searchResult/IC_Sort.svg"
-                alt="정렬"
-                width={20}
-                height={20}
-              />
-            </button>
-
-            {/* 필터 버튼 */}
-            <button
-              type="button"
-              onClick={() => setIsFilterOpen(true)}
-              className="flex items-center gap-1.5 text-sm font-medium text-foreground"
-            >
-              <span>필터</span>
-              <Image
-                src="/images/searchResult/IC_Fillter.svg"
-                alt="필터"
-                width={20}
-                height={20}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* 태그 필터 */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {/* 검색어 태그 */}
-          {keyword && (
-            <button
-              type="button"
-              onClick={handleRemoveKeyword}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
-            >
-              <span>검색어 : {keyword}</span>
-              <X className="size-3" />
-            </button>
-          )}
-
-          {/* 카드 태그들 */}
-          {visibleTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => handleRemoveTag(tag)}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
-            >
-              <span>{tag}</span>
-              <X className="size-3" />
-            </button>
-          ))}
-        </div>
-
-        {/* 카드 그리드 */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {visibleEvents.map((event, index) => (
-            <Fragment key={event.id}>
-              <OverlayEventCard event={event} />
-              {(index + 1) % PAGE_SIZE === 0 &&
-                index + 1 < visibleEvents.length && (
-                  <div className="col-span-full py-4">
-                    <div className="flex h-20 items-center justify-center rounded-lg bg-[#E5E5E5] text-lg font-semibold text-muted-foreground">
-                      배너
-                    </div>
-                  </div>
-                )}
-            </Fragment>
-          ))}
-        </div>
-
-        {/* 무한 스크롤 감지용 */}
-        <div ref={sentinelRef} className="h-12" />
-
-        {/* 로딩 인디케이터 */}
-        {visibleCount < filteredEvents.length && (
-          <div className="flex justify-center py-6">
-            <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
-          </div>
-        )}
-
-        {visibleCount >= filteredEvents.length && (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            모든 결과를 불러왔습니다.
-          </p>
         )}
       </div>
+    </section>
+  );
+}
 
-      {/* 필터 사이드바 */}
-      <FilterSidebar
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        resultCount={totalCount}
-      />
+function ViewContent() {
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode") || "calendar";
+
+  return (
+    <main className="mx-auto w-full max-w-7xl px-4 py-6">
+      {/* 지도 또는 캘린더 뷰 */}
+      {mode === "map" ? (
+        <Suspense
+          fallback={
+            <div className="h-[500px] rounded-xl bg-muted animate-pulse" />
+          }
+        >
+          <MapViewContent />
+        </Suspense>
+      ) : (
+        <Suspense
+          fallback={
+            <div className="rounded-xl bg-[#FFFBF4] p-4">
+              <div className="animate-pulse">
+                <div className="h-12 bg-gray-200 rounded mb-4" />
+                <div className="h-64 bg-gray-200 rounded" />
+              </div>
+            </div>
+          }
+        >
+          <CalendarView />
+        </Suspense>
+      )}
+
+      {/* HOT EVENT 섹션 */}
+      <HotEventSection className="mt-10" />
     </main>
   );
 }
@@ -234,7 +170,7 @@ export default function ViewPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-background">
+        <main className="mx-auto w-full max-w-7xl px-4 py-6">
           <div className="flex min-h-[50vh] items-center justify-center">
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
