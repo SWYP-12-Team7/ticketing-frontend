@@ -180,7 +180,7 @@ const SIDEBAR_WIDTH = 382;
  * 애니메이션 속도
  * 메뉴 펼침/접힘 및 Sidebar 슬라이드 애니메이션 (600ms)
  */
-const ANIMATION_DURATION = 600;
+const ANIMATION_DURATION = 900;
 
 // ========================================
 // Component
@@ -469,7 +469,7 @@ export function HeaderSideBar({
                     onClick={() => handleCategoryToggle(category.id)}
                     onMouseEnter={() => handleCategoryHover(category.id)}
                     className={cn(
-                      "sidebar__categoryButton flex h-[62px] w-full items-center justify-between",
+                      "group sidebar__categoryButton flex h-[62px] w-full items-center justify-between",
                       "px-3 py-2 text-body-medium-bold transition-all duration-200",
                       isExpanded
                         ? "border-l-4 border-[#F36012] font-bold text-[#F36012]"
@@ -483,12 +483,12 @@ export function HeaderSideBar({
                     </span>
                     {isExpanded ? (
                       <ChevronUp
-                        className="sidebar__categoryIcon size-5 shrink-0"
+                        className="sidebar__categoryIcon size-5 shrink-0 transition-opacity"
                         aria-hidden="true"
                       />
                     ) : (
                       <ChevronDown
-                        className="sidebar__categoryIcon size-5 shrink-0"
+                        className="sidebar__categoryIcon size-5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         aria-hidden="true"
                       />
                     )}
