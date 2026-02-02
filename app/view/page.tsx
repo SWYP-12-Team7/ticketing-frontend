@@ -76,7 +76,7 @@ function MapViewContent() {
 
   return (
     <section aria-label="지도 뷰" className="mapViewPage__section">
-      <div className="mapViewPage__container relative h-[500px] rounded-xl overflow-hidden">
+      <div className="mapViewPage__container relative h-[650px] rounded-xl overflow-hidden">
         <KakaoMap
           center={{ lat: 37.5665, lng: 126.978 }}
           level={8}
@@ -116,7 +116,7 @@ function ViewContent() {
       {mode === "map" ? (
         <Suspense
           fallback={
-            <div className="h-[500px] rounded-xl bg-muted animate-pulse" />
+            <div className="h-[650px] rounded-xl bg-muted animate-pulse" />
           }
         >
           <MapViewContent />
