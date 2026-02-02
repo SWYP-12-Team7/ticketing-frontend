@@ -21,19 +21,20 @@ export function SettingsNavigation({ currentPath }: SettingsNavigationProps) {
         return (
           <div
             key={item.path}
-            className="flex h-[58px] w-[262px] items-center bg-white px-2 py-2 pl-3"
+            className="relative flex h-[58px] w-[262px] items-center bg-white px-2 py-2 pl-3"
           >
+            {/* 활성 상태 왼쪽 바 - category-title(58px) 기준 */}
+            {isActive && (
+              <span className="absolute left-0 top-[11px] h-10 w-1 bg-[#F36012]" />
+            )}
+
             <Link
               href={item.path}
               className={cn(
-                "relative flex h-[42px] w-[242px] grow items-center justify-between rounded p-2 text-xl font-semibold leading-[128%] tracking-[-0.025em] transition-colors",
+                "flex h-[42px] w-[242px] grow items-center rounded p-2 text-xl font-semibold leading-[128%] tracking-[-0.025em] transition-colors",
                 isActive ? "text-[#F36012]" : "text-basic hover:bg-muted"
               )}
             >
-              {/* 활성 상태 왼쪽 바 - Figma 스펙 */}
-              {isActive && (
-                <span className="absolute left-0 top-[11px] h-10 w-1 bg-[#F36012]" />
-              )}
               <span className="grow">{item.label}</span>
             </Link>
           </div>

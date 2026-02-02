@@ -36,7 +36,7 @@ const initialProfile: UserProfile = {
   kakaoProfileImage: "/images/mockImg.png",
   name: "스위프",
   email: "Dusty65@kakao.com",
-  nickname: "소심한꿀주먹이지만용감한편인데용안그래보이나요",
+  nickname: "소심한꿀주먹",
   address: "",
   detailAddress: "",
   notifications: {
