@@ -143,13 +143,13 @@ export function Header({ className }: HeaderProps) {
             <Heart className="size-5" />
           </button>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="프로필"
+          <Link
+            href="/settings/profile"
+            className="flex size-9 items-center justify-center rounded-md transition-colors hover:bg-gray-100"
+            aria-label="프로필 설정"
           >
             <User className="size-5" />
-          </button>
+          </Link>
         </div>
       </header>
 
