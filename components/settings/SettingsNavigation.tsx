@@ -14,25 +14,29 @@ const navItems = [
 
 export function SettingsNavigation({ currentPath }: SettingsNavigationProps) {
   return (
-    <nav className="flex flex-col">
+    <nav className="flex w-[262px] flex-col">
       {navItems.map((item) => {
         const isActive = currentPath === item.path;
 
         return (
-          <Link
+          <div
             key={item.path}
-            href={item.path}
-            className={cn(
-              "relative ml-3 flex items-center rounded px-3 py-2 text-xl font-semibold leading-[128%] tracking-[-0.025em] transition-colors",
-              isActive ? "text-[#F36012]" : "text-[#202937] hover:bg-muted"
-            )}
+            className="flex h-[58px] w-[262px] items-center bg-white px-2 py-2 pl-3"
           >
-            {/* 활성 상태 왼쪽 바 */}
-            {isActive && (
-              <span className="absolute -left-3 top-1/2 h-10 w-1 -translate-y-1/2 rounded-r bg-[#F36012]" />
-            )}
-            {item.label}
-          </Link>
+            <Link
+              href={item.path}
+              className={cn(
+                "relative flex h-[42px] w-[242px] grow items-center justify-between rounded p-2 text-xl font-semibold leading-[128%] tracking-[-0.025em] transition-colors",
+                isActive ? "text-[#F36012]" : "text-basic hover:bg-muted"
+              )}
+            >
+              {/* 활성 상태 왼쪽 바 - Figma 스펙 */}
+              {isActive && (
+                <span className="absolute left-0 top-[11px] h-10 w-1 bg-[#F36012]" />
+              )}
+              <span className="grow">{item.label}</span>
+            </Link>
+          </div>
         );
       })}
     </nav>

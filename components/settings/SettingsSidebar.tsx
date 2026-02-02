@@ -40,7 +40,7 @@ export function SettingsSidebar() {
       <button
         type="button"
         onClick={handleLogout}
-        className="mt-auto text-sm text-[#6C7180] transition-colors hover:text-foreground"
+        className="mt-auto flex h-8 w-[73px] items-center justify-center rounded px-3 text-sm text-[#6C7180] transition-colors hover:text-foreground"
       >
         로그아웃
       </button>

@@ -4,12 +4,13 @@ import { useState } from "react";
 import { InputField } from "./InputField";
 import { AddressSearchButton } from "./AddressSearchButton";
 import { useUserSettingsStore } from "@/store/user-settings";
+import { checkNicknameDuplicate } from "@/services/api/user";
 import { AlertCircle } from "lucide-react";
 
 export function MemberInfoSection() {
   const {
-    userProfile,
-    setUserProfile,
+    currentProfile,
+    setCurrentProfile,
     saveProfile,
     isLoading,
     isSaved,
@@ -17,15 +18,57 @@ export function MemberInfoSection() {
   } = useUserSettingsStore();
   const [showAddressAlert, setShowAddressAlert] = useState(false);
   const [nicknameError, setNicknameError] = useState<string>("");
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
 
-  const validateNickname = (value: string) => {
-    if (value.length < 2) {
-      setNicknameError("닉네임은 2자 이상이어야 합니다");
-    } else if (value.length > 50) {
-      setNicknameError("닉네임은 50자 이하이어야 합니다");
-    } else {
-      setNicknameError("");
+  const validateNickname = async (value: string): Promise<boolean> => {
+    // 1. 스페이스 포함 여부 체크
+    if (/\s/.test(value)) {
+      setNicknameError("닉네임에 공백을 사용할 수 없습니다");
+      return false;
     }
+
+    // 2. 빈 문자열
+    if (!value || value.length === 0) {
+      setNicknameError("닉네임은 반드시 글자를 포함해주세요");
+      return false;
+    }
+
+    // 3. 이모지만 입력 (한글/영문/숫자 없음)
+    const hasValidChars = /[가-힣a-zA-Z0-9]/.test(value);
+    if (!hasValidChars) {
+      setNicknameError("닉네임은 반드시 글자를 포함해주세요");
+      return false;
+    }
+
+    // 4. 길이 체크 (실제 문자 수 - 7자로 제한)
+    const actualLength = [...value].length;
+    if (actualLength < 2) {
+      setNicknameError("닉네임은 2자 이상이어야 합니다");
+      return false;
+    }
+    if (actualLength > 7) {
+      setNicknameError("닉네임은 7자 이하이어야 합니다");
+      return false;
+    }
+
+    // 5. 닉네임 중복 체크
+    try {
+      setIsCheckingNickname(true);
+      const result = await checkNicknameDuplicate(value);
+
+      if (result.isDuplicate) {
+        setNicknameError("이미 사용 중인 닉네임입니다");
+        return false;
+      }
+    } catch (error) {
+      console.error("닉네임 중복 확인 실패:", error);
+      // 네트워크 오류는 저장 시도 허용
+    } finally {
+      setIsCheckingNickname(false);
+    }
+
+    setNicknameError("");
+    return true;
   };
 
   const handleAddressSearch = async () => {
@@ -35,7 +78,7 @@ export function MemberInfoSection() {
       // setUserProfile({ address: result.address });
 
       // Mock 데이터
-      setUserProfile({ address: "서울특별시 강남구 테헤란로 123" });
+      setCurrentProfile({ address: "서울특별시 강남구 테헤란로 123" });
       setShowAddressAlert(true);
 
       // 3초 후 알림 자동 숨김
@@ -55,23 +98,28 @@ export function MemberInfoSection() {
       {/* 이름 */}
       <InputField
         label="이름"
-        value={userProfile.name}
-        onChange={(value) => setUserProfile({ name: value })}
+        value={currentProfile.name}
+        onChange={(value) => setCurrentProfile({ name: value })}
         placeholder="입력해 주세요"
         disabled
       />
 
-      {/* 닉네임 */}
+      {/* 닉네임 - 7자 제한 */}
       <InputField
         label="닉네임"
-        value={userProfile.nickname}
+        value={currentProfile.nickname}
         onChange={(value) => {
-          setUserProfile({ nickname: value });
-          validateNickname(value);
+          // 스페이스 자동 제거
+          const noSpaces = value.replace(/\s/g, "");
+          setCurrentProfile({ nickname: noSpaces });
+          // 즉시 검증은 하지 않고, blur 시에만 검증
+          if (nicknameError) {
+            setNicknameError("");
+          }
         }}
-        onBlur={() => validateNickname(userProfile.nickname)}
+        onBlur={() => validateNickname(currentProfile.nickname)}
         placeholder="입력해 주세요"
-        maxLength={50}
+        maxLength={7}
         minLength={2}
         error={nicknameError}
       />
@@ -79,8 +127,8 @@ export function MemberInfoSection() {
       {/* 이메일 */}
       <InputField
         label="이메일"
-        value={userProfile.email}
-        onChange={(value) => setUserProfile({ email: value })}
+        value={currentProfile.email}
+        onChange={(value) => setCurrentProfile({ email: value })}
         placeholder="입력해 주세요"
         helperText="가까운 곳부터 추천해드려요"
         disabled
@@ -91,8 +139,8 @@ export function MemberInfoSection() {
         <div className="flex gap-1">
           <InputField
             label="주소"
-            value={userProfile.address}
-            onChange={(value) => setUserProfile({ address: value })}
+            value={currentProfile.address}
+            onChange={(value) => setCurrentProfile({ address: value })}
             placeholder="지역을 입력해 주세요"
             helperText="가까운 곳부터 추천해드려요"
             readOnly
@@ -103,8 +151,8 @@ export function MemberInfoSection() {
 
         {/* 상세 주소 */}
         <InputField
-          value={userProfile.detailAddress}
-          onChange={(value) => setUserProfile({ detailAddress: value })}
+          value={currentProfile.detailAddress}
+          onChange={(value) => setCurrentProfile({ detailAddress: value })}
           placeholder="상세주소를 입력해 주세요"
         />
 
@@ -128,16 +176,38 @@ export function MemberInfoSection() {
 
         <button
           type="button"
-          onClick={saveProfile}
-          disabled={isLoading}
+          onClick={async () => {
+            // 저장 전 닉네임 검증
+            const isValid = await validateNickname(currentProfile.nickname);
+
+            if (!isValid) {
+              // 검증 실패 시 저장하지 않음
+              return;
+            }
+
+            // 검증 통과 시 저장 (백엔드 전송 + SNB 반영)
+            await saveProfile();
+          }}
+          disabled={isLoading || isCheckingNickname}
           className="rounded bg-[#F36012] px-6 py-2 text-sm font-medium text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isLoading ? "저장 중..." : isSaved ? "저장 완료!" : "저장"}
+          {isLoading
+            ? "저장 중..."
+            : isCheckingNickname
+              ? "확인 중..."
+              : isSaved
+                ? "저장 완료!"
+                : "저장"}
         </button>
       </div>
 
       {/* 에러 메시지 */}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <div className="flex items-center gap-0.5">
+          <AlertCircle className="size-4 text-red-500" />
+          <span className="text-sm text-red-500">{error}</span>
+        </div>
+      )}
     </section>
   );
 }

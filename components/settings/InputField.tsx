@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { AlertCircle } from "lucide-react";
 
 interface InputFieldProps {
   label?: string;
@@ -35,7 +36,7 @@ export function InputField({
     <div className={cn("flex flex-col gap-2", className)}>
       {/* Label */}
       {label && (
-        <label className="text-base font-semibold leading-[180%] text-[#202937]">
+        <label className="text-base font-semibold leading-[180%] text-basic">
           {label}
         </label>
       )}
@@ -71,8 +72,15 @@ export function InputField({
         )}
       />
 
-      {/* Error Message */}
-      {error && <span className="text-sm text-red-500">{error}</span>}
+      {/* Error Message - Figma Spec */}
+      {error && (
+        <div className="flex items-center gap-0.5">
+          <AlertCircle className="size-4 text-[#0088E8]" />
+          <span className="text-xs font-normal leading-[180%] text-[#2970E2]">
+            {error}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
