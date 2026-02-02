@@ -470,7 +470,7 @@ export function HeaderSideBar({
                     onMouseEnter={() => handleCategoryHover(category.id)}
                     className={cn(
                       "group sidebar__categoryButton flex h-[62px] w-full items-center justify-between",
-                      "px-3 py-2 text-body-medium-bold transition-all duration-200",
+                      "pl-3 pr-2 py-2 text-body-medium-bold transition-all duration-200",
                       isExpanded
                         ? "border-l-4 border-[#F36012] font-bold text-[#F36012]"
                         : "border-l-4 border-transparent text-foreground hover:text-muted-foreground"
