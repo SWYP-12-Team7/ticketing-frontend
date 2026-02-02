@@ -1,5 +1,25 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import axios from "@/services/axios";
 import type { UserProfile } from "@/types/user";
+
+// 다음 우편번호 API 타입 정의
+interface DaumPostcodeData {
+  address: string;
+  zonecode: string;
+}
+
+declare global {
+  interface Window {
+    daum?: {
+      Postcode: new (options: {
+        oncomplete: (data: DaumPostcodeData) => void;
+        onclose: () => void;
+      }) => {
+        open: () => void;
+      };
+    };
+  }
+}
 
 /**
  * 사용자 프로필 조회
@@ -62,7 +82,7 @@ export const updateUserProfile = async (
  * TODO: 백엔드 API 구현 후 실제 API로 교체
  */
 export const checkNicknameDuplicate = async (
-  nickname: string
+  _nickname: string
 ): Promise<{ isDuplicate: boolean }> => {
   // TODO: 백엔드 API 구현 후 아래 코드 활성화
   // const { data } = await axios.get<{ isDuplicate: boolean }>(
@@ -93,9 +113,14 @@ export const searchAddress = (): Promise<{
       return;
     }
 
+    if (!window.daum?.Postcode) {
+      reject(new Error("Daum Postcode API is not loaded"));
+      return;
+    }
+
     // 다음 우편번호 API
-    new (window as any).daum.Postcode({
-      oncomplete: (data: any) => {
+    new window.daum.Postcode({
+      oncomplete: (data: DaumPostcodeData) => {
         resolve({
           address: data.address,
           zonecode: data.zonecode,
