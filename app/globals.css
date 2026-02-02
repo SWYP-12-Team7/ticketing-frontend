@@ -6,6 +6,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-basic: #202937;
+  --font-size-body-medium: 16px;
+  --font-size-body-small: 14px;
+  --font-size-heading-medium: 20px;
+  --line-height-heading-medium: 150%;
+  --letter-spacing-heading-medium: -0.025em;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -49,7 +55,7 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
+  --foreground: #202937;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
@@ -120,6 +126,106 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-basic;
+  }
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Display */
+  .text-display-large {
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+  .text-display-medium {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+  .text-display-small {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+
+  /* Heading */
+  .text-heading-xlarge {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+  .text-heading-large {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+  .text-heading-medium {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+  .text-heading-small {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 150%;
+    letter-spacing: -0.025em;
+  }
+
+  /* Body */
+  .text-body-large {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 150%;
+  }
+  .text-body-large-bold {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 150%;
+  }
+  .text-body-medium {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 150%;
+  }
+  .text-body-medium-bold {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 150%;
+  }
+  .text-body-small {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 150%;
+  }
+  .text-body-small-bold {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 150%;
+  }
+
+  /* Caption */
+  .text-caption-medium {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 150%;
+  }
+  .text-caption-medium-bold {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 150%;
+  }
+  .text-caption-small {
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 150%;
   }
 }

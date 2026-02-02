@@ -1,0 +1,68 @@
+import type { IsoDate, IsoMonth } from "@/types/calendar";
+
+export function toIsoMonth(date: Date): IsoMonth {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+export function toIsoDateLocal(date: Date): IsoDate {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * "YYYY-MM-DD" 문자열을 로컬 타임존 기준 자정으로 파싱합니다.
+ * - Date.parse("YYYY-MM-DD")는 환경에 따라 UTC로 해석되어 날짜가 밀릴 수 있어 피합니다.
+ */
+export function parseIsoDateLocal(isoDate: string): Date {
+  const [y, m, d] = isoDate.split("-").map((v) => Number(v));
+  return new Date(y, m - 1, d);
+}
+
+export function addMonths(baseMonth: Date, deltaMonths: number): Date {
+  return new Date(
+    baseMonth.getFullYear(),
+    baseMonth.getMonth() + deltaMonths,
+    1
+  );
+}
+
+export function isSameMonth(day: Date, month: Date): boolean {
+  return (
+    day.getFullYear() === month.getFullYear() &&
+    day.getMonth() === month.getMonth()
+  );
+}
+
+export function formatMonthTitle(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+/**
+ * 달력 레이아웃 안정성을 위해 항상 6주(42칸) 고정 그리드를 생성합니다.
+ * - 5주/6주 달에서도 전체 레이아웃이 흔들리지 않습니다.
+ */
+export function buildMonthGrid(monthDate: Date): Date[] {
+  const firstOfMonth = new Date(
+    monthDate.getFullYear(),
+    monthDate.getMonth(),
+    1
+  );
+  const firstWeekday = firstOfMonth.getDay(); // 0(Sun)~6(Sat)
+  const gridStart = new Date(firstOfMonth);
+  gridStart.setDate(firstOfMonth.getDate() - firstWeekday);
+
+  const days: Date[] = [];
+  for (let i = 0; i < 42; i += 1) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
