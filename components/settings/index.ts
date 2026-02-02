@@ -6,3 +6,4 @@ export { NotificationSettings } from "./NotificationSettings";
 export { ToggleSwitch } from "./ToggleSwitch";
 export { InputField } from "./InputField";
 export { AddressSearchButton } from "./AddressSearchButton";
+export { WithdrawalModal } from "./WithdrawalModal";
