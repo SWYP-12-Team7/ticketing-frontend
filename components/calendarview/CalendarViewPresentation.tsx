@@ -8,15 +8,16 @@
 
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarQueryState } from "./hooks/useCalendarQueryState";
 import type { CalendarGridData } from "./hooks/useCalendarGridData";
+import type { EventSortOption } from "@/types/event";
 import { CALENDAR_DESIGN_TOKENS } from "./constants/calendar.design-tokens";
 import { CalendarMonthNav } from "./CalendarMonthNav";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarToolbar } from "./CalendarToolbar";
-import { HotEventSection } from "./HotEventSection";
+import { HotEventSection, EventSortSelector } from "./HotEventSection";
 import { formatDateKorean } from "./utils/calendar.formatters";
 import {
   generateEventsByDate,
@@ -74,6 +75,11 @@ export function CalendarViewPresentation({
     isLoading,
     isError,
   } = gridData;
+
+  /**
+   * 이벤트 정렬 상태
+   */
+  const [sortBy, setSortBy] = useState<EventSortOption>("popular");
 
   /**
    * HOT EVENT 섹션 제목 계산
@@ -185,31 +191,40 @@ export function CalendarViewPresentation({
         )}
       </div>
 
-      {/* HOT EVENT 섹션 제목 (Figma: absolute, left: 80px, top: 1011px) */}
-      <h2
-        id="hot-event-heading"
-        className="absolute"
+      {/* HOT EVENT 헤더: 제목 + 정렬 (Figma: absolute, left: 80px, top: 1011px) */}
+      <div
+        className="absolute flex items-center justify-between"
         style={{
           left: "80px",
           top: "1011px",
-          width: "784px",
+          width: "1278px",
           height: "31px",
-          fontFamily: "Pretendard Variable",
-          fontWeight: 600,
-          fontSize: "24px",
-          lineHeight: "128%",
-          letterSpacing: "-0.025em",
-          color: "#111928",
           zIndex: 6,
         }}
       >
-        {hotEventTitle}
-      </h2>
+        <h2
+          id="hot-event-heading"
+          style={{
+            fontFamily: "Pretendard Variable",
+            fontWeight: 600,
+            fontSize: "24px",
+            lineHeight: "128%",
+            letterSpacing: "-0.025em",
+            color: "#111928",
+          }}
+        >
+          {hotEventTitle}
+        </h2>
 
-      {/* HOT EVENT 섹션 (Figma: absolute, left: 81px, top: 1040px) */}
+        {/* 정렬 드롭다운 */}
+        <EventSortSelector sortBy={sortBy} onSortChange={setSortBy} />
+      </div>
+
+      {/* HOT EVENT 섹션 (Figma: absolute, left: 81px, top: 1069px) */}
       <HotEventSection
         selectedDate={selectedDate}
         activeCategories={activeCategories}
+        sortBy={sortBy}
       />
     </section>
   );

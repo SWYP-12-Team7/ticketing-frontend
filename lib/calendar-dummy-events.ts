@@ -5,6 +5,18 @@ import type { IsoDate } from "@/types/calendar";
  * 날짜별 더미 이벤트 생성
  */
 export function generateEventsByDate(date: IsoDate): Event[] {
+  // 행사가 없는 날짜 정의 (테스트용)
+  const emptyDates = [
+    "2026-02-05", // 2월 5일
+    "2026-02-15", // 2월 15일
+    "2026-02-25", // 2월 25일
+  ];
+
+  // 해당 날짜는 빈 배열 반환
+  if (emptyDates.includes(date)) {
+    return [];
+  }
+
   // 날짜 기반 시드 생성 (일관된 랜덤 결과)
   const seed = date.split("-").join("");
   const random = (max: number, offset = 0) =>

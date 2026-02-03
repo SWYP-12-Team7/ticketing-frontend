@@ -38,9 +38,8 @@ function CalendarDayCellComponent({
   const isSunday = day.getDay() === CALENDAR_LAYOUT.SUNDAY_INDEX;
 
   const isDateSelected = selectedDate === iso;
-  const showExhibition =
-    inMonth && activeCategories.exhibition && counts.exhibition > 0;
-  const showPopup = inMonth && activeCategories.popup && counts.popup > 0;
+  const showExhibition = inMonth && activeCategories.exhibition;
+  const showPopup = inMonth && activeCategories.popup;
 
   // Pill 선택 상태 확인
   const isExhibitionPillSelected =

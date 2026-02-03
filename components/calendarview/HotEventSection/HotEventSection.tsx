@@ -9,7 +9,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
 import type { Event, EventSortOption } from "@/types/event";
@@ -20,7 +20,6 @@ import {
   generatePopularEvents,
 } from "@/lib/calendar-dummy-events";
 import { formatDateKorean } from "../utils/calendar.formatters";
-import { EventSortSelector } from "./EventSortSelector";
 import { EmptyState } from "./EmptyState";
 
 /**
@@ -33,6 +32,8 @@ interface HotEventSectionProps {
   selectedDate?: IsoDate | null;
   /** 활성화된 카테고리 */
   activeCategories?: CalendarCategoryActiveMap;
+  /** 정렬 옵션 */
+  sortBy: EventSortOption;
   /** 이벤트 목록 (선택사항, 없으면 더미 데이터 사용) */
   events?: Event[];
 }
@@ -52,10 +53,9 @@ export function HotEventSection({
   className,
   selectedDate,
   activeCategories,
+  sortBy,
   events,
 }: HotEventSectionProps) {
-  const [sortBy, setSortBy] = useState<EventSortOption>("popular");
-
   /**
    * 카테고리 레이블 결정
    * - 전시만: "전시"
@@ -183,12 +183,6 @@ export function HotEventSection({
       }}
     >
       <div className="hot-event-section__container">
-        {/* 헤더: 정렬 드롭다운 */}
-        <div className="hot-event-section__header mb-6 flex items-center justify-end">
-          {/* 정렬 드롭다운 */}
-          <EventSortSelector sortBy={sortBy} onSortChange={setSortBy} />
-        </div>
-
         {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
         {sortedEvents.length > 0 ? (
           <ul
