@@ -2,10 +2,8 @@
  * 캘린더 필터바 컴포넌트
  *
  * Figma 스펙 완전 반영:
- * - 필터 아이콘 (24px)
- * - 지역 선택 드롭다운
- * - 팝업 서브카테고리 드롭다운
- * - 전시 서브카테고리 드롭다운
+ * - 필터 아이콘 (24px, 클릭 시 사이드바 열기)
+ * - 선택된 필터 pills 표시 (주황색, X 버튼으로 제거)
  * - 리셋 버튼 (40px, rounded-22px)
  * - height: 60px
  * - padding: 8px 10px
@@ -18,38 +16,21 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { RotateCcw } from "lucide-react";
 import Image from "next/image";
-import type {
-  CalendarRegion,
-  CalendarFilterState,
-  PopupSubcategory,
-  ExhibitionSubcategory,
-} from "@/types/calendar";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
-import { RegionSelector } from "./RegionSelector";
-import { SubcategorySelector } from "./SubcategorySelector";
+import { SelectedFilterPills, type DisplayFilter } from "./SelectedFilterPills";
 
 /**
  * CalendarToolbar Props
  */
 type CalendarToolbarProps = Readonly<{
-  /** 지역 목록 */
-  regions: readonly CalendarRegion[];
-  /** 필터 상태 */
-  filterState: CalendarFilterState;
-  /** 지역 변경 핸들러 */
-  onChangeRegion: (regionId: string) => void;
-  /** 팝업 서브카테고리 변경 핸들러 */
-  onChangePopupSubcategory: (subcategory: PopupSubcategory) => void;
-  /** 전시 서브카테고리 변경 핸들러 */
-  onChangeExhibitionSubcategory: (subcategory: ExhibitionSubcategory) => void;
-  /** 팝업 활성화/비활성화 핸들러 */
-  onTogglePopup: () => void;
-  /** 전시 활성화/비활성화 핸들러 */
-  onToggleExhibition: () => void;
-  /** 필터 초기화 핸들러 */
-  onReset: () => void;
+  /** 선택된 필터 pills */
+  selectedFilters: DisplayFilter[];
+  /** 필터 제거 핸들러 */
+  onRemoveFilter: (filterId: string) => void;
   /** 필터 사이드바 열기 핸들러 */
   onOpenFilter: () => void;
+  /** 필터 초기화 핸들러 */
+  onReset: () => void;
 }>;
 
 /**
@@ -58,27 +39,18 @@ type CalendarToolbarProps = Readonly<{
  * @example
  * ```tsx
  * <CalendarToolbar
- *   regions={regions}
- *   filterState={filterState}
- *   onChangeRegion={handleRegionChange}
- *   onChangePopupSubcategory={handlePopupSubcategoryChange}
- *   onChangeExhibitionSubcategory={handleExhibitionSubcategoryChange}
- *   onTogglePopup={handleTogglePopup}
- *   onToggleExhibition={handleToggleExhibition}
- *   onReset={handleReset}
+ *   selectedFilters={selectedFilterPills}
+ *   onRemoveFilter={handleRemoveFilter}
+ *   onOpenFilter={() => setIsFilterOpen(true)}
+ *   onReset={handleResetFilters}
  * />
  * ```
  */
 export function CalendarToolbar({
-  regions,
-  filterState,
-  onChangeRegion,
-  onChangePopupSubcategory,
-  onChangeExhibitionSubcategory,
-  onTogglePopup,
-  onToggleExhibition,
-  onReset,
+  selectedFilters,
+  onRemoveFilter,
   onOpenFilter,
+  onReset,
 }: CalendarToolbarProps) {
   return (
     <header
@@ -111,35 +83,12 @@ export function CalendarToolbar({
         />
       </button>
 
-      {/* 필터 아이템들 */}
-      <div className="calendar-toolbar__filters flex items-center gap-[10px] flex-1">
-        {/* 지역 선택 드롭다운 */}
-        <RegionSelector
-          regions={regions}
-          selectedRegionId={filterState.region}
-          onRegionChange={onChangeRegion}
-        />
-
-        {/* 팝업 서브카테고리 선택 */}
-        <SubcategorySelector
-          category="popup"
-          selectedSubcategory={filterState.popup.subcategory}
-          onSubcategoryChange={(sub) =>
-            onChangePopupSubcategory(sub as PopupSubcategory)
-          }
-          isEnabled={filterState.popup.enabled}
-        />
-
-        {/* 전시 서브카테고리 선택 */}
-        <SubcategorySelector
-          category="exhibition"
-          selectedSubcategory={filterState.exhibition.subcategory}
-          onSubcategoryChange={(sub) =>
-            onChangeExhibitionSubcategory(sub as ExhibitionSubcategory)
-          }
-          isEnabled={filterState.exhibition.enabled}
-        />
-      </div>
+      {/* 선택된 필터 pills */}
+      <SelectedFilterPills
+        filters={selectedFilters}
+        onRemove={onRemoveFilter}
+        className="flex-1"
+      />
 
       {/* 리셋 버튼 */}
       <button

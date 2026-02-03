@@ -28,6 +28,11 @@ import {
   INITIAL_FILTER_STATE,
   type LocationEventFilterState,
 } from "@/components/common/LocationEventFilter";
+import {
+  convertFiltersToDisplayPills,
+  removeFilterFromState,
+} from "@/components/common/LocationEventFilter/utils";
+import { calculateEventCount } from "@/utils/filterEventCounter";
 
 /**
  * CalendarViewPresentation Props
@@ -92,6 +97,29 @@ export function CalendarViewPresentation({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [locationFilterState, setLocationFilterState] =
     useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
+
+  /**
+   * 선택된 필터를 display pills로 변환
+   */
+  const selectedFilterPills = useMemo(
+    () => convertFiltersToDisplayPills(locationFilterState),
+    [locationFilterState]
+  );
+
+  /**
+   * 필터 제거 핸들러
+   */
+  const handleRemoveFilter = (filterId: string) => {
+    const newState = removeFilterFromState(locationFilterState, filterId);
+    setLocationFilterState(newState);
+  };
+
+  /**
+   * 필터 리셋 핸들러
+   */
+  const handleResetFilters = () => {
+    setLocationFilterState(INITIAL_FILTER_STATE);
+  };
 
   /**
    * 필터 적용 핸들러
@@ -166,25 +194,10 @@ export function CalendarViewPresentation({
 
         {/* Order 1: 필터바 */}
         <CalendarToolbar
-          regions={regions}
-          filterState={{
-            region: regionId,
-            popup: {
-              enabled: activeCategories.popup,
-              subcategory: popupSubcategory,
-            },
-            exhibition: {
-              enabled: activeCategories.exhibition,
-              subcategory: exhibitionSubcategory,
-            },
-          }}
-          onChangeRegion={changeRegion}
-          onChangePopupSubcategory={changePopupSubcategory}
-          onChangeExhibitionSubcategory={changeExhibitionSubcategory}
-          onTogglePopup={() => toggleCategory("popup")}
-          onToggleExhibition={() => toggleCategory("exhibition")}
-          onReset={resetFilters}
+          selectedFilters={selectedFilterPills}
+          onRemoveFilter={handleRemoveFilter}
           onOpenFilter={() => setIsFilterOpen(true)}
+          onReset={handleResetFilters}
         />
 
         {/* Order 2: 캘린더 그리드 */}
@@ -255,7 +268,7 @@ export function CalendarViewPresentation({
         onClose={() => setIsFilterOpen(false)}
         filterState={locationFilterState}
         onApply={handleApplyFilters}
-        resultCount={25}
+        resultCount={calculateEventCount(locationFilterState)}
       />
     </section>
   );

@@ -57,6 +57,7 @@ import {
   PRICE_OPTIONS,
   AMENITY_OPTIONS,
 } from "./constants";
+import { calculateEventCount } from "@/utils/filterEventCounter";
 
 interface LocationEventFilterSidebarProps {
   /** 사이드바 열림 상태 */
@@ -82,10 +83,19 @@ export function LocationEventFilterSidebar({
   const [localFilters, setLocalFilters] =
     useState<LocationEventFilterState>(filterState);
 
+  // 실시간 이벤트 개수
+  const [calculatedCount, setCalculatedCount] = useState(resultCount);
+
   // filterState가 변경되면 로컬 상태 동기화
   useEffect(() => {
     setLocalFilters(filterState);
   }, [filterState]);
+
+  // 필터 변경 시 실시간 개수 계산
+  useEffect(() => {
+    const count = calculateEventCount(localFilters);
+    setCalculatedCount(count);
+  }, [localFilters]);
 
   // Accordion 확장 상태
   const [expandedSections, setExpandedSections] = useState({
@@ -309,7 +319,7 @@ export function LocationEventFilterSidebar({
               }}
             >
               <span className="flex items-center justify-center gap-0.5">
-                <span className="font-semibold">{resultCount}</span>
+                <span className="font-semibold">{calculatedCount}</span>
                 <span className="font-medium">개 행사 검색</span>
               </span>
             </button>

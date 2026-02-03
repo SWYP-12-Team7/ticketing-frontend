@@ -18,3 +18,8 @@ export {
   AMENITY_OPTIONS,
   INITIAL_FILTER_STATE,
 } from "./constants";
+export {
+  convertFiltersToDisplayPills,
+  removeFilterFromState,
+  type DisplayFilter,
+} from "./utils";
