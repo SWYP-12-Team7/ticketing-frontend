@@ -123,7 +123,10 @@ export function InputField({
       {/* Error Message - Figma Spec */}
       {error && (
         <div id={errorId} className="flex items-center gap-0.5" role="alert">
-          <AlertCircle className="size-4 text-[#0088E8]" aria-hidden="true" />
+          <AlertCircle
+            className="h-[16px] w-[16px] text-[#0088E8]"
+            aria-hidden="true"
+          />
           <span className="text-xs font-normal leading-[180%] text-[#2970E2]">
             {error}
           </span>

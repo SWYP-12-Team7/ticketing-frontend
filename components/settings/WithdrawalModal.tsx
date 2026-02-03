@@ -170,7 +170,7 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
                           <div className="flex grow items-center gap-0.5">
                             {/* circle-alert icon - 16px */}
                             <AlertCircle
-                              className="size-4 text-[#0088E8]"
+                              className="h-[16px] w-[16px] text-[#0088E8]"
                               strokeWidth={1}
                             />
                             <span className="text-xs leading-[180%] text-[#2970E2]">

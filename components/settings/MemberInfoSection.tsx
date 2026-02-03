@@ -68,7 +68,7 @@ export function MemberInfoSection() {
           onClick={handleSaveProfile}
           disabled={isLoading}
           aria-label="프로필 수정"
-          className="flex h-8 w-[49px] shrink-0 items-center justify-center rounded border border-[#D3D5DC] bg-white px-3 text-sm font-normal leading-[140%] text-basic transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-8 w-[49px] shrink-0 items-center justify-center rounded border border-[#D3D5DC] bg-white px-3 text-sm font-normal leading-[140%] text-basic whitespace-nowrap transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           수정
         </button>
@@ -133,14 +133,23 @@ export function MemberInfoSection() {
           aria-label="상세주소"
         />
 
-        {/* 주소 알림 */}
+        {/* 상세주소 안내 메시지 - Figma: 항상 표시 */}
+        <div
+          className="flex w-[866px] items-center gap-0.5 text-xs leading-[180%] text-[#2970E2]"
+          role="status"
+        >
+          <AlertCircle className="h-[16px] w-[16px]" aria-hidden="true" />
+          <span>추천 정확도가 올라가요</span>
+        </div>
+
+        {/* 주소 검색 완료 알림 - 조건부 표시 */}
         {showAddressAlert && (
           <div
-            className="flex items-center gap-0.5 text-xs leading-[180%] text-[#2970E2]"
+            className="flex w-[866px] items-center gap-0.5 text-xs leading-[180%] text-[#2970E2]"
             role="status"
             aria-live="polite"
           >
-            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertCircle className="h-[16px] w-[16px]" aria-hidden="true" />
             <span>주소가 입력되었습니다</span>
           </div>
         )}
@@ -160,7 +169,10 @@ export function MemberInfoSection() {
       {/* 에러 메시지 */}
       {error && (
         <div className="flex items-center gap-0.5" role="alert">
-          <AlertCircle className="size-4 text-red-500" aria-hidden="true" />
+          <AlertCircle
+            className="h-[16px] w-[16px] text-red-500"
+            aria-hidden="true"
+          />
           <span className="text-sm text-red-500">{error}</span>
         </div>
       )}

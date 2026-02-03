@@ -67,7 +67,9 @@ const notificationItems: Array<{
  * @description
  * - Figma 스펙 완전 반영
  * - "모든 알림 받기" → "모든 소식 받기"
- * - 모든 항목 항상 표시 (조건부 숨김 제거)
+ * - 조건부 표시 규칙:
+ *   - 부모 항목은 항상 표시
+ *   - 자식 항목: 부모가 ON이면 표시, OFF면 숨김
  * - list-item height: 64px, padding: 16px
  * - 헬퍼 함수로 로직 분리
  * - 성능 최적화 (useMemo, useCallback)
@@ -109,9 +111,39 @@ export function NotificationSettings() {
 
   /**
    * 렌더링할 항목 목록 (메모이제이션)
-   * Figma 스펙: 모든 항목 항상 표시
+   *
+   * @description
+   * - 부모 항목(indent: false)은 항상 표시
+   * - 자식 항목(indent: true): 형제 자식들 중 하나라도 ON이면 모두 표시, 모두 OFF면 숨김
    */
-  const visibleItems = useMemo(() => notificationItems, []);
+  const visibleItems = useMemo(() => {
+    const notifications = currentProfile.notifications;
+
+    return notificationItems.filter((item) => {
+      // 부모 항목은 항상 표시
+      if (!item.indent) {
+        return true;
+      }
+
+      // 자식 항목: 형제 자식들 중 하나라도 ON이면 표시
+      if (item.parentKey === "allNews") {
+        // popup, exhibition, newEvent, hotDeal 중 하나라도 ON이면 모두 표시
+        return (
+          notifications.popup ||
+          notifications.exhibition ||
+          notifications.newEvent ||
+          notifications.hotDeal
+        );
+      }
+
+      if (item.parentKey === "onemonthNews") {
+        // likedEvent, interestedEvent 중 하나라도 ON이면 모두 표시
+        return notifications.likedEvent || notifications.interestedEvent;
+      }
+
+      return true;
+    });
+  }, [currentProfile.notifications]);
 
   return (
     <>
@@ -140,7 +172,7 @@ export function NotificationSettings() {
                 className={cn(
                   "flex-1 cursor-pointer text-lg leading-[180%]",
                   isParent
-                    ? "font-semibold text-[#202937]"
+                    ? "font-semibold text-basic"
                     : "font-normal text-[#4B5462]"
                 )}
               >

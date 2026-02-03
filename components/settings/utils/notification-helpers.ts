@@ -79,7 +79,12 @@ export function handleAllNewsSubItemToggle(
 export function handleOnboardingToggle(
   currentValue: boolean
 ): Partial<NotificationSettings> {
-  return { onemonthNews: !currentValue };
+  const newValue = !currentValue;
+  return {
+    onemonthNews: newValue,
+    likedEvent: newValue,
+    interestedEvent: newValue,
+  };
 }
 
 /**
