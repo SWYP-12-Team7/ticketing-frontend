@@ -1,17 +1,27 @@
 "use client";
 
+import { useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { useUserSettingsStore } from "@/store/user-settings";
-import type { NotificationSettings } from "@/types/user";
+import type { NotificationSettings as NotificationSettingsType } from "@/types/user";
+import {
+  handleAllNewsToggle,
+  handleAllNewsSubItemToggle,
+  handleOnboardingToggle,
+  handleOnboardingSubItemToggle,
+} from "./utils/notification-helpers";
 
+/**
+ * 알림 항목 메타데이터
+ */
 const notificationItems: Array<{
-  key: keyof NotificationSettings;
+  key: keyof NotificationSettingsType;
   label: string;
   indent: boolean;
-  parentKey?: keyof NotificationSettings;
+  parentKey?: keyof NotificationSettingsType;
 }> = [
-  { key: "allNews", label: "모든 알림 받기", indent: false },
+  { key: "allNews", label: "모든 소식 받기", indent: false },
   {
     key: "popup",
     label: "팝업 관련만 알림 받을래요",
@@ -49,131 +59,103 @@ const notificationItems: Array<{
     indent: true,
     parentKey: "onemonthNews",
   },
-];
+] as const;
 
+/**
+ * 알림 설정 컴포넌트
+ *
+ * @description
+ * - Figma 스펙 완전 반영
+ * - "모든 알림 받기" → "모든 소식 받기"
+ * - 모든 항목 항상 표시 (조건부 숨김 제거)
+ * - list-item height: 64px, padding: 16px
+ * - 헬퍼 함수로 로직 분리
+ * - 성능 최적화 (useMemo, useCallback)
+ */
 export function NotificationSettings() {
   const { currentProfile, updateNotifications } = useUserSettingsStore();
 
-  const handleToggle = (key: keyof typeof currentProfile.notifications) => {
-    if (key === "allNews") {
-      // "모든 알림 받기" 토글 시 하위 항목도 함께 변경
-      const newValue = !currentProfile.notifications.allNews;
-      updateNotifications({
-        allNews: newValue,
-        popup: newValue,
-        exhibition: newValue,
-        newEvent: newValue,
-        hotDeal: newValue,
-      });
-    } else if (key === "onemonthNews") {
-      // "온보딩 알림 받기"는 독립적으로 동작
-      updateNotifications({
-        [key]: !currentProfile.notifications[key],
-      });
-    } else if (key === "likedEvent" || key === "interestedEvent") {
-      // "온보딩 알림 받기" 하위 항목
-      const newValue = !currentProfile.notifications[key];
-      updateNotifications({
-        [key]: newValue,
-      });
+  /**
+   * 토글 핸들러
+   */
+  const handleToggle = useCallback(
+    (key: keyof NotificationSettingsType) => {
+      const notifications = currentProfile.notifications;
 
-      // 하위 항목이 하나라도 꺼지면 "온보딩 알림" 자동 OFF
-      if (newValue === false && currentProfile.notifications.onemonthNews) {
-        updateNotifications({ onemonthNews: false });
+      let updates: Partial<NotificationSettingsType>;
+
+      if (key === "allNews") {
+        updates = handleAllNewsToggle(notifications.allNews);
+      } else if (
+        key === "popup" ||
+        key === "exhibition" ||
+        key === "newEvent" ||
+        key === "hotDeal"
+      ) {
+        updates = handleAllNewsSubItemToggle(key, notifications);
+      } else if (key === "onemonthNews") {
+        updates = handleOnboardingToggle(notifications.onemonthNews);
+      } else if (key === "likedEvent" || key === "interestedEvent") {
+        updates = handleOnboardingSubItemToggle(key, notifications);
+      } else {
+        // Fallback (실행되지 않아야 함)
+        updates = { [key]: !notifications[key] };
       }
 
-      // 모든 하위 항목이 켜지면 "온보딩 알림" 자동 ON
-      const allOnboardingItemsOn =
-        currentProfile.notifications.likedEvent &&
-        currentProfile.notifications.interestedEvent &&
-        newValue;
+      updateNotifications(updates);
+    },
+    [currentProfile.notifications, updateNotifications]
+  );
 
-      if (allOnboardingItemsOn && !currentProfile.notifications.onemonthNews) {
-        updateNotifications({ onemonthNews: true });
-      }
-    } else {
-      // "모든 알림 받기" 하위 항목
-      const newValue = !currentProfile.notifications[key];
-      updateNotifications({
-        [key]: newValue,
-      });
-
-      // 하위 항목이 하나라도 꺼지면 "모든 알림" 자동 OFF
-      if (newValue === false && currentProfile.notifications.allNews) {
-        updateNotifications({ allNews: false });
-      }
-
-      // 모든 하위 항목이 켜지면 "모든 알림" 자동 ON
-      const allSubItemsOn =
-        currentProfile.notifications.popup &&
-        currentProfile.notifications.exhibition &&
-        currentProfile.notifications.newEvent &&
-        currentProfile.notifications.hotDeal &&
-        newValue;
-
-      if (allSubItemsOn && !currentProfile.notifications.allNews) {
-        updateNotifications({ allNews: true });
-      }
-    }
-  };
+  /**
+   * 렌더링할 항목 목록 (메모이제이션)
+   * Figma 스펙: 모든 항목 항상 표시
+   */
+  const visibleItems = useMemo(() => notificationItems, []);
 
   return (
-    <section className="flex flex-col gap-3">
-      {/* 섹션 제목 */}
-      <h2 className="text-2xl font-semibold leading-[128%] tracking-[-0.025em] text-basic">
+    <>
+      {/* 섹션 제목 - Figma: 866px, 24px, font-weight 600 */}
+      <h2 className="w-[866px] text-2xl font-semibold leading-[128%] tracking-[-0.025em] text-basic">
         알림 설정
       </h2>
 
-      {/* 알림 항목 리스트 */}
-      <div className="flex flex-col">
-        {notificationItems
-          .filter((item) => {
-            // "모든 알림 받기" 하위 항목: 하나라도 ON이면 모두 표시
-            if (item.parentKey === "allNews") {
-              return (
-                currentProfile.notifications.popup ||
-                currentProfile.notifications.exhibition ||
-                currentProfile.notifications.newEvent ||
-                currentProfile.notifications.hotDeal
-              );
-            }
+      {/* 알림 항목 리스트 - Figma: width 866px */}
+      <div className="flex w-[866px] flex-col" role="list">
+        {visibleItems.map((item) => {
+          const isChecked = currentProfile.notifications[item.key];
+          const isParent = !item.indent;
 
-            // "온보딩 알림 받기" 하위 항목: 하나라도 ON이면 모두 표시
-            if (item.parentKey === "onemonthNews") {
-              return (
-                currentProfile.notifications.likedEvent ||
-                currentProfile.notifications.interestedEvent
-              );
-            }
-
-            // parentKey가 없으면 항상 표시
-            return true;
-          })
-          .map((item) => (
+          return (
             <div
               key={item.key}
+              role="listitem"
               className={cn(
-                "flex items-center justify-between bg-white py-4",
+                "flex h-16 items-center justify-between bg-white",
                 item.indent ? "px-4 pl-12" : "px-4"
               )}
             >
-              <span
+              <label
+                htmlFor={`notification-${item.key}`}
                 className={cn(
-                  "text-lg leading-[180%]",
-                  item.indent
-                    ? "font-normal text-[#4B5462]"
-                    : "font-semibold text-basic"
+                  "flex-1 cursor-pointer text-lg leading-[180%]",
+                  isParent
+                    ? "font-semibold text-[#202937]"
+                    : "font-normal text-[#4B5462]"
                 )}
               >
                 {item.label}
-              </span>
+              </label>
               <ToggleSwitch
-                checked={currentProfile.notifications[item.key]}
+                id={`notification-${item.key}`}
+                checked={isChecked}
                 onChange={() => handleToggle(item.key)}
+                aria-label={`${item.label} ${isChecked ? "끄기" : "켜기"}`}
               />
             </div>
-          ))}
+          );
+        })}
       </div>
-    </section>
+    </>
   );
 }
