@@ -275,6 +275,132 @@ export const CALENDAR_DESIGN_TOKENS = {
     medium: "shadow-md",
     large: "shadow-lg",
   },
+
+  /**
+   * HOT EVENT 카드 디자인 토큰
+   */
+  eventCard: {
+    /** 크기 */
+    sizing: {
+      width: "193px",
+      height: "490px",
+      imageWidth: "193px",
+      imageHeight: "258px",
+      contentHeight: "224px",
+      likeButtonSize: "48px",
+      likeIconSize: "24px",
+      metaIconSize: "16px",
+      dividerWidth: "1px",
+      dividerHeight: "10px",
+    },
+
+    /** 간격 */
+    spacing: {
+      /** 이미지와 content 사이 */
+      gap: "8px",
+      /** content 내부 요소 간격 */
+      contentGap: "4px",
+      /** information 섹션 padding */
+      informationPadding: "4px 0px",
+      /** information 내부 간격 (Figma: 지역-기간-가격 사이 간격) */
+      informationGap: "2px",
+      /** label-category 내부 간격 */
+      categoryGap: "8px",
+      /** meta 아이템 간격 */
+      metaGap: "8px",
+      /** meta 내부 icon-text 간격 */
+      metaItemGap: "4px",
+      /** 좋아요 버튼 위치 */
+      likeButtonRight: "8px",
+      likeButtonTop: "8px",
+    },
+
+    /** 색상 */
+    colors: {
+      /** 카테고리 - 전시 */
+      categoryExhibition: "#F36012",
+      /** 카테고리 - 팝업스토어 */
+      categoryPopup: "#2970E2",
+      /** 서브카테고리 */
+      subcategory: "#6C7180",
+      /** 서브카테고리 (단독 표시 시) */
+      subcategoryAlt: "#4B5462",
+      /** 제목 */
+      title: "#202937",
+      /** 지역 */
+      region: "#4B5462",
+      /** 기간 */
+      date: "#6C7180",
+      /** 가격 */
+      price: "#6C7180",
+      /** 메타 (조회수/좋아요) */
+      meta: "#6C7180",
+      /** 구분선 */
+      divider: "#D3D5DC",
+      /** 이미지 플레이스홀더 */
+      imagePlaceholder: "#F3F4F6",
+      /** 좋아요 버튼 배경 */
+      likeButtonBg: "rgba(0, 0, 0, 0.4)",
+      /** 좋아요 활성 색상 (Figma: #EE443F) */
+      likeActive: "#EE443F",
+      /** 좋아요 비활성 색상 */
+      likeInactive: "#FFFFFF",
+    },
+
+    /** 폰트 */
+    fonts: {
+      category: {
+        family: "Pretendard",
+        size: "14px",
+        weight: 400,
+        lineHeight: "140%",
+      },
+      title: {
+        family: "Pretendard Variable",
+        size: "20px",
+        weight: 600,
+        lineHeight: "128%",
+        letterSpacing: "-0.025em",
+      },
+      region: {
+        family: "Pretendard Variable",
+        size: "16px",
+        weight: 500,
+        lineHeight: "140%",
+      },
+      date: {
+        family: "Pretendard",
+        size: "14px",
+        weight: 400,
+        lineHeight: "140%",
+      },
+      price: {
+        family: "Pretendard",
+        size: "14px",
+        weight: 400,
+        lineHeight: "140%",
+      },
+      meta: {
+        family: "Pretendard",
+        size: "12px",
+        weight: 400,
+        lineHeight: "180%",
+      },
+    },
+
+    /** 테두리 반경 */
+    borderRadius: {
+      image: "8px",
+      likeButton: "1000px",
+      category: "100px",
+    },
+
+    /** 테두리 두께 */
+    borders: {
+      likeIcon: "1.5px",
+      metaIcon: "1px",
+    },
+  },
 } as const;
 
 export type CalendarDesignTokens = typeof CALENDAR_DESIGN_TOKENS;

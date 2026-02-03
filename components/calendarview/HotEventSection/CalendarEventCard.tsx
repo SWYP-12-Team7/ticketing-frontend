@@ -1,13 +1,14 @@
 /**
- * Calendar Event Card - Figma 스펙 준수 버전
+ * Calendar Event Card - Figma 스펙 완전 준수 (490px 버전)
  *
  * Figma 스펙:
- * - 카드: 193px × 376-380px, gap: 8px
+ * - 카드: 193px × 490px, gap: 8px
  * - 이미지: 193px × 258px, border-radius: 8px
  * - 좋아요 버튼: 48px, rgba(0,0,0,0.4)
- * - 좋아요 아이콘: 24px
- * - 제목: 20px/600, 2줄 제한
- * - 메타 아이콘: 16px, gap: 8px
+ * - content: 224px (카테고리 + 제목 + 정보 + 메타)
+ * - label-category: 카테고리 + 구분선 + 서브카테고리
+ * - information: 지역 + 기간 + 가격
+ * - meta: 조회수 + 좋아요
  */
 
 "use client";
@@ -18,6 +19,7 @@ import { Heart, Eye } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Event } from "@/types/event";
+import { CALENDAR_DESIGN_TOKENS as TOKENS } from "../constants/calendar.design-tokens";
 
 interface CalendarEventCardProps {
   event: Event;
@@ -26,12 +28,23 @@ interface CalendarEventCardProps {
 }
 
 /**
- * 캘린더 뷰 전용 이벤트 카드 (Figma 스펙 준수)
+ * 캘린더 뷰 전용 이벤트 카드 (Figma 스펙 완전 준수)
  *
  * @example
  * ```tsx
  * <CalendarEventCard
- *   event={event}
+ *   event={{
+ *     id: "1",
+ *     title: "나이키 에어맥스 팝업 스토어",
+ *     category: "전시",
+ *     subcategory: "라이프스타일",
+ *     region: "서울 성수",
+ *     period: "26.01.01 ~ 26.01.31",
+ *     priceDisplay: "무료",
+ *     imageUrl: "/images/event.jpg",
+ *     viewCount: 1234,
+ *     likeCount: 567,
+ *   }}
  *   onLikeClick={(id) => console.log('Like:', id)}
  * />
  * ```
@@ -45,169 +58,307 @@ export function CalendarEventCard({
     id,
     title,
     category,
+    subcategory,
+    region,
+    period,
+    priceDisplay,
     imageUrl,
     viewCount,
     likeCount,
     isLiked = false,
   } = event;
 
+  const tokens = TOKENS.eventCard;
+
+  // 좋아요 클릭 핸들러
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onLikeClick?.(id);
   };
 
+  // 조회수 포맷팅 (99,999+ 제한)
+  const formatCount = (count: number): string => {
+    return count >= 99999 ? "99,999+" : count.toLocaleString();
+  };
+
+  // 카테고리별 색상 결정 (Figma 스펙 준수)
+  const getCategoryColor = (category: string): string => {
+    switch (category) {
+      case "전시":
+        return tokens.colors.categoryExhibition;
+      case "팝업":
+      case "팝업스토어":
+        return tokens.colors.categoryPopup;
+      default:
+        // fallback: 전시 색상
+        return tokens.colors.categoryExhibition;
+    }
+  };
+
   return (
     <article
       className={cn("calendar-event-card group flex flex-col", className)}
       style={{
-        width: "193px",
-        gap: "8px",
+        width: tokens.sizing.width,
+        height: tokens.sizing.height,
+        gap: tokens.spacing.gap,
       }}
     >
-      {/* 이미지 섹션 (193px × 258px) */}
-      <Link href={`/detail/${id}`} className="calendar-event-card__imageLink">
+      {/* ========== 이미지 섹션 (193px × 258px) ========== */}
+      <Link
+        href={`/detail/${id}`}
+        className="calendar-event-card__imageLink"
+        aria-label={`${title} 상세보기`}
+      >
         <div
-          className="calendar-event-card__imageContainer relative overflow-hidden bg-[#F3F4F6]"
+          className="calendar-event-card__imageContainer relative overflow-hidden"
           style={{
-            width: "193px",
-            height: "258px",
-            borderRadius: "8px",
+            width: tokens.sizing.imageWidth,
+            height: tokens.sizing.imageHeight,
+            backgroundColor: tokens.colors.imagePlaceholder,
+            borderRadius: tokens.borderRadius.image,
           }}
         >
           <Image
             src={imageUrl}
             alt={title}
             fill
-            sizes="193px"
-            className="calendar-event-card__image object-cover"
+            sizes={tokens.sizing.imageWidth}
+            className="calendar-event-card__image object-cover transition-transform group-hover:scale-105"
           />
 
-          {/* 좋아요 버튼 (48px, 검은색 반투명) */}
+          {/* 좋아요 버튼 (우상단 고정) */}
           <button
             type="button"
             onClick={handleLikeClick}
-            className="calendar-event-card__likeButton absolute flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="calendar-event-card__likeButton absolute flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             style={{
-              width: "48px",
-              height: "48px",
-              right: "calc(50% - 48px/2 - 64.5px)",
-              top: "calc(50% - 48px/2 + 97px)",
-              background: "rgba(0, 0, 0, 0.4)",
-              borderRadius: "1000px",
+              width: tokens.sizing.likeButtonSize,
+              height: tokens.sizing.likeButtonSize,
+              right: tokens.spacing.likeButtonRight,
+              top: tokens.spacing.likeButtonTop,
+              backgroundColor: tokens.colors.likeButtonBg,
+              borderRadius: tokens.borderRadius.likeButton,
             }}
             aria-label={isLiked ? "좋아요 취소" : "좋아요"}
           >
             <Heart
               className={cn(
                 "calendar-event-card__likeIcon transition-colors",
-                isLiked ? "fill-red-500 text-red-500" : "text-white"
+                isLiked && "fill-current"
               )}
               style={{
-                width: "24px",
-                height: "24px",
-                strokeWidth: "1.5px",
+                width: tokens.sizing.likeIconSize,
+                height: tokens.sizing.likeIconSize,
+                color: isLiked
+                  ? tokens.colors.likeActive
+                  : tokens.colors.likeInactive,
+                strokeWidth: tokens.borders.likeIcon,
               }}
             />
           </button>
         </div>
       </Link>
 
-      {/* 컨텐츠 영역 (110px) */}
-      <Link href={`/detail/${id}`} className="calendar-event-card__infoLink">
+      {/* ========== 컨텐츠 영역 (224px) ========== */}
+      <Link
+        href={`/detail/${id}`}
+        className="calendar-event-card__infoLink"
+        aria-label={`${title} 정보`}
+      >
         <div
           className="calendar-event-card__content flex flex-col"
           style={{
-            width: "193px",
-            gap: "4px",
+            width: tokens.sizing.width,
+            height: tokens.sizing.contentHeight,
+            gap: tokens.spacing.contentGap,
           }}
         >
-          {/* 카테고리 레이블 */}
-          <p
-            className="calendar-event-card__category"
+          {/* 1️⃣ label-category: 카테고리 + 구분선 + 서브카테고리 */}
+          <div
+            className="calendar-event-card__labelCategory flex items-center"
             style={{
-              fontFamily: "Pretendard",
-              fontWeight: 400,
-              fontSize: "14px",
-              lineHeight: "140%",
-              color: "#4B5462",
+              gap: tokens.spacing.categoryGap,
+              borderRadius: tokens.borderRadius.category,
             }}
           >
-            {category}
-          </p>
+            {/* 카테고리 (전시/팝업) */}
+            <span
+              className="calendar-event-card__category"
+              style={{
+                fontFamily: tokens.fonts.category.family,
+                fontWeight: tokens.fonts.category.weight,
+                fontSize: tokens.fonts.category.size,
+                lineHeight: tokens.fonts.category.lineHeight,
+                color: getCategoryColor(category),
+              }}
+            >
+              {category}
+            </span>
 
-          {/* 제목 (2줄 제한) */}
+            {/* 구분선 + 서브카테고리 (있을 경우에만 표시) */}
+            {subcategory && (
+              <>
+                <span
+                  className="calendar-event-card__divider"
+                  style={{
+                    width: tokens.sizing.dividerWidth,
+                    height: tokens.sizing.dividerHeight,
+                    backgroundColor: tokens.colors.divider,
+                  }}
+                  aria-hidden="true"
+                />
+                <span
+                  className="calendar-event-card__subcategory flex-1"
+                  style={{
+                    fontFamily: tokens.fonts.category.family,
+                    fontWeight: tokens.fonts.category.weight,
+                    fontSize: tokens.fonts.category.size,
+                    lineHeight: tokens.fonts.category.lineHeight,
+                    color: tokens.colors.subcategory,
+                  }}
+                >
+                  {subcategory}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* 2️⃣ 제목 (2줄 제한) */}
           <h3
             className="calendar-event-card__title line-clamp-2 transition-colors group-hover:underline"
             style={{
-              width: "193px",
-              maxHeight: "48px",
-              fontFamily: "Pretendard Variable",
-              fontWeight: 600,
-              fontSize: "20px",
-              lineHeight: "128%",
-              letterSpacing: "-0.025em",
-              color: "#202937",
+              width: tokens.sizing.width,
+              fontFamily: tokens.fonts.title.family,
+              fontWeight: tokens.fonts.title.weight,
+              fontSize: tokens.fonts.title.size,
+              lineHeight: tokens.fonts.title.lineHeight,
+              letterSpacing: tokens.fonts.title.letterSpacing,
+              color: tokens.colors.title,
             }}
           >
             {title}
           </h3>
 
-          {/* 메타 (조회수/좋아요) */}
+          {/* 3️⃣ information: 지역 + 기간 + 가격 */}
           <div
-            className="calendar-event-card__meta flex items-start"
+            className="calendar-event-card__information flex flex-col"
+            style={{
+              padding: tokens.spacing.informationPadding,
+              gap: tokens.spacing.informationGap,
+            }}
+          >
+            {/* 지역 (있을 경우) */}
+            {region && (
+              <span
+                className="calendar-event-card__region"
+                style={{
+                  fontFamily: tokens.fonts.region.family,
+                  fontWeight: tokens.fonts.region.weight,
+                  fontSize: tokens.fonts.region.size,
+                  lineHeight: tokens.fonts.region.lineHeight,
+                  color: tokens.colors.region,
+                }}
+              >
+                {region}
+              </span>
+            )}
+
+            {/* 기간 */}
+            {period && (
+              <span
+                className="calendar-event-card__period"
+                style={{
+                  fontFamily: tokens.fonts.date.family,
+                  fontWeight: tokens.fonts.date.weight,
+                  fontSize: tokens.fonts.date.size,
+                  lineHeight: tokens.fonts.date.lineHeight,
+                  color: tokens.colors.date,
+                }}
+              >
+                {period}
+              </span>
+            )}
+
+            {/* 가격 (있을 경우) */}
+            {priceDisplay && (
+              <span
+                className="calendar-event-card__price"
+                style={{
+                  fontFamily: tokens.fonts.price.family,
+                  fontWeight: tokens.fonts.price.weight,
+                  fontSize: tokens.fonts.price.size,
+                  lineHeight: tokens.fonts.price.lineHeight,
+                  color: tokens.colors.price,
+                }}
+              >
+                {priceDisplay}
+              </span>
+            )}
+          </div>
+
+          {/* 4️⃣ meta: 조회수 + 좋아요 */}
+          <div
+            className="calendar-event-card__meta flex items-center"
             style={{
               paddingTop: "2px",
-              gap: "8px",
+              gap: tokens.spacing.metaGap,
             }}
           >
             {/* 조회수 */}
-            <div className="calendar-event-card__viewCount flex items-center gap-1">
+            <div
+              className="calendar-event-card__viewCount flex items-center"
+              style={{ gap: tokens.spacing.metaItemGap }}
+            >
               <Eye
                 className="calendar-event-card__viewIcon"
                 style={{
-                  width: "16px",
-                  height: "16px",
-                  color: "#6C7180",
-                  strokeWidth: "1px",
+                  width: tokens.sizing.metaIconSize,
+                  height: tokens.sizing.metaIconSize,
+                  color: tokens.colors.meta,
+                  strokeWidth: tokens.borders.metaIcon,
                 }}
                 aria-hidden="true"
               />
               <span
                 style={{
-                  fontFamily: "Pretendard",
-                  fontWeight: 400,
-                  fontSize: "12px",
-                  lineHeight: "180%",
-                  color: "#6C7180",
+                  fontFamily: tokens.fonts.meta.family,
+                  fontWeight: tokens.fonts.meta.weight,
+                  fontSize: tokens.fonts.meta.size,
+                  lineHeight: tokens.fonts.meta.lineHeight,
+                  color: tokens.colors.meta,
                 }}
               >
-                {viewCount >= 99999 ? "99,999+" : viewCount.toLocaleString()}
+                {formatCount(viewCount)}
               </span>
             </div>
 
             {/* 좋아요 */}
-            <div className="calendar-event-card__likeCount flex items-center gap-1">
+            <div
+              className="calendar-event-card__likeCount flex items-center"
+              style={{ gap: tokens.spacing.metaItemGap }}
+            >
               <Heart
                 className="calendar-event-card__likeIcon"
                 style={{
-                  width: "16px",
-                  height: "16px",
-                  color: "#6C7180",
-                  strokeWidth: "1px",
+                  width: tokens.sizing.metaIconSize,
+                  height: tokens.sizing.metaIconSize,
+                  color: tokens.colors.meta,
+                  strokeWidth: tokens.borders.metaIcon,
                 }}
                 aria-hidden="true"
               />
               <span
                 style={{
-                  fontFamily: "Pretendard",
-                  fontWeight: 400,
-                  fontSize: "12px",
-                  lineHeight: "180%",
-                  color: "#6C7180",
+                  fontFamily: tokens.fonts.meta.family,
+                  fontWeight: tokens.fonts.meta.weight,
+                  fontSize: tokens.fonts.meta.size,
+                  lineHeight: tokens.fonts.meta.lineHeight,
+                  color: tokens.colors.meta,
                 }}
               >
-                {likeCount >= 99999 ? "99,999+" : likeCount.toLocaleString()}
+                {formatCount(likeCount)}
               </span>
             </div>
           </div>

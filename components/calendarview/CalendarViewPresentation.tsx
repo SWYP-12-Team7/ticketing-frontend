@@ -131,24 +131,21 @@ export function CalendarViewPresentation({
   };
 
   /**
-   * HOT EVENT 섹션 제목 계산
+   * HOT EVENT 이벤트 목록 계산 (제목 + 높이 계산용)
    */
-  const hotEventTitle = useMemo(() => {
-    if (!selectedDate) {
-      return "HOT EVENT";
+  const hotEventData = useMemo(() => {
+    // 카테고리 모두 체크 해제
+    if (!activeCategories.exhibition && !activeCategories.popup) {
+      return { events: [], title: "HOT EVENT" };
     }
 
-    // 카테고리 레이블 결정
-    const categoryLabel =
-      activeCategories.exhibition && !activeCategories.popup
-        ? "전시"
-        : !activeCategories.exhibition && activeCategories.popup
-          ? "팝업"
-          : "이벤트";
+    // 이벤트 목록 가져오기
+    const allEvents = selectedDate
+      ? generateEventsByDate(selectedDate)
+      : generatePopularEvents(24);
 
-    // 해당 날짜의 이벤트 개수 계산
-    const events = generateEventsByDate(selectedDate);
-    const filteredEvents = events.filter((event) => {
+    // 카테고리 필터링
+    const filteredEvents = allEvents.filter((event) => {
       if (event.category === "전시" && !activeCategories.exhibition) {
         return false;
       }
@@ -158,9 +155,53 @@ export function CalendarViewPresentation({
       return true;
     });
 
-    const dateStr = formatDateKorean(selectedDate);
-    return `${dateStr} ${categoryLabel} ${filteredEvents.length}개`;
+    // 제목 계산
+    let title = "HOT EVENT";
+    if (selectedDate) {
+      const categoryLabel =
+        activeCategories.exhibition && !activeCategories.popup
+          ? "전시"
+          : !activeCategories.exhibition && activeCategories.popup
+            ? "팝업"
+            : "이벤트";
+      const dateStr = formatDateKorean(selectedDate);
+      title = `${dateStr} ${categoryLabel} ${filteredEvents.length}개`;
+    }
+
+    return { events: filteredEvents, title };
   }, [selectedDate, activeCategories]);
+
+  /**
+   * 페이지 최소 높이 동적 계산
+   * - 이벤트 개수에 따라 HOT EVENT 그리드 높이 자동 조정
+   */
+  const pageMinHeight = useMemo(() => {
+    const CALENDAR_TOP = 140;
+    const CALENDAR_HEIGHT = 791;
+    const HOT_EVENT_HEADER_TOP = 1011;
+    const HOT_EVENT_GRID_TOP = 1069;
+    const CARD_HEIGHT = 490;
+    const ROW_GAP = 26;
+    const COLUMNS = 6;
+    const BOTTOM_MARGIN = 100;
+    const EMPTY_STATE_HEIGHT = 400; // 빈 상태 최소 높이
+
+    const eventCount = hotEventData.events.length;
+
+    // 이벤트가 없을 때 (빈 상태)
+    if (eventCount === 0) {
+      return HOT_EVENT_GRID_TOP + EMPTY_STATE_HEIGHT + BOTTOM_MARGIN;
+    }
+
+    // 행 개수 계산
+    const rows = Math.ceil(eventCount / COLUMNS);
+
+    // 그리드 총 높이: 카드 × 행 + 간격 × (행-1)
+    const gridHeight = rows * CARD_HEIGHT + (rows - 1) * ROW_GAP;
+
+    // 전체 높이
+    return HOT_EVENT_GRID_TOP + gridHeight + BOTTOM_MARGIN;
+  }, [hotEventData.events.length]);
 
   return (
     <section
@@ -168,7 +209,7 @@ export function CalendarViewPresentation({
       className="calendar-view-section relative"
       style={{
         width: CALENDAR_DESIGN_TOKENS.sizing.page.width,
-        minHeight: "2746px", // 캘린더(931) + 간격(109) + HOT EVENT(1606) + 하단여백(100)
+        minHeight: `${pageMinHeight}px`,
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
@@ -248,7 +289,7 @@ export function CalendarViewPresentation({
             color: "#111928",
           }}
         >
-          {hotEventTitle}
+          {hotEventData.title}
         </h2>
 
         {/* 정렬 드롭다운 */}

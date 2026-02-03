@@ -9,7 +9,7 @@
 
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
 import type { Event, EventSortOption } from "@/types/event";
@@ -56,6 +56,13 @@ export function HotEventSection({
   sortBy,
   events,
 }: HotEventSectionProps) {
+  /**
+   * 좋아요 상태 관리 (로컬)
+   * - Set을 사용하여 좋아요한 이벤트 ID 추적
+   * - TODO: 백엔드 API 연동 시 전역 상태 또는 서버 상태로 전환
+   */
+  const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
+
   /**
    * 카테고리 레이블 결정
    * - 전시만: "전시"
@@ -135,6 +142,16 @@ export function HotEventSection({
   }, [displayEvents, sortBy]);
 
   /**
+   * 좋아요 상태가 반영된 이벤트 목록
+   */
+  const eventsWithLikeState = useMemo(() => {
+    return sortedEvents.map((event) => ({
+      ...event,
+      isLiked: likedEventIds.has(event.id),
+    }));
+  }, [sortedEvents, likedEventIds]);
+
+  /**
    * 섹션 제목 결정
    * - 날짜 선택 안 됨: "HOT EVENT"
    * - 날짜 선택됨: "1월 8일 전시 60개"
@@ -145,31 +162,45 @@ export function HotEventSection({
     }
 
     const dateStr = formatDateKorean(selectedDate);
-    const count = sortedEvents.length;
+    const count = eventsWithLikeState.length;
 
     return `${dateStr} ${categoryLabel} ${count}개`;
-  }, [selectedDate, categoryLabel, sortedEvents.length]);
+  }, [selectedDate, categoryLabel, eventsWithLikeState.length]);
 
   /**
    * 좋아요 클릭 핸들러
+   * - 로컬 상태 토글
+   * - TODO: 백엔드 API 호출 추가
    */
   const handleLikeClick = (id: string) => {
-    // TODO: 좋아요 API 호출
-    console.log("이벤트 좋아요 클릭:", id);
+    setLikedEventIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id); // 좋아요 취소
+        console.log("좋아요 취소:", id);
+      } else {
+        newSet.add(id); // 좋아요 추가
+        console.log("좋아요 추가:", id);
+      }
+      return newSet;
+    });
+
+    // TODO: 백엔드 API 호출
+    // await likeEvent(id);
   };
 
   /**
    * 빈 상태 타입 결정
    */
   const emptyStateType: "no-date" | "no-events" | null = useMemo(() => {
-    if (sortedEvents.length > 0) return null;
+    if (eventsWithLikeState.length > 0) return null;
 
     // 날짜 선택됨 + 이벤트 없음
     if (selectedDate) return "no-events";
 
     // 날짜 선택 안 됨
     return "no-date";
-  }, [selectedDate, sortedEvents.length]);
+  }, [selectedDate, eventsWithLikeState.length]);
 
   return (
     <section
@@ -184,7 +215,7 @@ export function HotEventSection({
     >
       <div className="hot-event-section__container">
         {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
-        {sortedEvents.length > 0 ? (
+        {eventsWithLikeState.length > 0 ? (
           <ul
             className="hot-event-section__grid grid"
             style={{
@@ -193,7 +224,7 @@ export function HotEventSection({
               columnGap: "24px",
             }}
           >
-            {sortedEvents.map((event) => (
+            {eventsWithLikeState.map((event) => (
               <li key={event.id}>
                 <CalendarEventCard
                   event={event}
