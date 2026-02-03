@@ -156,7 +156,7 @@ export function HotEventSection({
    * - 날짜 선택 안 됨: "HOT EVENT"
    * - 날짜 선택됨: "1월 8일 전시 60개"
    */
-  const sectionTitle = useMemo(() => {
+  const _sectionTitle = useMemo(() => {
     if (!selectedDate) {
       return "HOT EVENT";
     }

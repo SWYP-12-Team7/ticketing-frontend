@@ -63,24 +63,24 @@ export function CalendarViewPresentation({
   onDateClick,
 }: CalendarViewPresentationProps) {
   const {
-    regionId,
+    regionId: _regionId,
     activeCategories,
-    popupSubcategory,
-    exhibitionSubcategory,
+    popupSubcategory: _popupSubcategory,
+    exhibitionSubcategory: _exhibitionSubcategory,
     goToPreviousMonth,
     goToNextMonth,
-    toggleCategory,
-    changeRegion,
-    changePopupSubcategory,
-    changeExhibitionSubcategory,
-    resetFilters,
+    toggleCategory: _toggleCategory,
+    changeRegion: _changeRegion,
+    changePopupSubcategory: _changePopupSubcategory,
+    changeExhibitionSubcategory: _changeExhibitionSubcategory,
+    resetFilters: _resetFilters,
   } = queryState;
 
   const {
     monthTitle,
     visibleMonthDate,
     gridDays,
-    regions,
+    regions: _regions,
     countsByDate,
     isLoading,
     isError,
@@ -176,9 +176,9 @@ export function CalendarViewPresentation({
    * - 이벤트 개수에 따라 HOT EVENT 그리드 높이 자동 조정
    */
   const pageMinHeight = useMemo(() => {
-    const CALENDAR_TOP = 140;
-    const CALENDAR_HEIGHT = 791;
-    const HOT_EVENT_HEADER_TOP = 1011;
+    const _CALENDAR_TOP = 140;
+    const _CALENDAR_HEIGHT = 791;
+    const _HOT_EVENT_HEADER_TOP = 1011;
     const HOT_EVENT_GRID_TOP = 1069;
     const CARD_HEIGHT = 490;
     const ROW_GAP = 26;

@@ -11,7 +11,6 @@
  */
 
 import React from "react";
-import { cn } from "@/lib/utils";
 import { isSameMonth, toIsoDateLocal } from "@/lib/calendar-date";
 import type { CalendarDayCellProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
@@ -166,7 +165,7 @@ function CalendarDayCellComponent({
               category="exhibition"
               count={counts.exhibition}
               isSelected={isExhibitionPillSelected}
-              onClick={(e) => {
+              onClick={() => {
                 onPillClick?.(iso, "exhibition");
               }}
             />
@@ -189,7 +188,7 @@ function CalendarDayCellComponent({
               category="popup"
               count={counts.popup}
               isSelected={isPopupPillSelected}
-              onClick={(e) => {
+              onClick={() => {
                 onPillClick?.(iso, "popup");
               }}
             />

@@ -11,13 +11,9 @@ import type {
   CalendarMonthSummaryParams,
   CalendarMonthSummaryResponse,
   CalendarDaySummary,
-  IsoDate,
   IsoMonth,
 } from "@/types/calendar";
-import {
-  toValidIsoDate,
-  toValidIsoMonth,
-} from "@/components/calendarview/utils/calendar.validation";
+import { toValidIsoDate } from "@/components/calendarview/utils/calendar.validation";
 
 /**
  * 개발용 더미 데이터 생성 함수

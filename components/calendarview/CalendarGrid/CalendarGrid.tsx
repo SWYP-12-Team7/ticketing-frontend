@@ -12,7 +12,7 @@
 import React from "react";
 import type { CalendarGridProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
-import { CALENDAR_LAYOUT, WEEKDAY_LABELS } from "../constants/calendar.layout";
+import { CALENDAR_LAYOUT } from "../constants/calendar.layout";
 import { CalendarWeekRow } from "./CalendarWeekRow";
 
 /**
