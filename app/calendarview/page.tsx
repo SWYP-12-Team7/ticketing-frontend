@@ -15,7 +15,7 @@ export default function CalendarViewPage() {
   const [selectedDate, setSelectedDate] = useState<IsoDate | null>(null);
 
   return (
-    <main
+    <div
       className="calendar-view-page mx-auto"
       style={{
         width: "1440px",
@@ -36,6 +36,6 @@ export default function CalendarViewPage() {
           onDateClick={setSelectedDate}
         />
       </Suspense>
-    </main>
+    </div>
   );
 }

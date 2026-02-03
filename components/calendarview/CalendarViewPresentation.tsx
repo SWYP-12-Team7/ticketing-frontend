@@ -16,6 +16,7 @@ import { CALENDAR_DESIGN_TOKENS } from "./constants/calendar.design-tokens";
 import { CalendarMonthNav } from "./CalendarMonthNav";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarToolbar } from "./CalendarToolbar";
+import { HotEventSection } from "./HotEventSection";
 
 /**
  * CalendarViewPresentation Props
@@ -75,6 +76,7 @@ export function CalendarViewPresentation({
       className="calendar-view-section relative"
       style={{
         width: CALENDAR_DESIGN_TOKENS.sizing.page.width,
+        minHeight: "2746px", // 캘린더(931) + 간격(109) + HOT EVENT(1606) + 하단여백(100)
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
@@ -145,8 +147,11 @@ export function CalendarViewPresentation({
         )}
       </div>
 
-      {/* HOT EVENT 섹션 (나중에 연결) */}
-      {/* <HotEventSection ... /> */}
+      {/* HOT EVENT 섹션 (Figma: absolute, left: 81px, top: 1040px) */}
+      <HotEventSection
+        selectedDate={selectedDate}
+        activeCategories={activeCategories}
+      />
     </section>
   );
 }

@@ -31,3 +31,34 @@ export function generateEventsByDate(date: IsoDate): Event[] {
 
   return events;
 }
+
+/**
+ * 인기 이벤트 더미 데이터 생성
+ * (날짜 선택 안 됐을 때 HOT EVENT용)
+ *
+ * @param count - 생성할 이벤트 개수 (기본: 24개)
+ * @returns 인기순으로 정렬된 이벤트 배열
+ */
+export function generatePopularEvents(count = 24): Event[] {
+  const events: Event[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const isExhibition = i % 2 === 0;
+    const baseViewCount = 100000;
+    const baseLikeCount = 50000;
+
+    events.push({
+      id: `popular-event-${i + 1}`,
+      title: isExhibition ? `인기 전시회 ${i + 1}` : `인기 팝업스토어 ${i + 1}`,
+      category: isExhibition ? "전시" : "팝업",
+      period: "2026.01.01 - 2026.12.31",
+      imageUrl: `https://picsum.photos/seed/popular-${i}/400/500`,
+      // 인기순 정렬을 위해 내림차순
+      viewCount: baseViewCount - i * 1000,
+      likeCount: baseLikeCount - i * 500,
+      isLiked: i % 5 === 0,
+    });
+  }
+
+  return events;
+}

@@ -1,22 +1,27 @@
 /**
  * HOT EVENT 섹션 컴포넌트
  *
- * - 선택된 날짜의 이벤트 목록 표시
- * - 카테고리 필터링
- * - 정렬 기능 (인기순, 최신순, 마감임박순, 조회순)
+ * 3가지 상태:
+ * 1. 날짜 선택 안 됨 → 인기 이벤트 표시 (제목: "HOT EVENT")
+ * 2. 날짜 선택됨 + 이벤트 있음 → 해당 날짜 이벤트 (제목: "1월 8일 전시 60개")
+ * 3. 날짜 선택됨 + 이벤트 없음 → 스위프 캐릭터 + 빈 상태 메시지
  */
 
 "use client";
 
 import React, { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { EventCard } from "@/components/common/EventCard";
+import { CalendarEventCard } from "./CalendarEventCard";
 import type { Event, EventSortOption } from "@/types/event";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarCategoryActiveMap } from "../utils/calendar.query-state";
-import { generateEventsByDate } from "@/lib/calendar-dummy-events";
+import {
+  generateEventsByDate,
+  generatePopularEvents,
+} from "@/lib/calendar-dummy-events";
 import { formatDateKorean } from "../utils/calendar.formatters";
 import { EventSortSelector } from "./EventSortSelector";
+import { EmptyState } from "./EmptyState";
 
 /**
  * HotEventSection Props
@@ -38,7 +43,7 @@ interface HotEventSectionProps {
  * @example
  * ```tsx
  * <HotEventSection
- *   selectedDate="2025-02-03"
+ *   selectedDate="2026-01-08"
  *   activeCategories={{ exhibition: true, popup: true }}
  * />
  * ```
@@ -52,10 +57,26 @@ export function HotEventSection({
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
 
   /**
-   * 선택된 날짜의 이벤트 + 카테고리 필터링
+   * 카테고리 레이블 결정
+   * - 전시만: "전시"
+   * - 팝업만: "팝업"
+   * - 둘 다 또는 둘 다 아님: "이벤트"
+   */
+  const categoryLabel = useMemo(() => {
+    if (!activeCategories) return "이벤트";
+
+    const { exhibition, popup } = activeCategories;
+
+    if (exhibition && !popup) return "전시";
+    if (!exhibition && popup) return "팝업";
+    return "이벤트";
+  }, [activeCategories]);
+
+  /**
+   * 이벤트 데이터 로드 + 카테고리 필터링
    */
   const displayEvents = useMemo(() => {
-    // 두 개 모두 체크 해제면 빈 배열
+    // 카테고리 모두 체크 해제
     if (
       activeCategories &&
       !activeCategories.exhibition &&
@@ -64,12 +85,15 @@ export function HotEventSection({
       return [];
     }
 
-    // 이벤트 데이터 결정 (props 우선, 없으면 더미 데이터)
     let allEvents: Event[] = [];
-    if (selectedDate && !events) {
-      allEvents = generateEventsByDate(selectedDate);
-    } else {
-      allEvents = events || [];
+
+    // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트
+    if (!selectedDate) {
+      allEvents = events || generatePopularEvents(24);
+    }
+    // 2️⃣ 날짜 선택됨 → 해당 날짜 이벤트
+    else {
+      allEvents = events || generateEventsByDate(selectedDate);
     }
 
     // 카테고리 필터링
@@ -111,6 +135,22 @@ export function HotEventSection({
   }, [displayEvents, sortBy]);
 
   /**
+   * 섹션 제목 결정
+   * - 날짜 선택 안 됨: "HOT EVENT"
+   * - 날짜 선택됨: "1월 8일 전시 60개"
+   */
+  const sectionTitle = useMemo(() => {
+    if (!selectedDate) {
+      return "HOT EVENT";
+    }
+
+    const dateStr = formatDateKorean(selectedDate);
+    const count = sortedEvents.length;
+
+    return `${dateStr} ${categoryLabel} ${count}개`;
+  }, [selectedDate, categoryLabel, sortedEvents.length]);
+
+  /**
    * 좋아요 클릭 핸들러
    */
   const handleLikeClick = (id: string) => {
@@ -119,35 +159,27 @@ export function HotEventSection({
   };
 
   /**
-   * 섹션 제목 결정
+   * 빈 상태 타입 결정
    */
-  const sectionTitle = selectedDate
-    ? `${formatDateKorean(selectedDate)} 이벤트`
-    : "HOT EVENT";
+  const emptyStateType: "no-date" | "no-events" | null = useMemo(() => {
+    if (sortedEvents.length > 0) return null;
 
-  /**
-   * 빈 상태 메시지
-   */
-  const emptyMessage = (() => {
-    if (selectedDate) {
-      return "행사 종류와 날짜를 선택해주세요.🎉";
-    }
+    // 날짜 선택됨 + 이벤트 없음
+    if (selectedDate) return "no-events";
 
-    if (
-      activeCategories &&
-      !activeCategories.exhibition &&
-      !activeCategories.popup
-    ) {
-      return "카테고리를 선택해주세요.";
-    }
-
-    return "이벤트를 불러오는 중...";
-  })();
+    // 날짜 선택 안 됨
+    return "no-date";
+  }, [selectedDate, sortedEvents.length]);
 
   return (
     <section
-      className={cn("hot-event-section", className)}
+      className={cn("hot-event-section absolute", className)}
       aria-labelledby="hot-event-heading"
+      style={{
+        left: "81px",
+        top: "1040px",
+        width: "1278px",
+      }}
     >
       <div className="hot-event-section__container">
         {/* 헤더: 제목 + 정렬 */}
@@ -163,19 +195,27 @@ export function HotEventSection({
           <EventSortSelector sortBy={sortBy} onSortChange={setSortBy} />
         </div>
 
-        {/* 카드 그리드 또는 빈 상태 */}
+        {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
         {sortedEvents.length > 0 ? (
-          <ul className="hot-event-section__grid grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <ul
+            className="hot-event-section__grid grid"
+            style={{
+              gridTemplateColumns: "repeat(6, 193px)",
+              rowGap: "26px",
+              columnGap: "24px",
+            }}
+          >
             {sortedEvents.map((event) => (
               <li key={event.id}>
-                <EventCard event={event} onLikeClick={handleLikeClick} />
+                <CalendarEventCard
+                  event={event}
+                  onLikeClick={handleLikeClick}
+                />
               </li>
             ))}
           </ul>
         ) : (
-          <div className="hot-event-section__empty py-12 text-center text-gray-500">
-            {emptyMessage}
-          </div>
+          emptyStateType && <EmptyState type={emptyStateType} />
         )}
       </div>
     </section>
