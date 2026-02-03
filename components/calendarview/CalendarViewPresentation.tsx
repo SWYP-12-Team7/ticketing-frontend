@@ -23,6 +23,11 @@ import {
   generateEventsByDate,
   generatePopularEvents,
 } from "@/lib/calendar-dummy-events";
+import {
+  LocationEventFilterSidebar,
+  INITIAL_FILTER_STATE,
+  type LocationEventFilterState,
+} from "@/components/common/LocationEventFilter";
 
 /**
  * CalendarViewPresentation Props
@@ -80,6 +85,22 @@ export function CalendarViewPresentation({
    * 이벤트 정렬 상태
    */
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
+
+  /**
+   * 필터 사이드바 상태
+   */
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [locationFilterState, setLocationFilterState] =
+    useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
+
+  /**
+   * 필터 적용 핸들러
+   */
+  const handleApplyFilters = (filters: LocationEventFilterState) => {
+    setLocationFilterState(filters);
+    // TODO: 필터 상태를 URL 쿼리 파라미터로 변환하여 적용
+    console.log("Applied filters:", filters);
+  };
 
   /**
    * HOT EVENT 섹션 제목 계산
@@ -163,6 +184,7 @@ export function CalendarViewPresentation({
           onTogglePopup={() => toggleCategory("popup")}
           onToggleExhibition={() => toggleCategory("exhibition")}
           onReset={resetFilters}
+          onOpenFilter={() => setIsFilterOpen(true)}
         />
 
         {/* Order 2: 캘린더 그리드 */}
@@ -225,6 +247,15 @@ export function CalendarViewPresentation({
         selectedDate={selectedDate}
         activeCategories={activeCategories}
         sortBy={sortBy}
+      />
+
+      {/* 지역/행사 필터 사이드바 */}
+      <LocationEventFilterSidebar
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filterState={locationFilterState}
+        onApply={handleApplyFilters}
+        resultCount={25}
       />
     </section>
   );

@@ -1,8 +1,14 @@
 /**
  * 지역 선택 드롭다운 컴포넌트
  *
- * - select 요소로 지역 선택
- * - 접근성 고려 (label, aria-label)
+ * Figma 스펙:
+ * - 외부 컨테이너: padding: 4px, gap: 6px, height: 32px, bg: #FFF4EC
+ * - 레이블: "지역" (주황색 #F36012)
+ * - 드롭다운: 흰 배경, height: 26px
+ * - SubcategorySelector와 동일한 구조
+ *
+ * @remarks
+ * SubcategorySelector와 동일한 스타일 구조를 따름
  */
 
 import React from "react";
@@ -42,34 +48,70 @@ export function RegionSelector({
   selectedRegionId,
   onRegionChange,
 }: RegionSelectorProps) {
+  const selectedRegion = regions.find((r) => r.id === selectedRegionId);
+
   return (
     <div
       className={cn(
-        "region-selector inline-flex min-w-0 items-center gap-2",
-        CALENDAR_DESIGN_TOKENS.borderRadius.full,
-        "bg-[#FFF0E2] px-3 py-2 text-sm font-semibold",
-        "focus-within:ring-2 focus-within:ring-black/20 focus-within:ring-offset-1"
+        "region-selector",
+        "flex items-center gap-[6px] p-1 rounded-[24px]"
       )}
+      style={{
+        backgroundColor: CALENDAR_DESIGN_TOKENS.colors.filter.background,
+        height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterItemHeight,
+      }}
     >
-      <span className="region-selector__label shrink-0 text-[#FF7A00]">
-        지역
-      </span>
-      <select
+      {/* 레이블 (주황색) */}
+      <div
         className={cn(
-          "region-selector__select min-w-0 bg-transparent text-sm font-semibold outline-none",
-          "cursor-pointer",
-          "focus:outline-none"
+          "region-selector__label",
+          "flex items-center justify-center px-[6px] py-1 rounded-[24px] h-[30px]"
         )}
-        value={selectedRegionId}
-        onChange={(e) => onRegionChange(e.target.value)}
-        aria-label="지역 선택"
+        style={{
+          backgroundColor: CALENDAR_DESIGN_TOKENS.colors.filter.background,
+          fontFamily: CALENDAR_DESIGN_TOKENS.fonts.filter.family,
+          fontSize: CALENDAR_DESIGN_TOKENS.fonts.filter.size,
+          fontWeight: CALENDAR_DESIGN_TOKENS.fonts.filter.weight,
+          lineHeight: CALENDAR_DESIGN_TOKENS.fonts.filter.lineHeight,
+          color: CALENDAR_DESIGN_TOKENS.colors.filter.labelText,
+        }}
       >
-        {regions.map((region) => (
-          <option key={region.id} value={region.id}>
-            {region.label}
-          </option>
-        ))}
-      </select>
+        지역
+      </div>
+
+      {/* 드롭다운 */}
+      <div
+        className={cn(
+          "region-selector__dropdown",
+          "flex items-center justify-center px-[10px] py-[2px] rounded-[24px] h-[26px]"
+        )}
+        style={{
+          backgroundColor: CALENDAR_DESIGN_TOKENS.colors.filter.valueBackground,
+        }}
+      >
+        <select
+          className={cn(
+            "region-selector__select",
+            "bg-transparent outline-none cursor-pointer min-w-0"
+          )}
+          style={{
+            fontFamily: CALENDAR_DESIGN_TOKENS.fonts.filter.family,
+            fontSize: CALENDAR_DESIGN_TOKENS.fonts.filter.size,
+            fontWeight: CALENDAR_DESIGN_TOKENS.fonts.filter.weight,
+            lineHeight: CALENDAR_DESIGN_TOKENS.fonts.filter.lineHeight,
+            color: CALENDAR_DESIGN_TOKENS.colors.filter.valueText,
+          }}
+          value={selectedRegionId}
+          onChange={(e) => onRegionChange(e.target.value)}
+          aria-label="지역 선택"
+        >
+          {regions.map((region) => (
+            <option key={region.id} value={region.id}>
+              {region.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

@@ -48,6 +48,8 @@ type CalendarToolbarProps = Readonly<{
   onToggleExhibition: () => void;
   /** 필터 초기화 핸들러 */
   onReset: () => void;
+  /** 필터 사이드바 열기 핸들러 */
+  onOpenFilter: () => void;
 }>;
 
 /**
@@ -76,6 +78,7 @@ export function CalendarToolbar({
   onTogglePopup,
   onToggleExhibition,
   onReset,
+  onOpenFilter,
 }: CalendarToolbarProps) {
   return (
     <header
@@ -89,13 +92,16 @@ export function CalendarToolbar({
       }}
     >
       {/* 필터 아이콘 */}
-      <div
-        className="calendar-toolbar__icon flex items-center justify-center shrink-0"
+      <button
+        type="button"
+        onClick={onOpenFilter}
+        className="calendar-toolbar__icon flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         style={{
           width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
           height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
         }}
-        aria-hidden="true"
+        aria-label="필터 열기"
+        title="필터 열기"
       >
         <Image
           src="/images/searchResult/IC_Fillter.svg"
@@ -103,7 +109,7 @@ export function CalendarToolbar({
           width={24}
           height={24}
         />
-      </div>
+      </button>
 
       {/* 필터 아이템들 */}
       <div className="calendar-toolbar__filters flex items-center gap-[10px] flex-1">
