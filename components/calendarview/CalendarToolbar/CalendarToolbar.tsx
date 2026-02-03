@@ -87,16 +87,15 @@ export function CalendarToolbar({
       <SelectedFilterPills
         filters={selectedFilters}
         onRemove={onRemoveFilter}
-        className="flex-1"
       />
 
-      {/* 리셋 버튼 */}
+      {/* 리셋 버튼 (항상 우측 고정) */}
       <button
         type="button"
         onClick={onReset}
         className={cn(
           "calendar-toolbar__reset-button",
-          "flex items-center justify-center shrink-0",
+          "flex items-center justify-center shrink-0 ml-auto",
           "hover:opacity-80 active:scale-95",
           "transition-all",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"

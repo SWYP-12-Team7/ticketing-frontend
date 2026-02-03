@@ -9,49 +9,32 @@ import { REGIONS, POPUP_CATEGORIES, EXHIBITION_CATEGORIES } from "./constants";
 
 /**
  * Display Filter 타입 (CalendarToolbar용)
+ * Figma 스펙: 레이블 + 값 2개 영역 구조
  */
 export interface DisplayFilter {
+  /** 고유 ID */
   id: string;
-  label: string;
+  /** 필터 레이블 (예: "지역", "팝업") */
+  displayLabel: string;
+  /** 필터 값 (예: "부산", "뷰티") */
+  value: string;
+  /** 필터 타입 */
   type: "region" | "popup" | "exhibition" | "price" | "amenity";
+  /** X 버튼 표시 여부 */
   showRemoveButton?: boolean;
 }
 
 /**
  * LocationEventFilterState를 Display Pills로 변환
  *
- * "전체"만 선택된 경우 → "전체" pill 표시 (X 버튼 없음)
- * 개별 항목 선택 시 → 해당 항목들만 표시 (X 버튼 있음)
+ * Figma 스펙 준수: 레이블 + 값 2개 영역 구조
+ * - "전체"만 선택된 경우 → pill 표시 안 함
+ * - 개별 항목 선택 시 → 레이블과 값으로 분리하여 표시
  */
 export function convertFiltersToDisplayPills(
   filters: LocationEventFilterState
 ): DisplayFilter[] {
   const pills: DisplayFilter[] = [];
-
-  // 모든 필터가 기본값("전체"만 선택)인지 확인
-  const isDefaultState =
-    filters.regions.length === 1 &&
-    filters.regions[0] === "all" &&
-    filters.popupCategories.length === 1 &&
-    filters.popupCategories[0] === "all" &&
-    filters.exhibitionCategories.length === 1 &&
-    filters.exhibitionCategories[0] === "all" &&
-    !filters.price.free &&
-    !filters.price.paid &&
-    !filters.amenities.parking &&
-    !filters.amenities.petFriendly;
-
-  // 기본 상태면 "전체" pill 하나만 반환
-  if (isDefaultState) {
-    return [
-      {
-        id: "all",
-        label: "전체",
-        type: "region",
-        showRemoveButton: false,
-      },
-    ];
-  }
 
   // 지역 (전체 제외)
   filters.regions
@@ -61,7 +44,8 @@ export function convertFiltersToDisplayPills(
       if (region) {
         pills.push({
           id: `region-${id}`,
-          label: region.label,
+          displayLabel: "지역",
+          value: region.label,
           type: "region",
           showRemoveButton: true,
         });
@@ -76,7 +60,8 @@ export function convertFiltersToDisplayPills(
       if (category) {
         pills.push({
           id: `popup-${id}`,
-          label: category.label,
+          displayLabel: "팝업",
+          value: category.label,
           type: "popup",
           showRemoveButton: true,
         });
@@ -91,7 +76,8 @@ export function convertFiltersToDisplayPills(
       if (category) {
         pills.push({
           id: `exhibition-${id}`,
-          label: category.label,
+          displayLabel: "전시",
+          value: category.label,
           type: "exhibition",
           showRemoveButton: true,
         });
@@ -102,7 +88,8 @@ export function convertFiltersToDisplayPills(
   if (filters.price.free) {
     pills.push({
       id: "price-free",
-      label: "무료",
+      displayLabel: "가격",
+      value: "무료",
       type: "price",
       showRemoveButton: true,
     });
@@ -110,7 +97,8 @@ export function convertFiltersToDisplayPills(
   if (filters.price.paid) {
     pills.push({
       id: "price-paid",
-      label: "유료",
+      displayLabel: "가격",
+      value: "유료",
       type: "price",
       showRemoveButton: true,
     });
@@ -120,7 +108,8 @@ export function convertFiltersToDisplayPills(
   if (filters.amenities.parking) {
     pills.push({
       id: "amenity-parking",
-      label: "주차가능",
+      displayLabel: "편의시설",
+      value: "주차가능",
       type: "amenity",
       showRemoveButton: true,
     });
@@ -128,7 +117,8 @@ export function convertFiltersToDisplayPills(
   if (filters.amenities.petFriendly) {
     pills.push({
       id: "amenity-petFriendly",
-      label: "반려견 동반",
+      displayLabel: "편의시설",
+      value: "반려견 동반",
       type: "amenity",
       showRemoveButton: true,
     });

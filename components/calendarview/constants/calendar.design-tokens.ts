@@ -401,6 +401,55 @@ export const CALENDAR_DESIGN_TOKENS = {
       metaIcon: "1px",
     },
   },
+
+  /**
+   * 필터 Pill 디자인 토큰 (Figma 스펙 완전 준수)
+   */
+  filterPill: {
+    /** 컨테이너 (전체 pill) */
+    container: {
+      padding: "4px",
+      gap: "6px",
+      height: "32px",
+      background: "#FFF4EC",
+      borderRadius: "24px",
+    },
+
+    /** 레이블 영역 ("지역", "팝업" 등) */
+    label: {
+      padding: "4px 6px",
+      minWidth: "40px",
+      height: "24px",
+      background: "#FFF4EC",
+      borderRadius: "24px",
+      color: "#F36012",
+    },
+
+    /** 값 영역 ("부산", "뷰티" 등) */
+    value: {
+      padding: "2px 10px",
+      minWidth: "48px",
+      height: "26px",
+      background: "#FFFFFF",
+      borderRadius: "24px",
+      color: "#202937",
+    },
+
+    /** X 버튼 */
+    removeButton: {
+      size: "16px",
+      color: "#202937",
+      hoverOpacity: 0.7,
+    },
+
+    /** 폰트 */
+    fonts: {
+      family: "Pretendard Variable",
+      weight: 500,
+      size: "16px",
+      lineHeight: "140%",
+    },
+  },
 } as const;
 
 export type CalendarDesignTokens = typeof CALENDAR_DESIGN_TOKENS;
