@@ -177,20 +177,14 @@ export function HotEventSection({
       aria-labelledby="hot-event-heading"
       style={{
         left: "81px",
-        top: "1040px",
+        top: "1069px",
         width: "1278px",
+        zIndex: 5,
       }}
     >
       <div className="hot-event-section__container">
-        {/* 헤더: 제목 + 정렬 */}
-        <div className="hot-event-section__header mb-6 flex items-center justify-between">
-          <h2
-            id="hot-event-heading"
-            className="hot-event-section__title text-2xl font-bold text-foreground"
-          >
-            {sectionTitle}
-          </h2>
-
+        {/* 헤더: 정렬 드롭다운 */}
+        <div className="hot-event-section__header mb-6 flex items-center justify-end">
           {/* 정렬 드롭다운 */}
           <EventSortSelector sortBy={sortBy} onSortChange={setSortBy} />
         </div>

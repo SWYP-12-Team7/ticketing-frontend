@@ -46,6 +46,7 @@ export function CalendarGrid({
         width: CALENDAR_DESIGN_TOKENS.sizing.gridBox.width,
         height: CALENDAR_DESIGN_TOKENS.sizing.gridBox.height,
         borderRadius: CALENDAR_DESIGN_TOKENS.borderRadius.gridBox,
+        zIndex: 1,
       }}
     >
       {/* 요일 헤더 (절대 위치 - Figma Frame 8~14) */}

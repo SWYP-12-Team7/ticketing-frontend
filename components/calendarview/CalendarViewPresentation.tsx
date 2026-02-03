@@ -8,7 +8,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarQueryState } from "./hooks/useCalendarQueryState";
 import type { CalendarGridData } from "./hooks/useCalendarGridData";
@@ -17,6 +17,11 @@ import { CalendarMonthNav } from "./CalendarMonthNav";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { HotEventSection } from "./HotEventSection";
+import { formatDateKorean } from "./utils/calendar.formatters";
+import {
+  generateEventsByDate,
+  generatePopularEvents,
+} from "@/lib/calendar-dummy-events";
 
 /**
  * CalendarViewPresentation Props
@@ -70,6 +75,38 @@ export function CalendarViewPresentation({
     isError,
   } = gridData;
 
+  /**
+   * HOT EVENT 섹션 제목 계산
+   */
+  const hotEventTitle = useMemo(() => {
+    if (!selectedDate) {
+      return "HOT EVENT";
+    }
+
+    // 카테고리 레이블 결정
+    const categoryLabel =
+      activeCategories.exhibition && !activeCategories.popup
+        ? "전시"
+        : !activeCategories.exhibition && activeCategories.popup
+          ? "팝업"
+          : "이벤트";
+
+    // 해당 날짜의 이벤트 개수 계산
+    const events = generateEventsByDate(selectedDate);
+    const filteredEvents = events.filter((event) => {
+      if (event.category === "전시" && !activeCategories.exhibition) {
+        return false;
+      }
+      if (event.category === "팝업" && !activeCategories.popup) {
+        return false;
+      }
+      return true;
+    });
+
+    const dateStr = formatDateKorean(selectedDate);
+    return `${dateStr} ${categoryLabel} ${filteredEvents.length}개`;
+  }, [selectedDate, activeCategories]);
+
   return (
     <section
       aria-label="캘린더 뷰"
@@ -90,6 +127,7 @@ export function CalendarViewPresentation({
           top: CALENDAR_DESIGN_TOKENS.spacing.page.topFromHeader,
           gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
           padding: "0px",
+          zIndex: 10,
         }}
       >
         {/* Order 0: 월 네비게이션 */}
@@ -146,6 +184,27 @@ export function CalendarViewPresentation({
           />
         )}
       </div>
+
+      {/* HOT EVENT 섹션 제목 (Figma: absolute, left: 80px, top: 1011px) */}
+      <h2
+        id="hot-event-heading"
+        className="absolute"
+        style={{
+          left: "80px",
+          top: "1011px",
+          width: "784px",
+          height: "31px",
+          fontFamily: "Pretendard Variable",
+          fontWeight: 600,
+          fontSize: "24px",
+          lineHeight: "128%",
+          letterSpacing: "-0.025em",
+          color: "#111928",
+          zIndex: 6,
+        }}
+      >
+        {hotEventTitle}
+      </h2>
 
       {/* HOT EVENT 섹션 (Figma: absolute, left: 81px, top: 1040px) */}
       <HotEventSection

@@ -114,7 +114,15 @@ function CalendarDayCellComponent({
             : CALENDAR_DESIGN_TOKENS.colors.border.default,
           borderRadius: CALENDAR_DESIGN_TOKENS.borderRadius.cell,
         }}
-        onClick={() => onDateClick?.(iso)}
+        onClick={() => {
+          console.log(
+            "📅 날짜 클릭:",
+            iso,
+            "| onDateClick:",
+            typeof onDateClick
+          );
+          onDateClick?.(iso);
+        }}
         role="button"
         tabIndex={0}
         aria-label={`${day.getDate()}일${isDateSelected ? ", 선택됨" : ""}`}
@@ -160,7 +168,6 @@ function CalendarDayCellComponent({
               count={counts.exhibition}
               isSelected={isExhibitionPillSelected}
               onClick={(e) => {
-                e.stopPropagation();
                 onPillClick?.(iso, "exhibition");
               }}
             />
@@ -184,7 +191,6 @@ function CalendarDayCellComponent({
               count={counts.popup}
               isSelected={isPopupPillSelected}
               onClick={(e) => {
-                e.stopPropagation();
                 onPillClick?.(iso, "popup");
               }}
             />
