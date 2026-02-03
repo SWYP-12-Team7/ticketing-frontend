@@ -112,10 +112,10 @@ export function Header({ className }: HeaderProps) {
               <Map className="size-4" />
             </Link>
             <Link
-              href="/view?mode=calendar"
+              href="/calendarview"
               className={cn(
                 "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-                isViewPage && currentMode === "calendar"
+                pathname === "/calendarview"
                   ? "bg-orange-500 text-white"
                   : "text-muted-foreground hover:text-foreground"
               )}
