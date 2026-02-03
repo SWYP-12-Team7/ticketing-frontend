@@ -3,11 +3,13 @@
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { EventCard } from "@/components/common/EventCard";
+import { X } from "lucide-react";
 import type { Event, EventSortOption } from "@/types/event";
 
 interface HotEventSectionProps {
   className?: string;
   events?: Event[];
+  onResetFilter?: () => void;
 }
 
 // 정렬 옵션 설정
@@ -40,7 +42,8 @@ const mockHotEvents: Event[] = [
   { id: "hot-18", title: "닌텐도 스위치 팝업", category: "라이프스타일", period: "2024.04.15 - 2024.05.15", imageUrl: "https://picsum.photos/seed/hot18/400/500", viewCount: 5000, likeCount: 1000, isLiked: false },
 ];
 
-export function HotEventSection({ className, events }: HotEventSectionProps) {
+export function HotEventSection({ className, events, onResetFilter }: HotEventSectionProps) {
+  const isFiltered = !!onResetFilter;
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
   const displayEvents = events || mockHotEvents;
 
@@ -79,12 +82,24 @@ export function HotEventSection({ className, events }: HotEventSectionProps) {
       <div className="hotEventSection__container">
         {/* 헤더 */}
         <div className="hotEventSection__header mb-6 flex items-center justify-between">
-          <h2
-            id="hotEventHeading"
-            className="hotEventSection__title text-2xl font-bold text-foreground"
-          >
-            HOT EVENT
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2
+              id="hotEventHeading"
+              className="hotEventSection__title text-2xl font-bold text-foreground"
+            >
+              {isFiltered ? "선택한 지역 이벤트" : "HOT EVENT"}
+            </h2>
+            {isFiltered && (
+              <button
+                type="button"
+                onClick={onResetFilter}
+                className="flex items-center gap-1 rounded-full bg-orange/10 px-3 py-1 text-sm text-orange hover:bg-orange/20 transition-colors"
+              >
+                <X className="size-3" />
+                <span>전체보기</span>
+              </button>
+            )}
+          </div>
 
           {/* 정렬 드롭다운 */}
           <div className="hotEventSection__sortWrapper">

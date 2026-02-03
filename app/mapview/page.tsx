@@ -79,7 +79,6 @@ export default function MapViewPage() {
         locations={locations}
         onMarkerClick={handleMarkerClick}
         className="h-full w-full"
-        enableClustering={true}
       />
 
       {/* 선택된 이벤트 카드 */}

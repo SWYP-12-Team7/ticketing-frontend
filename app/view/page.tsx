@@ -1,12 +1,11 @@
 "use client";
 
 import { Suspense, useState, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CalendarView } from "@/components/calendarview/CalendarView";
 import { HotEventSection } from "@/components/calendarview/HotEventSection";
-import { KakaoMap } from "@/components/map";
-import { OverlayEventCard, type Event } from "@/components/common";
-import { X } from "lucide-react";
+import { KakaoMap, MapHoverCard } from "@/components/map";
+import type { Event } from "@/components/common";
 
 interface Location {
   id: string;
@@ -49,8 +48,14 @@ const mockLocations: (Location & { event: Event })[] = [
   { id: "24", title: "브랜드 팝업 - 이태원", lat: 37.5325, lng: 126.9926, event: { id: "24", title: "브랜드 팝업 - 이태원", category: "팝업", location: "서울 이태원", period: "2024.01.20 - 2024.03.20", imageUrl: "/images/mockImg.png", likeCount: 14600, viewCount: 4300, tags: ["팝업", "이태원"] } },
 ];
 
-function MapViewContent() {
-  const [selectedLocation, setSelectedLocation] = useState<
+interface MapViewContentProps {
+  onVisibleIdsChange?: (ids: string[]) => void;
+  onClusterIdsChange?: (ids: string[]) => void;
+}
+
+function MapViewContent({ onVisibleIdsChange, onClusterIdsChange }: MapViewContentProps) {
+  const router = useRouter();
+  const [hoveredLocation, setHoveredLocation] = useState<
     (typeof mockLocations)[0] | null
   >(null);
 
@@ -66,12 +71,17 @@ function MapViewContent() {
   );
 
   const handleMarkerClick = (location: Location) => {
-    const found = mockLocations.find((l) => l.id === location.id);
-    setSelectedLocation(found || null);
+    // 클릭 시 상세 페이지로 이동
+    router.push(`/detail/${location.id}`);
   };
 
-  const handleCloseCard = () => {
-    setSelectedLocation(null);
+  const handleMarkerHover = (location: Location | null) => {
+    if (location) {
+      const found = mockLocations.find((l) => l.id === location.id);
+      setHoveredLocation(found || null);
+    } else {
+      setHoveredLocation(null);
+    }
   };
 
   return (
@@ -80,25 +90,19 @@ function MapViewContent() {
         <KakaoMap
           center={{ lat: 37.5665, lng: 126.978 }}
           level={8}
+          maxLevel={5}
           locations={locations}
           onMarkerClick={handleMarkerClick}
+          onMarkerHover={handleMarkerHover}
+          onClusterClick={onClusterIdsChange}
+          onVisibleLocationIdsChange={onVisibleIdsChange}
           className="h-full w-full"
-          enableClustering={true}
         />
 
-        {/* 선택된 이벤트 카드 */}
-        {selectedLocation && (
-          <div className="absolute bottom-6 left-1/2 z-10 w-[320px] -translate-x-1/2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={handleCloseCard}
-                className="absolute -top-2 -right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <OverlayEventCard event={selectedLocation.event} />
-            </div>
+        {/* 호버된 이벤트 카드 */}
+        {hoveredLocation && (
+          <div className="absolute bottom-6 left-1/2 z-10 w-[300px] -translate-x-1/2 pointer-events-none">
+            <MapHoverCard event={hoveredLocation.event} />
           </div>
         )}
       </div>
@@ -109,6 +113,34 @@ function MapViewContent() {
 function ViewContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "calendar";
+  const [visibleIds, setVisibleIds] = useState<string[] | null>(null);
+  const [clusterIds, setClusterIds] = useState<string[] | null>(null);
+
+  // 현재 지도 화면에 보이는 마커 기준으로 이벤트 필터링
+  const handleVisibleIdsChange = (ids: string[]) => {
+    if (clusterIds) return;
+    console.log(`[HOT EVENT] visible ids count: ${ids.length}`);
+    setVisibleIds(ids);
+  };
+
+  const handleClusterIdsChange = (ids: string[]) => {
+    console.log(`[HOT EVENT] cluster ids count: ${ids.length}`);
+    setClusterIds(ids);
+  };
+
+  // 필터 초기화 (전체 보기)
+  const handleResetFilter = () => {
+    setClusterIds(null);
+    setVisibleIds(null);
+  };
+
+  // 이벤트 목록 - 항상 mockLocations 데이터 사용
+  const displayEvents = useMemo(() => {
+    const allEvents = mockLocations.map((loc) => loc.event);
+    if (clusterIds) return allEvents.filter((event) => clusterIds.includes(event.id));
+    if (!visibleIds) return allEvents; // 필터 없으면 전체 이벤트
+    return allEvents.filter((event) => visibleIds.includes(event.id));
+  }, [clusterIds, visibleIds]);
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-6">
@@ -119,7 +151,10 @@ function ViewContent() {
             <div className="h-[650px] rounded-xl bg-muted animate-pulse" />
           }
         >
-          <MapViewContent />
+          <MapViewContent
+            onVisibleIdsChange={handleVisibleIdsChange}
+            onClusterIdsChange={handleClusterIdsChange}
+          />
         </Suspense>
       ) : (
         <Suspense
@@ -137,7 +172,11 @@ function ViewContent() {
       )}
 
       {/* HOT EVENT 섹션 */}
-      <HotEventSection className="mt-10" />
+      <HotEventSection
+        className="mt-10"
+        events={displayEvents}
+        onResetFilter={clusterIds || visibleIds ? handleResetFilter : undefined}
+      />
     </main>
   );
 }
