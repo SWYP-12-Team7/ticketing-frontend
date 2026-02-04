@@ -92,13 +92,11 @@ export function CalendarViewPresentation({
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
 
   /**
-   * Pill 클릭 상태 (전시/팝업 개별 선택)
+   * Pill 클릭 상태 (전시/팝업 다중 선택 지원)
    */
-  const [selectedPillEvent, setSelectedPillEvent] = useState<{
-    date: IsoDate;
-    category: "exhibition" | "popup";
-    subcategory: "all";
-  } | null>(null);
+  const [selectedPillCategories, setSelectedPillCategories] = useState<
+    Set<"exhibition" | "popup">
+  >(new Set());
 
   /**
    * 필터 사이드바 상태
@@ -276,17 +274,26 @@ export function CalendarViewPresentation({
             activeCategories={activeCategories}
             countsByDate={countsByDate}
             selectedDate={selectedDate}
-            selectedEvent={selectedPillEvent}
+            selectedEvent={null}
             onDateClick={(date) => {
               // 날짜 변경 시 pill 선택 초기화
               if (date !== selectedDate) {
-                setSelectedPillEvent(null);
+                setSelectedPillCategories(new Set());
               }
               onDateClick?.(date);
             }}
             onPillClick={(date, category) => {
-              // Pill 클릭: 해당 날짜 + 카테고리 선택
-              setSelectedPillEvent({ date, category, subcategory: "all" });
+              // Pill 토글 (다중 선택 지원)
+              setSelectedPillCategories((prev) => {
+                const next = new Set(prev);
+                if (next.has(category)) {
+                  next.delete(category); // 이미 선택됨 → 해제
+                } else {
+                  next.add(category); // 선택 안 됨 → 추가
+                }
+                return next;
+              });
+              
               // 날짜도 함께 선택
               if (date !== selectedDate) {
                 onDateClick?.(date);
@@ -335,7 +342,7 @@ export function CalendarViewPresentation({
           selectedDate={selectedDate}
           activeCategories={activeCategories}
           sortBy={sortBy}
-          selectedCategory={selectedPillEvent?.category || null}
+          selectedCategories={selectedPillCategories}
         />
       </div>
 

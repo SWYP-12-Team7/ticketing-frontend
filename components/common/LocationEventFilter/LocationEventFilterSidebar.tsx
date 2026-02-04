@@ -157,10 +157,13 @@ export function LocationEventFilterSidebar({
       {/* 오버레이 */}
       <div
         className={cn(
-          "fixed inset-0 z-40 transition-opacity duration-300",
+          "fixed left-0 right-0 bottom-0 z-40 transition-opacity duration-300",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
-        style={{ backgroundColor: "rgba(18, 18, 18, 0.4)" }}
+        style={{
+          top: "80px",
+          backgroundColor: "rgba(18, 18, 18, 0.4)",
+        }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -168,19 +171,28 @@ export function LocationEventFilterSidebar({
       {/* 사이드바 */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-white transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed right-0 z-50 bg-white transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "translate-x-full"
         )}
         style={{
+          top: "80px",
           width: "273px",
-          boxShadow: "2px 0px 2px rgba(0, 0, 0, 0.15)",
+          height: "calc(100vh - 80px)",
+          maxHeight: "661px",
+          boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
           borderRadius: "12px 16px 16px 12px",
         }}
         aria-label="지역/행사 필터"
         aria-modal="true"
         role="dialog"
       >
-        <div className="flex h-full flex-col p-[10px] gap-[11px]">
+        <div 
+          className="flex flex-col p-[10px]" 
+          style={{
+            height: "100%",
+            gap: "11px",
+          }}
+        >
           {/* 헤더 */}
           <header className="flex items-center justify-between px-4 pr-4">
             <h2
@@ -206,8 +218,9 @@ export function LocationEventFilterSidebar({
 
           {/* 필터 섹션들 (스크롤 가능) */}
           <div
-            className="flex-1 overflow-y-auto px-3"
+            className="flex-1 overflow-y-scroll px-3"
             style={{
+              height: "530px",
               scrollbarWidth: "thin",
               scrollbarColor: "#D9D9D9 transparent",
             }}

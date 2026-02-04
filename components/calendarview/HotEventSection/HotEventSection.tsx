@@ -36,8 +36,8 @@ interface HotEventSectionProps {
   sortBy: EventSortOption;
   /** 이벤트 목록 (선택사항, 없으면 더미 데이터 사용) */
   events?: Event[];
-  /** Pill 클릭으로 선택된 카테고리 (전시/팝업 개별 필터링) */
-  selectedCategory?: "exhibition" | "popup" | null;
+  /** Pill 클릭으로 선택된 카테고리들 (다중 선택 지원) */
+  selectedCategories?: Set<"exhibition" | "popup">;
 }
 
 /**
@@ -57,7 +57,7 @@ export function HotEventSection({
   activeCategories,
   sortBy,
   events,
-  selectedCategory,
+  selectedCategories = new Set(),
 }: HotEventSectionProps) {
   /**
    * 좋아요 상태 관리 (로컬)
@@ -119,14 +119,17 @@ export function HotEventSection({
       });
     }
 
-    // Pill 클릭으로 선택된 카테고리 필터링 (전시만 또는 팝업만)
-    if (selectedCategory) {
-      const targetCategory = selectedCategory === "exhibition" ? "전시" : "팝업";
-      allEvents = allEvents.filter((event) => event.category === targetCategory);
+    // Pill 클릭으로 선택된 카테고리 필터링 (다중 선택 지원)
+    if (selectedCategories && selectedCategories.size > 0) {
+      allEvents = allEvents.filter((event) => {
+        const eventCategory =
+          event.category === "전시" ? "exhibition" : "popup";
+        return selectedCategories.has(eventCategory);
+      });
     }
 
     return allEvents;
-  }, [selectedDate, events, activeCategories, selectedCategory]);
+  }, [selectedDate, events, activeCategories, selectedCategories]);
 
   /**
    * 정렬 로직

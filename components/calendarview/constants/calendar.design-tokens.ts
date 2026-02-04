@@ -321,10 +321,10 @@ export const CALENDAR_DESIGN_TOKENS = {
 
     /** 색상 */
     colors: {
-      /** 카테고리 - 전시 */
-      categoryExhibition: "#F36012",
-      /** 카테고리 - 팝업스토어 */
-      categoryPopup: "#2970E2",
+      /** 카테고리 - 전시 (파란색) */
+      categoryExhibition: "#2970E2",
+      /** 카테고리 - 팝업스토어 (주황색) */
+      categoryPopup: "#F36012",
       /** 서브카테고리 */
       subcategory: "#6C7180",
       /** 서브카테고리 (단독 표시 시) */
