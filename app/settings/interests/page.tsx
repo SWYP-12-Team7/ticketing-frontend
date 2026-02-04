@@ -34,6 +34,9 @@ export default function InterestsSettingsPage() {
   const { heroTitle } = TOKENS.typography;
   const { heroGap, bannerGap } = TOKENS.spacing;
 
+  // TODO: 실제 사용자 정보 API에서 닉네임 가져오기
+  const userNickname = "소심한꿀주먹이";
+
   return (
     <article
       className="interests-settings-page flex flex-col"
@@ -85,7 +88,7 @@ export default function InterestsSettingsPage() {
       </section>
 
       {/* ========== 2. Spot Section - 취향 저격 신규 스팟 ========== */}
-      <InterestsSpotSection />
+      <InterestsSpotSection nickname={userNickname} />
 
       {/* ========== 3. Carousel Section - 찜한/다시보기 ========== */}
       <InterestsCarouselSection />

@@ -15,6 +15,7 @@
 "use client";
 
 import { InterestsChip } from "./InterestsChip";
+import { InterestsEmptyState } from "./InterestsEmptyState";
 import { EventListCard } from "@/components/common/EventListCard";
 import { useInterestsSpot } from "@/hooks";
 import { INTERESTS_DESIGN_TOKENS as TOKENS } from "./constants";
@@ -22,6 +23,8 @@ import type { Event } from "@/types/event";
 
 interface InterestsSpotSectionProps {
   events?: Event[];
+  /** 사용자 닉네임 (Empty State 표시용) */
+  nickname?: string;
 }
 
 /**
@@ -37,12 +40,16 @@ interface InterestsSpotSectionProps {
  * <InterestsSpotSection events={spotEvents} />
  * ```
  */
-export function InterestsSpotSection({ events }: InterestsSpotSectionProps) {
+export function InterestsSpotSection({
+  events,
+  nickname = "사용자",
+}: InterestsSpotSectionProps) {
   // 커스텀 훅으로 비즈니스 로직 분리
   const { selectedChipIndex, filteredEvents, handleChipClick, chipLabels } =
     useInterestsSpot(events);
 
   const { sectionTitle } = TOKENS.typography;
+  const hasEvents = filteredEvents.length > 0;
 
   return (
     <section
@@ -73,41 +80,52 @@ export function InterestsSpotSection({ events }: InterestsSpotSectionProps) {
         취향 저격 신규 스팟
       </h2>
 
-      {/* wrapper - Figma: gap 20px */}
-      <div
-        className="interests-spot-section__wrapper flex w-full flex-col"
-        style={{ gap: TOKENS.spacing.spotInnerGap }}
-      >
-        {/* chips - Figma: gap 8px */}
+      {/* Empty State 또는 컨텐츠 */}
+      {!hasEvents ? (
+        <InterestsEmptyState
+          message="아직 {nickname}님의 취향을 파악 중이에요"
+          nickname={nickname}
+          href="/search"
+          buttonText="전체보기"
+          width="882px"
+          height="319px"
+        />
+      ) : (
         <div
-          className="interests-spot-section__chips flex flex-wrap items-start"
-          style={{ gap: TOKENS.spacing.spotChipGap }}
+          className="interests-spot-section__wrapper flex w-full flex-col"
+          style={{ gap: TOKENS.spacing.spotInnerGap }}
         >
-          {chipLabels.map((label, i) => (
-            <InterestsChip
-              key={label}
-              label={label}
-              selected={selectedChipIndex === i}
-              onClick={() => handleChipClick(i)}
-            />
-          ))}
-        </div>
+          {/* chips - Figma: gap 8px */}
+          <div
+            className="interests-spot-section__chips flex flex-wrap items-start"
+            style={{ gap: TOKENS.spacing.spotChipGap }}
+          >
+            {chipLabels.map((label, i) => (
+              <InterestsChip
+                key={label}
+                label={label}
+                selected={selectedChipIndex === i}
+                onClick={() => handleChipClick(i)}
+              />
+            ))}
+          </div>
 
-        {/* card-wrapper - Figma: gap 16px */}
-        <div
-          className="interests-spot-section__cards flex flex-row items-start"
-          style={{ gap: TOKENS.spacing.spotCardGap }}
-        >
-          {filteredEvents.map((event) => (
-            <EventListCard
-              key={event.id}
-              event={event}
-              type={event.category === "전시" ? "exhibition" : "popup"}
-              onLikeClick={(id) => console.log("Like:", id)}
-            />
-          ))}
+          {/* card-wrapper - Figma: gap 16px */}
+          <div
+            className="interests-spot-section__cards flex flex-row items-start"
+            style={{ gap: TOKENS.spacing.spotCardGap }}
+          >
+            {filteredEvents.map((event) => (
+              <EventListCard
+                key={event.id}
+                event={event}
+                type={event.category === "전시" ? "exhibition" : "popup"}
+                onLikeClick={(id) => console.log("Like:", id)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

@@ -19,6 +19,7 @@ export { InterestsBanner } from "./InterestsBanner";
 export { InterestsChip } from "./InterestsChip";
 export { InterestsSpotSection } from "./InterestsSpotSection";
 export { InterestsCarouselSection } from "./InterestsCarouselSection";
+export { InterestsEmptyState } from "./InterestsEmptyState";
 
 // Constants & Design Tokens
 export * from "./constants";
