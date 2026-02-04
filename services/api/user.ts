@@ -82,7 +82,7 @@ export const updateUserProfile = async (
  * TODO: 백엔드 API 구현 후 실제 API로 교체
  */
 export const checkNicknameDuplicate = async (
-  _nickname: string
+  nickname: string
 ): Promise<{ isDuplicate: boolean }> => {
   // TODO: 백엔드 API 구현 후 아래 코드 활성화
   // const { data } = await axios.get<{ isDuplicate: boolean }>(
@@ -94,8 +94,8 @@ export const checkNicknameDuplicate = async (
   // 임시 Mock 데이터 (백엔드 API 준비 전까지 사용)
   return new Promise((resolve) => {
     setTimeout(() => {
-      // 실제 API 호출 시뮬레이션 (500ms 대기)
-      resolve({ isDuplicate: false });
+      // Mock: "test" 닉네임만 중복으로 처리
+      resolve({ isDuplicate: nickname === "test" });
     }, 500);
   });
 };

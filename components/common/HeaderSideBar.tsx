@@ -282,10 +282,12 @@ export function HeaderSideBar({
   }, [isOpen, onClose]);
 
   // 현재 페이지에 해당하는 카테고리를 자동으로 펼침
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (isOpen && activeCategoryId && !expandedCategoryId) {
-      setExpandedCategoryId(activeCategoryId);
+      queueMicrotask(() => {
+        setExpandedCategoryId(activeCategoryId);
+      });
     }
   }, [isOpen, activeCategoryId, expandedCategoryId]);
 
