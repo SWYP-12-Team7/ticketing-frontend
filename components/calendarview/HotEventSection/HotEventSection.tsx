@@ -121,20 +121,33 @@ export function HotEventSection({
 
   /**
    * 정렬 로직
+   * - popular: 좋아요 많은 순
+   * - views: 조회수 많은 순
+   * - latest: 최신 등록 순
+   * - deadline: 마감 임박 순 (종료일이 가까운 순)
    */
   const sortedEvents = useMemo(() => {
     return [...displayEvents].sort((a, b) => {
       switch (sortBy) {
         case "popular":
           return b.likeCount - a.likeCount;
+
         case "views":
           return b.viewCount - a.viewCount;
+
         case "latest":
-          // TODO: 실제로는 createdAt 필드 필요
-          return 0;
+          if (!a.createdAt || !b.createdAt) return 0;
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
         case "deadline":
-          // TODO: 실제로는 endDate 필드 필요
-          return 0;
+          if (!a.endDate || !b.endDate) return 0;
+          const now = Date.now();
+          const diffA = Math.abs(new Date(a.endDate).getTime() - now);
+          const diffB = Math.abs(new Date(b.endDate).getTime() - now);
+          return diffA - diffB; // 가까운 순
+
         default:
           return 0;
       }

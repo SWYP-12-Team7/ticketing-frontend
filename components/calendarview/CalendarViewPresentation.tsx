@@ -158,14 +158,7 @@ export function CalendarViewPresentation({
     // 제목 계산
     let title = "HOT EVENT";
     if (selectedDate) {
-      const categoryLabel =
-        activeCategories.exhibition && !activeCategories.popup
-          ? "전시"
-          : !activeCategories.exhibition && activeCategories.popup
-            ? "팝업"
-            : "이벤트";
-      const dateStr = formatDateKorean(selectedDate);
-      title = `${dateStr} ${categoryLabel} ${filteredEvents.length}개`;
+      title = "탐색 결과";
     }
 
     return { events: filteredEvents, title };
@@ -177,7 +170,7 @@ export function CalendarViewPresentation({
    * - Flexbox 레이아웃으로 변경되어 계산 로직 간소화
    */
   const pageMinHeight = useMemo(() => {
-    const PADDING_TOP = 140; // Header 아래 여백
+    const PADDING_TOP = 64; // Header 아래 여백
     const CALENDAR_HEIGHT = 791; // 캘린더 전체 높이
     const HOT_EVENT_HEADER_MARGIN = 80; // 캘린더 → HOT EVENT 헤더 간격
     const HOT_EVENT_HEADER_HEIGHT = 31;

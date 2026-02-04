@@ -37,11 +37,23 @@ export function isSameMonth(day: Date, month: Date): boolean {
   );
 }
 
+/**
+ * 월 제목을 "YYYY년 M월" 형식으로 포맷팅
+ *
+ * @param date - Date 객체
+ * @returns 한글 월 제목 (예: "2026년 2월", "2026년 1월")
+ *
+ * @example
+ * ```ts
+ * formatMonthTitle(new Date(2026, 0, 1));  // "2026년 1월"
+ * formatMonthTitle(new Date(2026, 1, 1));  // "2026년 2월"
+ * formatMonthTitle(new Date(2026, 11, 1)); // "2026년 12월"
+ * ```
+ */
 export function formatMonthTitle(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  return `${year}년 ${month}월`;
 }
 
 /**

@@ -152,7 +152,7 @@ export const CALENDAR_DESIGN_TOKENS = {
     /** 페이지 여백 */
     page: {
       left: "80px",
-      topFromHeader: "140px",
+      topFromHeader: "64px",
     },
     /** 캘린더 컨테이너 */
     container: {

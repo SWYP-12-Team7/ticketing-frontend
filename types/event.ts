@@ -47,6 +47,12 @@ export interface Event {
 
   /** 오픈 예정일 (countdown variant용) */
   openDate?: Date;
+
+  /** 생성일 (최신순 정렬용) */
+  createdAt?: string;
+
+  /** 종료일 (마감임박순 정렬용) */
+  endDate?: string;
 }
 
 /**

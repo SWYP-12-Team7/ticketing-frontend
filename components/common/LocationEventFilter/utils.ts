@@ -11,10 +11,14 @@ import { REGIONS, POPUP_CATEGORIES, EXHIBITION_CATEGORIES } from "./constants";
  * Display Filter 타입 (CalendarToolbar용)
  * Figma 스펙: 레이블 + 값 배열 (그룹화 지원)
  *
+ * 동작:
+ * - 전체 선택 시: 필터 표시 안 함 (빈 배열 반환)
+ * - 특정 항목 선택 시: 해당 그룹만 표시
+ *
  * 예시:
- * - { displayLabel: "지역", values: ["전체"] }  // "전체" 선택 시
- * - { displayLabel: "지역", values: ["울산", "부산"] }  // 여러 개 선택 시
- * - { displayLabel: "팝업", values: ["뷰티", "패션"] }
+ * - { displayLabel: "지역", values: ["울산", "부산"] }  // 여러 개 선택
+ * - { displayLabel: "팝업", values: ["뷰티"] }  // 단일 선택
+ * - { displayLabel: "가격", values: ["무료", "유료"] }
  */
 export interface DisplayFilter {
   /** 고유 ID (그룹 단위) */
@@ -33,24 +37,34 @@ export interface DisplayFilter {
  * LocationEventFilterState를 그룹화된 Display Pills로 변환
  *
  * Figma 스펙 (2026-02-04): 필터별로 그룹화
- * - "전체" 선택 시 → [{ displayLabel: "지역", values: ["전체"] }, { displayLabel: "팝업", values: ["전체"] }, ...]
+ * - "전체" 선택 시 → [] (필터 표시 안 함)
  * - 지역 여러 개 선택 → [{ displayLabel: "지역", values: ["울산", "부산"] }]
  * - 팝업+전시 선택 → [{ displayLabel: "팝업", values: [...] }, { displayLabel: "전시", values: [...] }]
  *
+ * @param filters - 현재 필터 상태
+ * @returns 표시할 필터 pills 배열
+ *
  * @example
  * ```ts
- * // Input: { regions: ["all"], popupCategories: ["all"], exhibitionCategories: ["all"], ... }
- * // Output: [
- * //   { displayLabel: "지역", values: ["전체"] },
- * //   { displayLabel: "팝업", values: ["전체"] },
- * //   { displayLabel: "전시", values: ["전체"] }
- * // ]
+ * // 모든 카테고리 "전체" → 필터 없음
+ * convertFiltersToDisplayPills({
+ *   regions: ["all"],
+ *   popupCategories: ["all"],
+ *   exhibitionCategories: ["all"],
+ *   price: { free: false, paid: false },
+ *   amenities: { parking: false, petFriendly: false }
+ * });
+ * // Output: []
  *
- * // Input: { regions: ["ulsan", "busan"], popupCategories: ["beauty"], ... }
- * // Output: [
- * //   { displayLabel: "지역", values: ["울산", "부산"] },
- * //   { displayLabel: "팝업", values: ["뷰티"] }
- * // ]
+ * // 지역만 특정 선택
+ * convertFiltersToDisplayPills({
+ *   regions: ["ulsan", "busan"],
+ *   popupCategories: ["all"],
+ *   exhibitionCategories: ["all"],
+ *   price: { free: false, paid: false },
+ *   amenities: { parking: false, petFriendly: false }
+ * });
+ * // Output: [{ displayLabel: "지역", values: ["울산", "부산"] }]
  * ```
  */
 export function convertFiltersToDisplayPills(
@@ -58,8 +72,33 @@ export function convertFiltersToDisplayPills(
 ): DisplayFilter[] {
   const pills: DisplayFilter[] = [];
 
-  // 1. 지역 그룹화 ("전체" 포함)
+  // 1. "전체" 상태 체크
+  const isAllRegions =
+    filters.regions.length === 1 && filters.regions[0] === "all";
+  const isAllPopup =
+    filters.popupCategories.length === 1 &&
+    filters.popupCategories[0] === "all";
+  const isAllExhibition =
+    filters.exhibitionCategories.length === 1 &&
+    filters.exhibitionCategories[0] === "all";
+  const noPriceFilter = !filters.price.free && !filters.price.paid;
+  const noAmenityFilter =
+    !filters.amenities.parking && !filters.amenities.petFriendly;
+
+  // 2. 모든 카테고리가 "전체"면 빈 배열 반환 (필터 표시 안 함)
+  if (
+    isAllRegions &&
+    isAllPopup &&
+    isAllExhibition &&
+    noPriceFilter &&
+    noAmenityFilter
+  ) {
+    return [];
+  }
+
+  // 3. 지역 그룹화 ("전체" 제외)
   const regionValues = filters.regions
+    .filter((id) => id !== "all")
     .map((id) => REGIONS.find((r) => r.id === id)?.label)
     .filter((label): label is string => label !== undefined);
 
@@ -73,8 +112,9 @@ export function convertFiltersToDisplayPills(
     });
   }
 
-  // 2. 팝업 카테고리 그룹화 ("전체" 포함)
+  // 4. 팝업 카테고리 그룹화 ("전체" 제외)
   const popupValues = filters.popupCategories
+    .filter((id) => id !== "all")
     .map((id) => POPUP_CATEGORIES.find((c) => c.id === id)?.label)
     .filter((label): label is string => label !== undefined);
 
@@ -88,8 +128,9 @@ export function convertFiltersToDisplayPills(
     });
   }
 
-  // 3. 전시 카테고리 그룹화 ("전체" 포함)
+  // 5. 전시 카테고리 그룹화 ("전체" 제외)
   const exhibitionValues = filters.exhibitionCategories
+    .filter((id) => id !== "all")
     .map((id) => EXHIBITION_CATEGORIES.find((c) => c.id === id)?.label)
     .filter((label): label is string => label !== undefined);
 
@@ -103,7 +144,7 @@ export function convertFiltersToDisplayPills(
     });
   }
 
-  // 4. 가격 그룹화
+  // 6. 가격 그룹화
   const priceValues: string[] = [];
   if (filters.price.free) priceValues.push("무료");
   if (filters.price.paid) priceValues.push("유료");
@@ -118,7 +159,7 @@ export function convertFiltersToDisplayPills(
     });
   }
 
-  // 5. 편의사항 그룹화
+  // 7. 편의사항 그룹화
   const amenityValues: string[] = [];
   if (filters.amenities.parking) amenityValues.push("주차가능");
   if (filters.amenities.petFriendly) amenityValues.push("반려견 동반");

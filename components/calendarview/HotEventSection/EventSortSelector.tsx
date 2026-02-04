@@ -1,14 +1,18 @@
 /**
  * 이벤트 정렬 선택 드롭다운 컴포넌트
  *
+ * Figma 스펙 (2026-02-04):
+ * - width: 116px, height: 39px
+ * - padding: 10px 20px, gap: 10px
+ * - border-radius: 99999px (pill 형태)
+ * - font-size: 16px, line-height: 19px
  * - 인기순, 최신순, 마감임박순, 조회순 정렬
- * - 접근성 고려 (label, aria-label)
  */
 
 import React from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { EventSortOption } from "@/types/event";
-import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
 
 /**
  * 정렬 옵션 설정
@@ -53,31 +57,78 @@ export function EventSortSelector({
   };
 
   return (
-    <div className="event-sort-selector">
+    <div className="event-sort-selector relative">
       <label htmlFor="event-sort" className="sr-only">
         정렬 기준 선택
       </label>
-      <select
-        id="event-sort"
-        value={sortBy}
-        onChange={handleChange}
-        className={cn(
-          "event-sort-selector__select",
-          CALENDAR_DESIGN_TOKENS.borderRadius.small,
-          "border border-border bg-background",
-          "px-4 py-2 text-sm font-medium text-foreground",
-          CALENDAR_DESIGN_TOKENS.transitions.colors,
-          "hover:bg-muted",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-          "cursor-pointer"
-        )}
-      >
-        {SORT_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id="event-sort"
+          value={sortBy}
+          onChange={handleChange}
+          className={cn(
+            "event-sort-selector__select",
+            "appearance-none cursor-pointer",
+            "transition-opacity hover:opacity-80",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          )}
+          style={{
+            width: "116px",
+            height: "39px",
+            padding: "10px 20px",
+            paddingRight: "44px", // 화살표 공간 확보
+            borderRadius: "99999px",
+            fontFamily: "Pretendard Variable",
+            fontStyle: "normal",
+            fontWeight: 400,
+            fontSize: "16px",
+            lineHeight: "19px",
+            color: "#000000",
+            border: "none",
+            background: "#FFFFFF",
+            boxSizing: "border-box",
+          }}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        {/* 화살표 아이콘 (Vector 1) */}
+        <div
+          className="absolute pointer-events-none flex flex-col items-center justify-center"
+          style={{
+            right: "20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "14px",
+            height: "19px",
+            gap: "10px",
+          }}
+        >
+          <svg
+            width="14"
+            height="6"
+            viewBox="0 0 14 6"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{
+              flexShrink: 0,
+            }}
+            aria-hidden="true"
+          >
+            <path
+              d="M1 1L7 5L13 1"
+              stroke="#2D2D2D"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }
