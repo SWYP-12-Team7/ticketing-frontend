@@ -27,6 +27,7 @@
   .font-pretendard {
     font-family: var(--font-pretendard);
   }
+
 }
 
 @theme inline {
@@ -293,3 +294,4 @@
     transform: rotate(45deg);
   }
 }
+

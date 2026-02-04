@@ -53,7 +53,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <Header />
           </Suspense>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 px-[80px]">{children}</main>
           <Footer />
         </Providers>
       </body>

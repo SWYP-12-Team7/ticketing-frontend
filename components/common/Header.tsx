@@ -1,13 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-// ============================================
-// [SWYP-108] Sidebar 고도화 - X 아이콘 추가
-// 작성일: 2026-02-01
-// 변경 이유: Sidebar 열림 상태에서 닫기 버튼 표시
-// 이전 코드: import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
-// ============================================
-import { Menu, Bell, Heart, User, Map, Calendar, X } from "lucide-react";
+import { X } from "lucide-react";
+import Image from "next/image";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
@@ -37,27 +32,12 @@ export function Header({ className }: HeaderProps) {
       ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-75 flex h-14 items-center justify-between border-b border-border bg-background px-4",
+          "sticky top-0 z-75 flex items-center justify-between border-b border-border bg-background px-[80px] py-5",
           className
         )}
       >
         {/* 왼쪽 영역 */}
-        <div className="flex items-center gap-4">
-          {/* ============================================
-              [SWYP-108] Menu/X 토글 버튼 구현
-              작성일: 2026-02-01
-              변경 이유: Sidebar 열림 상태를 Header에 명확히 표시
-              
-              이전 코드:
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className="flex size-9 items-center justify-center"
-                aria-label="메뉴"
-              >
-                <Menu className="size-6" />
-              </button>
-          ============================================ */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -68,88 +48,104 @@ export function Header({ className }: HeaderProps) {
             {isSidebarOpen ? (
               <X className="size-6" aria-hidden="true" />
             ) : (
-              <Menu className="size-6" aria-hidden="true" />
+              <Image src="/images/header/menu.svg" alt="" width={24} height={24} aria-hidden="true" />
             )}
           </button>
 
           <Link
             href="/"
-            className="flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
+            className="flex items-center justify-center ml-5 mr-2 bg-primary text-sm font-bold text-primary-foreground"
+            style={{ width: 145, height: 56 }}
           >
             BI
           </Link>
 
-          <nav className="flex items-center gap-4">
+          {/* 뷰 네비게이션 */}
+          <nav className="flex items-center">
             <Link
-              href="/map"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
+              href="/view?mode=map"
+              className={cn(
+                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
+                isViewPage && currentMode === "map"
+                  ? "border border-[#F36012] text-[#F36012]"
+                  : "text-[#6C7180] hover:text-[#6C7180]/80"
+              )}
             >
-              지도
+              지도뷰
+              <Image
+                src={isViewPage && currentMode === "map"
+                  ? "/images/header/map-pinned2.svg"
+                  : "/images/header/map-pinned.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
             <Link
-              href="/calendar"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
+              href="/calendarview"
+              className={cn(
+                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
+                pathname === "/calendarview"
+                  ? "border border-[#F36012] text-[#F36012]"
+                  : "text-[#6C7180] hover:text-[#6C7180]/80"
+              )}
             >
-              캘린더
+              캘린더뷰
+              <Image
+                src={pathname === "/calendarview"
+                  ? "/images/header/calendar-search2.svg"
+                  : "/images/header/calendar-search.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
           </nav>
         </div>
 
         {/* 오른쪽 영역 */}
-        <div className="flex items-center gap-3">
-          {/* 뷰 토글 */}
-          <div className="flex h-9 items-center gap-0.5 rounded-full border border-border p-1">
-            <Link
-              href="/view?mode=map"
-              className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-                isViewPage && currentMode === "map"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              지도뷰
-              <Map className="size-4" />
-            </Link>
-            <Link
-              href="/calendarview"
-              className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-                pathname === "/calendarview"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              캘린더뷰
-              <Calendar className="size-4" />
-            </Link>
+        <div className="flex items-center gap-4">
+          {/* 검색창 섹션 */}
+          <div className="flex items-center">
+            <SearchDropdown />
           </div>
 
-          <SearchDropdown />
+          {/* 아이콘 섹션 */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              className="flex items-center justify-center p-[12px] rounded-md"
+              aria-label="알림"
+            >
+              <Image src="/images/header/bell-default.svg" alt="" width={24} height={24} />
+            </button>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="알림"
-          >
-            <Bell className="size-5" />
-          </button>
+            <button
+              type="button"
+              className="flex items-center justify-center p-[12px] rounded-md"
+              aria-label="좋아요"
+            >
+              <Image src="/images/header/icon-like.svg" alt="" width={24} height={24} />
+            </button>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="좋아요"
-          >
-            <Heart className="size-5" />
-          </button>
-
-          <Link
-            href="/settings/profile"
-            className="flex size-9 items-center justify-center rounded-md transition-colors hover:bg-gray-100"
-            aria-label="프로필 설정"
-          >
-            <User className="size-5" />
-          </Link>
+            <Link
+              href="/settings/profile"
+              className="flex items-center justify-center p-[12px] rounded-md transition-colors"
+              aria-label="프로필 설정"
+            >
+              <Image
+                src={pathname.startsWith("/settings")
+                  ? "/images/header/icon-user2.svg"
+                  : "/images/header/icon-user.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
+            </Link>
+          </div>
         </div>
       </header>
 
