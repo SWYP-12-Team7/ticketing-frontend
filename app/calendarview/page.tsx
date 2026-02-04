@@ -16,9 +16,8 @@ export default function CalendarViewPage() {
 
   return (
     <div
-      className="calendar-view-page mx-auto"
+      className="calendar-view-page"
       style={{
-        width: "1440px",
         background: "#FFFFFF",
       }}
     >
