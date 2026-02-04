@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WithdrawalModalProps {
@@ -26,6 +26,15 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [otherReason, setOtherReason] = useState<string>("");
   const [hasValidationError, setHasValidationError] = useState<boolean>(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Textarea 높이 자동 조정
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [otherReason]);
 
   if (!isOpen) return null;
 
@@ -38,10 +47,8 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
       setHasValidationError(false);
     }
 
-    // 입력은 항상 허용 (100자 제한만 적용)
-    if (value.length <= 100) {
-      setOtherReason(value);
-    }
+    // 100자 초과해도 입력 가능 (Figma 스펙에 에러 상태 존재)
+    setOtherReason(value);
   };
 
   // 버튼 활성화 조건
@@ -94,8 +101,12 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
         aria-hidden="true"
       />
 
-      {/* 모달 - 628px × 767px */}
-      <div className="fixed left-1/2 top-1/2 z-50 flex h-[767px] w-[628px] -translate-x-1/2 -translate-y-1/2 flex-col gap-6 rounded-2xl bg-white px-6 py-12 shadow-[0px_0px_4px_rgba(0,0,0,0.1),0px_6px_8px_rgba(0,0,0,0.1)]">
+      {/* 모달 - 628px × auto (동적 높이, 최소 759px) */}
+      <div className="fixed left-1/2 top-1/2 z-50 flex w-[628px] -translate-x-1/2 -translate-y-1/2 flex-col gap-6 rounded-2xl bg-white px-6 py-12 shadow-[0px_0px_4px_rgba(0,0,0,0.1),0px_6px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
+        style={{
+          minHeight: "759px",
+        }}
+      >
         {/* 컨텐츠 - 580px */}
         <div className="flex w-[580px] flex-col">
           {/* 탈퇴 이유 선택 */}
@@ -146,35 +157,92 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
                   {/* 기타 선택 시 input 표시 */}
                   {reason === "기타" && selectedReason === "기타" && (
                     <div className="flex flex-col gap-2 pl-[32px]">
-                      {/* 입력 필드 - 548px × 57px */}
-                      <input
-                        type="text"
-                        value={otherReason}
-                        onChange={(e) =>
-                          handleOtherReasonChange(e.target.value)
-                        }
-                        placeholder="기타 사유를 입력해주세요"
-                        maxLength={100}
+                      {/* 안내 텍스트 */}
+                      <span
+                        className="text-sm leading-[180%] text-[#6C7180]"
+                        style={{
+                          fontFamily: "Pretendard",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          lineHeight: "180%",
+                        }}
+                      >
+                        더 나은 서비스를 위해 남겨주세요
+                      </span>
+
+                      {/* 입력 필드 wrapper - 548px × auto (동적 높이) */}
+                      <div
                         className={cn(
-                          "h-[57px] w-[548px] min-w-[320px] rounded border bg-white px-4 py-4 text-lg font-medium leading-[140%] placeholder:text-[#A6ABB7] focus:outline-none focus:ring-1",
+                          "flex w-[548px] min-w-[320px] items-start justify-between gap-2 rounded border px-4 py-4 transition-all duration-200",
                           isOverLimit
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                            : "border-[#D3D5DC] focus:border-orange focus:ring-orange"
+                            ? "min-h-[132px] border-[#D93E39] bg-[#FDECEC]"
+                            : hasText
+                              ? "min-h-[57px] border-[#F36012] bg-white"
+                              : "min-h-[57px] border-[#D3D5DC] bg-white"
                         )}
-                      />
+                      >
+                        <textarea
+                          ref={textareaRef}
+                          value={otherReason}
+                          onChange={(e) =>
+                            handleOtherReasonChange(e.target.value)
+                          }
+                          placeholder="기타 사유를 입력해주세요"
+                          className="flex-1 resize-none overflow-hidden bg-transparent text-lg font-medium leading-[140%] text-basic placeholder:text-[#A6ABB7] focus:outline-none"
+                          style={{
+                            fontFamily: "Pretendard",
+                            fontSize: "18px",
+                            fontWeight: 500,
+                            lineHeight: "140%",
+                            minHeight: "25px",
+                          }}
+                          rows={1}
+                        />
+                        {/* X 아이콘 (텍스트 있을 때만 표시) */}
+                        {hasText && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOtherReason("");
+                              setHasValidationError(false);
+                            }}
+                            className="flex size-4 shrink-0 items-center justify-center transition-opacity hover:opacity-70"
+                            aria-label="입력 내용 지우기"
+                          >
+                            <X
+                              className="size-4 text-[#6C7180]"
+                              strokeWidth={1}
+                            />
+                          </button>
+                        )}
+                      </div>
 
                       {/* alert+counter - 548px */}
                       <div className="flex w-[548px] items-start gap-2">
-                        {/* alert (규칙 위반 시만 표시) */}
-                        {hasValidationError && (
+                        {/* alert (100자 초과 또는 특수문자 포함 시 표시) */}
+                        {(isOverLimit || hasValidationError) && (
                           <div className="flex grow items-center gap-0.5">
                             {/* circle-alert icon - 16px */}
                             <AlertCircle
-                              className="h-[16px] w-[16px] text-[#0088E8]"
+                              className={cn(
+                                "h-[16px] w-[16px]",
+                                isOverLimit
+                                  ? "text-[#D93E39]"
+                                  : "text-[#0088E8]"
+                              )}
                               strokeWidth={1}
                             />
-                            <span className="text-xs leading-[180%] text-[#2970E2]">
-                              메세지를 입력해 주세요
+                            <span
+                              className={cn(
+                                "text-xs leading-[180%]",
+                                isOverLimit
+                                  ? "text-[#D93E39]"
+                                  : "text-[#2970E2]"
+                              )}
+                            >
+                              {isOverLimit
+                                ? "글자 수 제한에 도달했어요"
+                                : "메세지를 입력해 주세요"}
                             </span>
                           </div>
                         )}
@@ -183,22 +251,36 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
                         <div
                           className={cn(
                             "flex justify-end gap-0.5",
-                            hasValidationError ? "grow" : "grow"
+                            (isOverLimit || hasValidationError) && "grow"
                           )}
                         >
                           <span
                             className={cn(
                               "text-sm leading-[180%]",
                               isOverLimit
-                                ? "text-red-500"
+                                ? "text-[#D93E39]"
                                 : hasText
-                                  ? "text-orange"
+                                  ? "text-[#F36012]"
                                   : "text-[#6C7180]"
                             )}
+                            style={{
+                              fontFamily: "Pretendard Variable",
+                              fontSize: "14px",
+                              fontWeight: 400,
+                              lineHeight: "180%",
+                            }}
                           >
                             {charCount}
                           </span>
-                          <span className="text-sm leading-[180%] text-[#6C7180]">
+                          <span
+                            className="text-sm leading-[180%] text-[#6C7180]"
+                            style={{
+                              fontFamily: "Pretendard Variable",
+                              fontSize: "14px",
+                              fontWeight: 400,
+                              lineHeight: "180%",
+                            }}
+                          >
                             /100
                           </span>
                         </div>
