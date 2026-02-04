@@ -15,6 +15,7 @@
 "use client";
 
 import { memo } from "react";
+import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CalendarEventCard } from "@/components/calendarview/HotEventSection/CalendarEventCard";
 import {
@@ -63,10 +64,12 @@ export function InterestsCarouselSection({
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.bookmarked}
         events={bookmarkedEvents ?? MOCK_BOOKMARKED_EVENTS}
+        href="/wishlist"
       />
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.viewed}
         events={viewedEvents ?? MOCK_VIEWED_EVENTS}
+        href="/history"
       />
     </div>
   );
@@ -83,9 +86,11 @@ export function InterestsCarouselSection({
 const CarouselBlock = memo(function CarouselBlock({
   title,
   events,
+  href,
 }: {
   title: string;
   events: Event[];
+  href: string;
 }) {
   const { sectionTitle, viewAllButton } = TOKENS.typography;
 
@@ -128,39 +133,49 @@ const CarouselBlock = memo(function CarouselBlock({
         </div>
       </div>
 
-      {/* action-wrapper - Figma: padding 0 8px, width 65px */}
-      <button
-        type="button"
-        className="action-move flex flex-col items-center self-center pt-2 transition-colors hover:text-foreground"
+      {/* action-wrapper - Figma: padding 0 8px, width 65px, height 467px */}
+      <div
+        className="action-wrapper flex flex-row items-center justify-end"
         style={{
           width: TOKENS.sizing.viewAllButton.width,
-          gap: "4px",
+          height: TOKENS.sizing.viewAllButton.height,
+          padding: "0 8px",
         }}
-        aria-label={`${title} 전체보기`}
       >
-        <span
-          className="flex items-center justify-center bg-white transition-colors hover:border-foreground"
+        <Link
+          href={href}
+          className="action-move flex flex-col items-center transition-colors hover:text-foreground"
           style={{
-            width: TOKENS.sizing.viewAllButton.iconSize,
-            height: TOKENS.sizing.viewAllButton.iconSize,
-            borderRadius: TOKENS.borderRadius.viewAllButton,
-            border: `${TOKENS.sizing.viewAllButton.iconBorder} solid #A6ABB7`,
+            width: TOKENS.sizing.viewAllButton.actionMoveWidth,
+            height: TOKENS.sizing.viewAllButton.actionMoveHeight,
+            gap: "4px",
           }}
+          aria-label={`${title} 전체보기`}
         >
-          <ChevronRight className="size-6 text-[#6C7180]" strokeWidth={1.5} />
-        </span>
-        <span
-          style={{
-            fontFamily: viewAllButton.family,
-            fontSize: viewAllButton.size,
-            fontWeight: viewAllButton.weight,
-            lineHeight: viewAllButton.lineHeight,
-            color: viewAllButton.color,
-          }}
-        >
-          전체보기
-        </span>
-      </button>
+          <span
+            className="flex items-center justify-center bg-white transition-colors hover:border-foreground"
+            style={{
+              width: TOKENS.sizing.viewAllButton.iconSize,
+              height: TOKENS.sizing.viewAllButton.iconSize,
+              borderRadius: TOKENS.borderRadius.viewAllButton,
+              border: `${TOKENS.sizing.viewAllButton.iconBorder} solid ${TOKENS.colors.border}`,
+            }}
+          >
+            <ChevronRight className="size-6 text-[#6C7180]" strokeWidth={1.5} />
+          </span>
+          <span
+            style={{
+              fontFamily: viewAllButton.family,
+              fontSize: viewAllButton.size,
+              fontWeight: viewAllButton.weight,
+              lineHeight: viewAllButton.lineHeight,
+              color: viewAllButton.color,
+            }}
+          >
+            전체보기
+          </span>
+        </Link>
+      </div>
     </section>
   );
 });

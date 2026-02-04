@@ -49,13 +49,13 @@ export const INTERESTS_BANNERS = [
   {
     id: "region",
     title: "추천 지역 변경하기",
-    href: "/settings",
+    href: "/onboarding/step1",
     imageUrl: "/images/interests-region-banner.png",
   },
   {
     id: "topics",
     title: "관심 있는 주제 고르기",
-    href: "/settings",
+    href: "/onboarding/step2",
     imageUrl: "/images/interests-topic-banner.png",
   },
 ] as const;

@@ -154,8 +154,11 @@ const SIZING = {
   /** 전체보기 버튼 */
   viewAllButton: {
     iconSize: "36px",
-    iconBorder: "1.5px",
+    iconBorder: "1px",
     width: "65px",
+    height: "467px",
+    actionMoveWidth: "49px",
+    actionMoveHeight: "72px",
   },
 } as const;
 
