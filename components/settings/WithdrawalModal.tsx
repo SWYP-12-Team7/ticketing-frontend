@@ -170,7 +170,7 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
                           <div className="flex grow items-center gap-0.5">
                             {/* circle-alert icon - 16px */}
                             <AlertCircle
-                              className="size-4 text-[#0088E8]"
+                              className="h-[16px] w-[16px] text-[#0088E8]"
                               strokeWidth={1}
                             />
                             <span className="text-xs leading-[180%] text-[#2970E2]">
@@ -217,7 +217,8 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
         {/* 경고 메시지 */}
         <div className="flex w-[580px] flex-col gap-4 py-4">
           <h3 className="text-2xl font-semibold leading-[128%] tracking-[-0.025em] text-basic">
-            정말 와르르를 <span className="text-[#F36012]">탈퇴하시나요?</span>
+            정말 와르르{" "}
+            <span className="text-[#F36012]">없이 괜찮으시겠어요...?</span>
           </h3>
           <p className="text-lg font-medium leading-[140%] text-[#6C7180]">
             탈퇴일 포함 3일 동안 재가입이 불가하며, 재가입 시에도 이용 내역은
