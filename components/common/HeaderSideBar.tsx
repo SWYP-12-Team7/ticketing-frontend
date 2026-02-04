@@ -285,7 +285,9 @@ export function HeaderSideBar({
 
   useEffect(() => {
     if (isOpen && activeCategoryId && !expandedCategoryId) {
-      setExpandedCategoryId(activeCategoryId);
+      queueMicrotask(() => {
+        setExpandedCategoryId(activeCategoryId);
+      });
     }
   }, [isOpen, activeCategoryId, expandedCategoryId]);
 
