@@ -4,7 +4,7 @@ import { Suspense, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CalendarView } from "@/components/calendarview/CalendarView";
 import { HotEventSection } from "@/components/calendarview/HotEventSection";
-import { KakaoMap, MapHoverCard } from "@/components/map";
+import { KakaoMap, MapHoverCard, MapEventSection } from "@/components/map";
 import type { Event } from "@/components/common";
 
 interface Location {
@@ -172,11 +172,15 @@ function ViewContent() {
       )}
 
       {/* HOT EVENT 섹션 */}
-      <HotEventSection
-        className="mt-10"
-        events={displayEvents}
-        onResetFilter={clusterIds || visibleIds ? handleResetFilter : undefined}
-      />
+      {mode === "map" ? (
+        <MapEventSection
+          events={displayEvents}
+          onResetFilter={handleResetFilter}
+          isFiltered={!!(clusterIds || visibleIds)}
+        />
+      ) : (
+        <HotEventSection sortBy="popular" />
+      )}
     </main>
   );
 }

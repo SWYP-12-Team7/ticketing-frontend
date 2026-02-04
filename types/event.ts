@@ -9,18 +9,44 @@ export interface Event {
   id: string;
   title: string;
   category: string;
-  location?: string; // ShowPick에서 사용
+
+  /** 서브카테고리 (예: "라이프스타일", "현대미술") */
+  subcategory?: string;
+
+  /** 지역 (예: "서울 성수") */
+  region?: string;
+
+  /** 장소 (ShowPick에서 사용) */
+  location?: string;
+
+  /** 기간 (예: "26.01.01 ~ 26.01.31") */
   period: string;
-  date?: string; // ShowPick에서 사용
+
+  /** 날짜 (ShowPick에서 사용) */
+  date?: string;
+
+  /** 가격 표시용 (예: "무료", "10,000원") */
+  priceDisplay?: string;
+
+  /** 원가 (hotdeal variant용) */
+  originalPrice?: number;
+
+  /** 할인율 */
+  discountRate?: number;
+
+  /** 할인가 */
+  discountPrice?: number;
+
   imageUrl: string;
   viewCount: number;
   likeCount: number;
   isLiked?: boolean;
-  tags?: string[]; // ShowPick에서 사용
-  openDate?: Date; // countdown variant용
-  originalPrice?: number; // hotdeal variant용
-  discountRate?: number;
-  discountPrice?: number;
+
+  /** 태그 목록 (ShowPick에서 사용) */
+  tags?: string[];
+
+  /** 오픈 예정일 (countdown variant용) */
+  openDate?: Date;
 }
 
 /**

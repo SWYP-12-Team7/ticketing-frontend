@@ -1,0 +1,242 @@
+/**
+ * HOT EVENT 섹션 컴포넌트
+ *
+ * 3가지 상태:
+ * 1. 날짜 선택 안 됨 → 인기 이벤트 표시 (제목: "HOT EVENT")
+ * 2. 날짜 선택됨 + 이벤트 있음 → 해당 날짜 이벤트 (제목: "1월 8일 전시 60개")
+ * 3. 날짜 선택됨 + 이벤트 없음 → 스위프 캐릭터 + 빈 상태 메시지
+ */
+
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { CalendarEventCard } from "./CalendarEventCard";
+import type { Event, EventSortOption } from "@/types/event";
+import type { IsoDate } from "@/types/calendar";
+import type { CalendarCategoryActiveMap } from "../utils/calendar.query-state";
+import {
+  generateEventsByDate,
+  generatePopularEvents,
+} from "@/lib/calendar-dummy-events";
+import { formatDateKorean } from "../utils/calendar.formatters";
+import { EmptyState } from "./EmptyState";
+
+/**
+ * HotEventSection Props
+ */
+interface HotEventSectionProps {
+  /** 추가 CSS 클래스 */
+  className?: string;
+  /** 선택된 날짜 */
+  selectedDate?: IsoDate | null;
+  /** 활성화된 카테고리 */
+  activeCategories?: CalendarCategoryActiveMap;
+  /** 정렬 옵션 */
+  sortBy: EventSortOption;
+  /** 이벤트 목록 (선택사항, 없으면 더미 데이터 사용) */
+  events?: Event[];
+}
+
+/**
+ * HOT EVENT 섹션 컴포넌트
+ *
+ * @example
+ * ```tsx
+ * <HotEventSection
+ *   selectedDate="2026-01-08"
+ *   activeCategories={{ exhibition: true, popup: true }}
+ * />
+ * ```
+ */
+export function HotEventSection({
+  className,
+  selectedDate,
+  activeCategories,
+  sortBy,
+  events,
+}: HotEventSectionProps) {
+  /**
+   * 좋아요 상태 관리 (로컬)
+   * - Set을 사용하여 좋아요한 이벤트 ID 추적
+   * - TODO: 백엔드 API 연동 시 전역 상태 또는 서버 상태로 전환
+   */
+  const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
+
+  /**
+   * 카테고리 레이블 결정
+   * - 전시만: "전시"
+   * - 팝업만: "팝업"
+   * - 둘 다 또는 둘 다 아님: "이벤트"
+   */
+  const categoryLabel = useMemo(() => {
+    if (!activeCategories) return "이벤트";
+
+    const { exhibition, popup } = activeCategories;
+
+    if (exhibition && !popup) return "전시";
+    if (!exhibition && popup) return "팝업";
+    return "이벤트";
+  }, [activeCategories]);
+
+  /**
+   * 이벤트 데이터 로드 + 카테고리 필터링
+   */
+  const displayEvents = useMemo(() => {
+    // 카테고리 모두 체크 해제
+    if (
+      activeCategories &&
+      !activeCategories.exhibition &&
+      !activeCategories.popup
+    ) {
+      return [];
+    }
+
+    let allEvents: Event[] = [];
+
+    // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트
+    if (!selectedDate) {
+      allEvents = events || generatePopularEvents(24);
+    }
+    // 2️⃣ 날짜 선택됨 → 해당 날짜 이벤트
+    else {
+      allEvents = events || generateEventsByDate(selectedDate);
+    }
+
+    // 카테고리 필터링
+    if (activeCategories) {
+      return allEvents.filter((event) => {
+        if (event.category === "전시" && !activeCategories.exhibition) {
+          return false;
+        }
+        if (event.category === "팝업" && !activeCategories.popup) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return allEvents;
+  }, [selectedDate, events, activeCategories]);
+
+  /**
+   * 정렬 로직
+   */
+  const sortedEvents = useMemo(() => {
+    return [...displayEvents].sort((a, b) => {
+      switch (sortBy) {
+        case "popular":
+          return b.likeCount - a.likeCount;
+        case "views":
+          return b.viewCount - a.viewCount;
+        case "latest":
+          // TODO: 실제로는 createdAt 필드 필요
+          return 0;
+        case "deadline":
+          // TODO: 실제로는 endDate 필드 필요
+          return 0;
+        default:
+          return 0;
+      }
+    });
+  }, [displayEvents, sortBy]);
+
+  /**
+   * 좋아요 상태가 반영된 이벤트 목록
+   */
+  const eventsWithLikeState = useMemo(() => {
+    return sortedEvents.map((event) => ({
+      ...event,
+      isLiked: likedEventIds.has(event.id),
+    }));
+  }, [sortedEvents, likedEventIds]);
+
+  /**
+   * 섹션 제목 결정
+   * - 날짜 선택 안 됨: "HOT EVENT"
+   * - 날짜 선택됨: "1월 8일 전시 60개"
+   */
+  const sectionTitle = useMemo(() => {
+    if (!selectedDate) {
+      return "HOT EVENT";
+    }
+
+    const dateStr = formatDateKorean(selectedDate);
+    const count = eventsWithLikeState.length;
+
+    return `${dateStr} ${categoryLabel} ${count}개`;
+  }, [selectedDate, categoryLabel, eventsWithLikeState.length]);
+
+  /**
+   * 좋아요 클릭 핸들러
+   * - 로컬 상태 토글
+   * - TODO: 백엔드 API 호출 추가
+   */
+  const handleLikeClick = (id: string) => {
+    setLikedEventIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id); // 좋아요 취소
+        console.log("좋아요 취소:", id);
+      } else {
+        newSet.add(id); // 좋아요 추가
+        console.log("좋아요 추가:", id);
+      }
+      return newSet;
+    });
+
+    // TODO: 백엔드 API 호출
+    // await likeEvent(id);
+  };
+
+  /**
+   * 빈 상태 타입 결정
+   */
+  const emptyStateType: "no-date" | "no-events" | null = useMemo(() => {
+    if (eventsWithLikeState.length > 0) return null;
+
+    // 날짜 선택됨 + 이벤트 없음
+    if (selectedDate) return "no-events";
+
+    // 날짜 선택 안 됨
+    return "no-date";
+  }, [selectedDate, eventsWithLikeState.length]);
+
+  return (
+    <section
+      className={cn("hot-event-section absolute", className)}
+      aria-labelledby="hot-event-heading"
+      style={{
+        left: "81px",
+        top: "1069px",
+        width: "1278px",
+        zIndex: 5,
+      }}
+    >
+      <div className="hot-event-section__container">
+        {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
+        {eventsWithLikeState.length > 0 ? (
+          <ul
+            className="hot-event-section__grid grid"
+            style={{
+              gridTemplateColumns: "repeat(6, 193px)",
+              rowGap: "26px",
+              columnGap: "24px",
+            }}
+          >
+            {eventsWithLikeState.map((event) => (
+              <li key={event.id}>
+                <CalendarEventCard
+                  event={event}
+                  onLikeClick={handleLikeClick}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          emptyStateType && <EmptyState type={emptyStateType} />
+        )}
+      </div>
+    </section>
+  );
+}
