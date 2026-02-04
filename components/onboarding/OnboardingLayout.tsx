@@ -44,7 +44,7 @@ export function OnboardingLayout({
       </main>
 
       {/* 하단 버튼 */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-6 py-4">
         <div className="flex gap-3 max-w-lg mx-auto">
           <button
             type="button"
