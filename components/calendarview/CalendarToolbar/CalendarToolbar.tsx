@@ -1,13 +1,11 @@
 /**
  * 캘린더 필터바 컴포넌트
  *
- * Figma 스펙 완전 반영:
- * - 필터 아이콘 (24px, 클릭 시 사이드바 열기)
- * - 선택된 필터 pills 표시 (주황색, X 버튼으로 제거)
- * - 리셋 버튼 (40px, rounded-22px)
- * - height: 60px
- * - padding: 8px 10px
- * - gap: 11px
+ * Figma 스펙 완전 반영 (2026-02-04):
+ * - width: 1278px, height: 60px
+ * - padding: 8px 10px, gap: 11px, border-radius: 12px
+ * - 레이아웃: Pills (좌측, flex-grow: 1) → 리셋 버튼 (우측) → 필터 아이콘 (우측)
+ * - Pills 영역: 가로 스크롤 지원
  */
 
 "use client";
@@ -55,47 +53,36 @@ export function CalendarToolbar({
   return (
     <header
       className={cn(
-        "calendar-toolbar__container flex w-full items-center rounded-[12px]"
+        "calendar-toolbar__container flex items-center rounded-[12px]"
       )}
       style={{
+        width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.width,
         height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.height,
         padding: CALENDAR_DESIGN_TOKENS.spacing.toolbar.padding,
         gap: CALENDAR_DESIGN_TOKENS.spacing.toolbar.gap,
       }}
     >
-      {/* 필터 아이콘 */}
-      <button
-        type="button"
-        onClick={onOpenFilter}
-        className="calendar-toolbar__icon flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+      {/* single row scrollable - Pills 컨테이너 (flex-grow: 1) */}
+      <div
+        className="calendar-toolbar__pills-wrapper grow flex items-center"
         style={{
-          width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
-          height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
+          minWidth: 0, // flex 아이템이 줄어들 수 있게 함
+          flexShrink: 1,
         }}
-        aria-label="필터 열기"
-        title="필터 열기"
       >
-        <Image
-          src="/images/searchResult/IC_Fillter.svg"
-          alt=""
-          width={24}
-          height={24}
+        <SelectedFilterPills
+          filters={selectedFilters}
+          onRemove={onRemoveFilter}
         />
-      </button>
+      </div>
 
-      {/* 선택된 필터 pills */}
-      <SelectedFilterPills
-        filters={selectedFilters}
-        onRemove={onRemoveFilter}
-      />
-
-      {/* 리셋 버튼 (항상 우측 고정) */}
+      {/* 리셋 버튼 (order: 1, 우측 고정) */}
       <button
         type="button"
         onClick={onReset}
         className={cn(
           "calendar-toolbar__reset-button",
-          "flex items-center justify-center shrink-0 ml-auto",
+          "flex items-center justify-center shrink-0",
           "hover:opacity-80 active:scale-95",
           "transition-all",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
@@ -117,6 +104,26 @@ export function CalendarToolbar({
             strokeWidth: CALENDAR_DESIGN_TOKENS.borders.arrow,
           }}
           aria-hidden="true"
+        />
+      </button>
+
+      {/* 필터 아이콘 (order: 2, 우측 고정) */}
+      <button
+        type="button"
+        onClick={onOpenFilter}
+        className="calendar-toolbar__icon flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        style={{
+          width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
+          height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
+        }}
+        aria-label="필터 열기"
+        title="필터 열기"
+      >
+        <Image
+          src="/images/searchResult/IC_Fillter.svg"
+          alt=""
+          width={24}
+          height={24}
         />
       </button>
     </header>

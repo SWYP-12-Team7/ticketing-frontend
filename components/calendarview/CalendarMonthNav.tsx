@@ -14,12 +14,12 @@ type CalendarMonthNavProps = Readonly<{
 /**
  * 캘린더 월 네비게이션
  *
- * Figma 스펙 (Frame 1707488909):
- * - width: 1280px, height: 31px
- * - justify-content: space-between
- * - padding: 0px, gap: 10px
+ * Figma 스펙 (Frame 1707488910):
+ * - width: 1278px, height: 31px
+ * - justify-content: center (좌우 가운데 정렬)
+ * - padding: 0px, gap: 25px
  * - 화살표: 24px × 24px, border: 1.5px solid #000000
- * - 제목: width 784px, Pretendard Variable 24px
+ * - 제목: width auto, Pretendard Variable 24px
  */
 export function CalendarMonthNav({
   title,
@@ -29,12 +29,12 @@ export function CalendarMonthNav({
   return (
     <nav
       aria-label="월 이동"
-      className="calendar-month-nav flex items-center justify-between"
+      className="calendar-month-nav flex items-center justify-center"
       style={{
         width: CALENDAR_DESIGN_TOKENS.sizing.monthNav.width,
         height: CALENDAR_DESIGN_TOKENS.sizing.monthNav.height,
         padding: "0px",
-        gap: "10px",
+        gap: CALENDAR_DESIGN_TOKENS.sizing.monthNav.gap,
       }}
     >
       {/* 왼쪽 화살표 (checkbox-item/icon/arrow-left) */}
@@ -64,9 +64,8 @@ export function CalendarMonthNav({
 
       {/* 월 제목 (January 2026) */}
       <h2
-        className="calendar-month-nav__title text-center shrink-0"
+        className="calendar-month-nav__title text-center"
         style={{
-          width: CALENDAR_DESIGN_TOKENS.sizing.monthNav.titleWidth,
           height: CALENDAR_DESIGN_TOKENS.sizing.monthNav.height,
           fontFamily: CALENDAR_DESIGN_TOKENS.fonts.monthTitle.family,
           fontSize: CALENDAR_DESIGN_TOKENS.fonts.monthTitle.size,
@@ -74,6 +73,7 @@ export function CalendarMonthNav({
           lineHeight: CALENDAR_DESIGN_TOKENS.fonts.monthTitle.lineHeight,
           letterSpacing: CALENDAR_DESIGN_TOKENS.fonts.monthTitle.letterSpacing,
           color: CALENDAR_DESIGN_TOKENS.colors.monthNav.title,
+          whiteSpace: "nowrap",
         }}
       >
         {title}

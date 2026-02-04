@@ -9,116 +9,125 @@ import { REGIONS, POPUP_CATEGORIES, EXHIBITION_CATEGORIES } from "./constants";
 
 /**
  * Display Filter 타입 (CalendarToolbar용)
- * Figma 스펙: 레이블 + 값 2개 영역 구조
+ * Figma 스펙: 레이블 + 값 배열 (그룹화 지원)
+ *
+ * 예시:
+ * - { displayLabel: "지역", values: ["전체"] }  // "전체" 선택 시
+ * - { displayLabel: "지역", values: ["울산", "부산"] }  // 여러 개 선택 시
+ * - { displayLabel: "팝업", values: ["뷰티", "패션"] }
  */
 export interface DisplayFilter {
-  /** 고유 ID */
+  /** 고유 ID (그룹 단위) */
   id: string;
-  /** 필터 레이블 (예: "지역", "팝업") */
+  /** 필터 레이블 (예: "지역", "팝업", "전시") */
   displayLabel: string;
-  /** 필터 값 (예: "부산", "뷰티") */
-  value: string;
+  /** 필터 값 배열 (예: ["전체"] 또는 ["부산", "울산"]) */
+  values: string[];
   /** 필터 타입 */
-  type: "region" | "popup" | "exhibition" | "price" | "amenity";
+  type: "region" | "popup" | "exhibition" | "price" | "amenity" | "all";
   /** X 버튼 표시 여부 */
   showRemoveButton?: boolean;
 }
 
 /**
- * LocationEventFilterState를 Display Pills로 변환
+ * LocationEventFilterState를 그룹화된 Display Pills로 변환
  *
- * Figma 스펙 준수: 레이블 + 값 2개 영역 구조
- * - "전체"만 선택된 경우 → pill 표시 안 함
- * - 개별 항목 선택 시 → 레이블과 값으로 분리하여 표시
+ * Figma 스펙 (2026-02-04): 필터별로 그룹화
+ * - "전체" 선택 시 → [{ displayLabel: "지역", values: ["전체"] }, { displayLabel: "팝업", values: ["전체"] }, ...]
+ * - 지역 여러 개 선택 → [{ displayLabel: "지역", values: ["울산", "부산"] }]
+ * - 팝업+전시 선택 → [{ displayLabel: "팝업", values: [...] }, { displayLabel: "전시", values: [...] }]
+ *
+ * @example
+ * ```ts
+ * // Input: { regions: ["all"], popupCategories: ["all"], exhibitionCategories: ["all"], ... }
+ * // Output: [
+ * //   { displayLabel: "지역", values: ["전체"] },
+ * //   { displayLabel: "팝업", values: ["전체"] },
+ * //   { displayLabel: "전시", values: ["전체"] }
+ * // ]
+ *
+ * // Input: { regions: ["ulsan", "busan"], popupCategories: ["beauty"], ... }
+ * // Output: [
+ * //   { displayLabel: "지역", values: ["울산", "부산"] },
+ * //   { displayLabel: "팝업", values: ["뷰티"] }
+ * // ]
+ * ```
  */
 export function convertFiltersToDisplayPills(
   filters: LocationEventFilterState
 ): DisplayFilter[] {
   const pills: DisplayFilter[] = [];
 
-  // 지역 (전체 제외)
-  filters.regions
-    .filter((id) => id !== "all")
-    .forEach((id) => {
-      const region = REGIONS.find((r) => r.id === id);
-      if (region) {
-        pills.push({
-          id: `region-${id}`,
-          displayLabel: "지역",
-          value: region.label,
-          type: "region",
-          showRemoveButton: true,
-        });
-      }
-    });
+  // 1. 지역 그룹화 ("전체" 포함)
+  const regionValues = filters.regions
+    .map((id) => REGIONS.find((r) => r.id === id)?.label)
+    .filter((label): label is string => label !== undefined);
 
-  // 팝업 카테고리 (전체 제외)
-  filters.popupCategories
-    .filter((id) => id !== "all")
-    .forEach((id) => {
-      const category = POPUP_CATEGORIES.find((c) => c.id === id);
-      if (category) {
-        pills.push({
-          id: `popup-${id}`,
-          displayLabel: "팝업",
-          value: category.label,
-          type: "popup",
-          showRemoveButton: true,
-        });
-      }
-    });
-
-  // 전시 카테고리 (전체 제외)
-  filters.exhibitionCategories
-    .filter((id) => id !== "all")
-    .forEach((id) => {
-      const category = EXHIBITION_CATEGORIES.find((c) => c.id === id);
-      if (category) {
-        pills.push({
-          id: `exhibition-${id}`,
-          displayLabel: "전시",
-          value: category.label,
-          type: "exhibition",
-          showRemoveButton: true,
-        });
-      }
-    });
-
-  // 가격
-  if (filters.price.free) {
+  if (regionValues.length > 0) {
     pills.push({
-      id: "price-free",
-      displayLabel: "가격",
-      value: "무료",
-      type: "price",
+      id: "region-group",
+      displayLabel: "지역",
+      values: regionValues,
+      type: "region",
       showRemoveButton: true,
     });
   }
-  if (filters.price.paid) {
+
+  // 2. 팝업 카테고리 그룹화 ("전체" 포함)
+  const popupValues = filters.popupCategories
+    .map((id) => POPUP_CATEGORIES.find((c) => c.id === id)?.label)
+    .filter((label): label is string => label !== undefined);
+
+  if (popupValues.length > 0) {
     pills.push({
-      id: "price-paid",
+      id: "popup-group",
+      displayLabel: "팝업",
+      values: popupValues,
+      type: "popup",
+      showRemoveButton: true,
+    });
+  }
+
+  // 3. 전시 카테고리 그룹화 ("전체" 포함)
+  const exhibitionValues = filters.exhibitionCategories
+    .map((id) => EXHIBITION_CATEGORIES.find((c) => c.id === id)?.label)
+    .filter((label): label is string => label !== undefined);
+
+  if (exhibitionValues.length > 0) {
+    pills.push({
+      id: "exhibition-group",
+      displayLabel: "전시",
+      values: exhibitionValues,
+      type: "exhibition",
+      showRemoveButton: true,
+    });
+  }
+
+  // 4. 가격 그룹화
+  const priceValues: string[] = [];
+  if (filters.price.free) priceValues.push("무료");
+  if (filters.price.paid) priceValues.push("유료");
+
+  if (priceValues.length > 0) {
+    pills.push({
+      id: "price-group",
       displayLabel: "가격",
-      value: "유료",
+      values: priceValues,
       type: "price",
       showRemoveButton: true,
     });
   }
 
-  // 편의사항
-  if (filters.amenities.parking) {
+  // 5. 편의사항 그룹화
+  const amenityValues: string[] = [];
+  if (filters.amenities.parking) amenityValues.push("주차가능");
+  if (filters.amenities.petFriendly) amenityValues.push("반려견 동반");
+
+  if (amenityValues.length > 0) {
     pills.push({
-      id: "amenity-parking",
+      id: "amenity-group",
       displayLabel: "편의시설",
-      value: "주차가능",
-      type: "amenity",
-      showRemoveButton: true,
-    });
-  }
-  if (filters.amenities.petFriendly) {
-    pills.push({
-      id: "amenity-petFriendly",
-      displayLabel: "편의시설",
-      value: "반려견 동반",
+      values: amenityValues,
       type: "amenity",
       showRemoveButton: true,
     });
@@ -128,58 +137,58 @@ export function convertFiltersToDisplayPills(
 }
 
 /**
- * 필터 pill ID로 필터 상태에서 해당 항목 제거
+ * 필터 그룹 제거 (그룹 단위로 한 번에 제거)
+ *
+ * @param state 현재 필터 상태
+ * @param filterId 그룹 ID (예: "region-group", "popup-group")
+ * @returns 업데이트된 필터 상태
+ *
+ * @example
+ * ```ts
+ * // "지역 전체" 또는 "지역 울산 부산" 그룹 전체 제거
+ * removeFilterFromState(state, "region-group")
+ * // → regions: ["all"]
+ *
+ * // "팝업 전체" 또는 "팝업 뷰티" 그룹 제거
+ * removeFilterFromState(state, "popup-group")
+ * // → popupCategories: ["all"]
+ * ```
  */
 export function removeFilterFromState(
   state: LocationEventFilterState,
   filterId: string
 ): LocationEventFilterState {
-  const [type, value] = filterId.split("-");
 
-  switch (type) {
-    case "region": {
-      const newRegions = state.regions.filter((id) => id !== value);
+  // 그룹 단위 제거
+  switch (filterId) {
+    case "region-group":
       return {
         ...state,
-        regions: newRegions.length === 0 ? ["all"] : newRegions,
-      };
-    }
-
-    case "popup": {
-      const newCategories = state.popupCategories.filter((id) => id !== value);
-      return {
-        ...state,
-        popupCategories: newCategories.length === 0 ? ["all"] : newCategories,
-      };
-    }
-
-    case "exhibition": {
-      const newCategories = state.exhibitionCategories.filter(
-        (id) => id !== value
-      );
-      return {
-        ...state,
-        exhibitionCategories:
-          newCategories.length === 0 ? ["all"] : newCategories,
-      };
-    }
-
-    case "price":
-      return {
-        ...state,
-        price: {
-          ...state.price,
-          [value]: false,
-        },
+        regions: ["all"],
       };
 
-    case "amenity":
+    case "popup-group":
       return {
         ...state,
-        amenities: {
-          ...state.amenities,
-          [value]: false,
-        },
+        popupCategories: ["all"],
+      };
+
+    case "exhibition-group":
+      return {
+        ...state,
+        exhibitionCategories: ["all"],
+      };
+
+    case "price-group":
+      return {
+        ...state,
+        price: { free: false, paid: false },
+      };
+
+    case "amenity-group":
+      return {
+        ...state,
+        amenities: { parking: false, petFriendly: false },
       };
 
     default:

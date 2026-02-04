@@ -204,12 +204,10 @@ export function HotEventSection({
 
   return (
     <section
-      className={cn("hot-event-section absolute", className)}
+      className={cn("hot-event-section", className)}
       aria-labelledby="hot-event-heading"
       style={{
-        left: "81px",
-        top: "1069px",
-        width: "1278px",
+        width: "100%",
         zIndex: 5,
       }}
     >

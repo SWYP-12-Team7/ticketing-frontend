@@ -1,14 +1,15 @@
 /**
- * 선택된 필터들을 표시하는 컴포넌트
+ * 선택된 필터들을 표시하는 컴포넌트 (그룹화 지원)
  *
  * CalendarToolbar에서 사용
- * 각 필터를 pill 형태로 표시하고 제거 가능
+ * 각 필터를 그룹화된 pill 형태로 표시하고 제거 가능
  *
- * Figma 스펙:
- * - 레이블 + 값 2개 영역 구조
- * - 레이블: 주황색 텍스트 + 연한 주황 배경
- * - 값: 검정 텍스트 + 흰색 배경
- * - X 버튼: 제거 기능
+ * Figma 스펙 (2026-02-04):
+ * - single row scrollable: 가로 스크롤 지원
+ * - gap: 8px, height: 32px
+ * - flex-wrap: nowrap (줄바꿈 금지)
+ * - overflow-x: auto (가로 스크롤)
+ * - 그룹화: [지역 울산 부산] [팝업 뷰티] [전시 설치미술]
  */
 
 "use client";
@@ -16,22 +17,23 @@
 import React from "react";
 import { FilterPill } from "./FilterPill";
 import { cn } from "@/lib/utils";
+import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
 
 /**
- * 표시용 필터 데이터 타입
+ * 표시용 필터 데이터 타입 (그룹화 지원)
  */
 export interface DisplayFilter {
-  /** 고유 ID (예: "region-busan", "popup-fashion") */
+  /** 고유 ID (그룹 단위, 예: "region-group", "popup-group", "all") */
   id: string;
 
-  /** 필터 레이블 (예: "지역", "팝업", "전시") */
+  /** 필터 레이블 (예: "지역", "팝업", "전시", "전체") */
   displayLabel: string;
 
-  /** 필터 값 (예: "부산", "뷰티", "현대미술") */
-  value: string;
+  /** 필터 값 배열 (예: ["부산", "울산"]) - "전체"는 빈 배열 */
+  values: string[];
 
   /** 필터 타입 */
-  type: "region" | "popup" | "exhibition" | "price" | "amenity";
+  type: "region" | "popup" | "exhibition" | "price" | "amenity" | "all";
 
   /** X 버튼 표시 여부 (기본: true) */
   showRemoveButton?: boolean;
@@ -49,14 +51,15 @@ interface SelectedFilterPillsProps {
 }
 
 /**
- * 선택된 필터 Pills 컴포넌트
+ * 선택된 필터 Pills 컴포넌트 (그룹화 지원)
  *
  * @example
  * ```tsx
  * <SelectedFilterPills
  *   filters={[
- *     { id: "region-1", displayLabel: "지역", value: "부산", type: "region" },
- *     { id: "popup-1", displayLabel: "팝업", value: "뷰티", type: "popup" },
+ *     { id: "region-group", displayLabel: "지역", values: ["울산", "부산"], type: "region" },
+ *     { id: "popup-group", displayLabel: "팝업", values: ["뷰티"], type: "popup" },
+ *     { id: "all", displayLabel: "전체", values: [], type: "all" },
  *   ]}
  *   onRemove={handleRemove}
  * />
@@ -67,26 +70,47 @@ export function SelectedFilterPills({
   onRemove,
   className,
 }: SelectedFilterPillsProps) {
-  // 필터가 없으면 아무것도 렌더링하지 않음
-  if (filters.length === 0) {
-    return null;
-  }
+  const tokens = CALENDAR_DESIGN_TOKENS.filterPill.scrollContainer;
 
   return (
     <div
-      className={cn("flex items-center flex-wrap gap-2", className)}
+      className={cn(
+        "flex items-center overflow-x-auto",
+        // 스크롤바 스타일링 (선택사항)
+        "[&::-webkit-scrollbar]:h-1",
+        "[&::-webkit-scrollbar-track]:bg-transparent",
+        "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+        "[&::-webkit-scrollbar-thumb]:rounded-full",
+        "[&::-webkit-scrollbar-thumb]:hover:bg-gray-400",
+        className
+      )}
+      style={{
+        gap: tokens.gap,
+        height: tokens.height,
+        flexWrap: "nowrap", // 줄바꿈 금지
+        flexShrink: 1, // 줄어들 수 있음
+        minWidth: 0, // flex 아이템이 줄어들 수 있게 함
+      }}
       role="list"
       aria-label="선택된 필터 목록"
     >
-      {filters.map((filter) => (
-        <FilterPill
-          key={filter.id}
-          displayLabel={filter.displayLabel}
-          value={filter.value}
-          onRemove={() => onRemove(filter.id)}
-          showRemoveButton={filter.showRemoveButton ?? true}
+      {filters.length === 0 ? (
+        // 빈 상태: 레이아웃 유지를 위한 투명 플레이스홀더
+        <div
+          style={{ width: "1px", height: tokens.height, visibility: "hidden" }}
+          aria-hidden="true"
         />
-      ))}
+      ) : (
+        filters.map((filter) => (
+          <FilterPill
+            key={filter.id}
+            displayLabel={filter.displayLabel}
+            values={filter.values}
+            onRemove={() => onRemove(filter.id)}
+            showRemoveButton={filter.showRemoveButton ?? true}
+          />
+        ))
+      )}
     </div>
   );
 }

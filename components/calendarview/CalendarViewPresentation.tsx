@@ -174,23 +174,34 @@ export function CalendarViewPresentation({
   /**
    * 페이지 최소 높이 동적 계산
    * - 이벤트 개수에 따라 HOT EVENT 그리드 높이 자동 조정
+   * - Flexbox 레이아웃으로 변경되어 계산 로직 간소화
    */
   const pageMinHeight = useMemo(() => {
-    const _CALENDAR_TOP = 140;
-    const _CALENDAR_HEIGHT = 791;
-    const _HOT_EVENT_HEADER_TOP = 1011;
-    const HOT_EVENT_GRID_TOP = 1069;
+    const PADDING_TOP = 140; // Header 아래 여백
+    const CALENDAR_HEIGHT = 791; // 캘린더 전체 높이
+    const HOT_EVENT_HEADER_MARGIN = 80; // 캘린더 → HOT EVENT 헤더 간격
+    const HOT_EVENT_HEADER_HEIGHT = 31;
+    const HOT_EVENT_GRID_MARGIN = 58; // 헤더 → 그리드 간격
     const CARD_HEIGHT = 490;
     const ROW_GAP = 26;
     const COLUMNS = 6;
-    const BOTTOM_MARGIN = 100;
-    const EMPTY_STATE_HEIGHT = 400; // 빈 상태 최소 높이
+    const BOTTOM_PADDING = 100;
+    const EMPTY_STATE_HEIGHT = 400;
 
     const eventCount = hotEventData.events.length;
 
+    // 기본 높이 (캘린더 + 여백)
+    let totalHeight =
+      PADDING_TOP +
+      CALENDAR_HEIGHT +
+      HOT_EVENT_HEADER_MARGIN +
+      HOT_EVENT_HEADER_HEIGHT +
+      HOT_EVENT_GRID_MARGIN;
+
     // 이벤트가 없을 때 (빈 상태)
     if (eventCount === 0) {
-      return HOT_EVENT_GRID_TOP + EMPTY_STATE_HEIGHT + BOTTOM_MARGIN;
+      totalHeight += EMPTY_STATE_HEIGHT + BOTTOM_PADDING;
+      return totalHeight;
     }
 
     // 행 개수 계산
@@ -200,27 +211,30 @@ export function CalendarViewPresentation({
     const gridHeight = rows * CARD_HEIGHT + (rows - 1) * ROW_GAP;
 
     // 전체 높이
-    return HOT_EVENT_GRID_TOP + gridHeight + BOTTOM_MARGIN;
+    totalHeight += gridHeight + BOTTOM_PADDING;
+
+    return totalHeight;
   }, [hotEventData.events.length]);
 
   return (
     <section
       aria-label="캘린더 뷰"
-      className="calendar-view-section relative"
+      className="calendar-view-section flex flex-col items-center relative"
       style={{
-        width: CALENDAR_DESIGN_TOKENS.sizing.page.width,
+        width: "100%",
         minHeight: `${pageMinHeight}px`,
+        paddingTop: CALENDAR_DESIGN_TOKENS.spacing.page.topFromHeader,
+        paddingLeft: CALENDAR_DESIGN_TOKENS.spacing.page.left,
+        paddingRight: CALENDAR_DESIGN_TOKENS.spacing.page.left,
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
-      {/* 캘린더 컨테이너 (left: 80px, top: 140px) */}
+      {/* 캘린더 컨테이너 (좌우 가운데 정렬) */}
       <div
-        className="calendar-view-container absolute flex flex-col"
+        className="calendar-view-container flex flex-col"
         style={{
           width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
           height: CALENDAR_DESIGN_TOKENS.sizing.container.height,
-          left: CALENDAR_DESIGN_TOKENS.spacing.page.left,
-          top: CALENDAR_DESIGN_TOKENS.spacing.page.topFromHeader,
           gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
           padding: "0px",
           zIndex: 10,
@@ -234,12 +248,14 @@ export function CalendarViewPresentation({
         />
 
         {/* Order 1: 필터바 */}
-        <CalendarToolbar
-          selectedFilters={selectedFilterPills}
-          onRemoveFilter={handleRemoveFilter}
-          onOpenFilter={() => setIsFilterOpen(true)}
-          onReset={handleResetFilters}
-        />
+        <div style={{ marginBottom: "10px" }}>
+          <CalendarToolbar
+            selectedFilters={selectedFilterPills}
+            onRemoveFilter={handleRemoveFilter}
+            onOpenFilter={() => setIsFilterOpen(true)}
+            onReset={handleResetFilters}
+          />
+        </div>
 
         {/* Order 2: 캘린더 그리드 */}
         {(isError || isLoading) && (
@@ -267,14 +283,13 @@ export function CalendarViewPresentation({
         )}
       </div>
 
-      {/* HOT EVENT 헤더: 제목 + 정렬 (Figma: absolute, left: 80px, top: 1011px) */}
+      {/* HOT EVENT 헤더: 제목 + 정렬 (Figma 간격: 캘린더 하단 + 80px = top: 1011px) */}
       <div
-        className="absolute flex items-center justify-between"
+        className="flex items-center justify-between"
         style={{
-          left: "80px",
-          top: "1011px",
           width: "1278px",
           height: "31px",
+          marginTop: "80px",
           zIndex: 6,
         }}
       >
@@ -296,12 +311,19 @@ export function CalendarViewPresentation({
         <EventSortSelector sortBy={sortBy} onSortChange={setSortBy} />
       </div>
 
-      {/* HOT EVENT 섹션 (Figma: absolute, left: 81px, top: 1069px) */}
-      <HotEventSection
-        selectedDate={selectedDate}
-        activeCategories={activeCategories}
-        sortBy={sortBy}
-      />
+      {/* HOT EVENT 섹션 (Figma 간격: 헤더 하단 + 58px = top: 1069px) */}
+      <div
+        style={{
+          width: "1278px",
+          marginTop: "58px",
+        }}
+      >
+        <HotEventSection
+          selectedDate={selectedDate}
+          activeCategories={activeCategories}
+          sortBy={sortBy}
+        />
+      </div>
 
       {/* 지역/행사 필터 사이드바 */}
       <LocationEventFilterSidebar

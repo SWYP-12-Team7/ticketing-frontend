@@ -96,19 +96,20 @@ export const CALENDAR_DESIGN_TOKENS = {
     },
     /** 캘린더 섹션 전체 */
     container: {
-      width: "1280px",
+      width: "1278px",
       height: "791px",
     },
     /** 월 네비게이션 */
     monthNav: {
-      width: "1280px",
+      width: "1278px",
       height: "31px",
       arrowSize: "24px",
-      titleWidth: "784px",
+      titleWidth: "auto",
+      gap: "25px",
     },
     /** 필터바 */
     toolbar: {
-      width: "1280px",
+      width: "1278px",
       height: "60px",
       filterItemHeight: "32px",
       filterIconSize: "24px",
@@ -406,51 +407,56 @@ export const CALENDAR_DESIGN_TOKENS = {
   },
 
   /**
-   * 필터 Pill 디자인 토큰 (Figma 스펙 완전 준수)
+   * 필터 Pill 디자인 토큰 (Figma 스펙 2026-02-04 완전 준수)
    */
   filterPill: {
-    /** 컨테이너 (전체 pill) */
+    /** 컨테이너 (외부 chip) */
     container: {
-      padding: "4px",
-      gap: "6px",
+      padding: "0px 16px",
+      gap: "4px",
       height: "32px",
-      background: "#FFF4EC",
-      borderRadius: "24px",
+      minWidth: "48px",
+      background: "#FFF2E6",
+      border: "1px solid #F36012",
+      borderRadius: "100px",
     },
 
-    /** 레이블 영역 ("지역", "팝업" 등) */
+    /** 레이블 영역 ("지역", "팝업" 등) - 외부 컨테이너와 동일 배경 */
     label: {
-      padding: "4px 6px",
-      minWidth: "40px",
-      height: "24px",
-      background: "#FFF4EC",
-      borderRadius: "24px",
+      /** 레이블 폰트 */
+      fontFamily: "Pretendard Variable",
+      fontWeight: 400,
+      fontSize: "14px",
+      lineHeight: "140%",
       color: "#F36012",
     },
 
-    /** 값 영역 ("부산", "뷰티" 등) */
+    /** 값 영역 ("부산", "뷰티" 등) - 내부 chip */
     value: {
-      padding: "2px 10px",
+      padding: "0px 8px",
       minWidth: "48px",
-      height: "26px",
+      height: "24px",
       background: "#FFFFFF",
-      borderRadius: "24px",
-      color: "#202937",
+      borderRadius: "100px",
+      /** 값 폰트 */
+      fontFamily: "Pretendard Variable",
+      fontWeight: 400,
+      fontSize: "12px",
+      lineHeight: "140%",
+      color: "#4B5462",
     },
 
     /** X 버튼 */
     removeButton: {
       size: "16px",
-      color: "#202937",
+      color: "#F36012",
       hoverOpacity: 0.7,
     },
 
-    /** 폰트 */
-    fonts: {
-      family: "Pretendard Variable",
-      weight: 500,
-      size: "16px",
-      lineHeight: "140%",
+    /** 스크롤 컨테이너 */
+    scrollContainer: {
+      gap: "8px",
+      height: "32px",
     },
   },
 } as const;
