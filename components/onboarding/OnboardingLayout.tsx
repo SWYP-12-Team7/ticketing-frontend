@@ -27,14 +27,14 @@ export function OnboardingLayout({
     <div className="min-h-screen flex flex-col bg-white">
       {/* 헤더 */}
       <header className="px-6 pt-10 pb-6">
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="py-2.5 text-display-small font-semibold leading-[128%] tracking-[-0.025em] text-black">
           와르르가 내 맞춤 행사를{" "}
           <span className="text-orange">스위프</span>
           님에게 추천하기 위해 필요한 과정이에요!
         </h1>
-        <p className="mt-3 text-sm">
-          <span className="text-orange font-semibold">STEP {step}</span>{" "}
-          <span className="text-gray-600">{subtitle}</span>
+        <p className="py-2.5 text-2xl  leading-[150%] tracking-[-0.025em] ">
+          <span className="font-semibold text-orange">STEP {step}</span>{" "}
+          <span className="font-medium text-black">{subtitle}</span>
         </p>
       </header>
 
