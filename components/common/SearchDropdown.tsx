@@ -93,7 +93,14 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {/* 검색 Input */}
-      <div className="flex h-9 items-center gap-2 rounded-full border border-border px-4">
+      <div className="flex items-center gap-2 w-112 rounded-full border border-border px-6 py-4">
+        <button
+          type="button"
+          onClick={() => handleSearch(keyword)}
+          aria-label="검색"
+        >
+          <Search className="size-4.5 text-[#6C7180]" />
+        </button>
         <input
           ref={inputRef}
           type="text"
@@ -102,20 +109,13 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="검색어를 입력해주세요"
-          className="w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          className="w-40 bg-transparent text-sm outline-none placeholder:text-[#A6ABB7]"
         />
-        <button
-          type="button"
-          onClick={() => handleSearch(keyword)}
-          aria-label="검색"
-        >
-          <Search className="size-4 text-muted-foreground" />
-        </button>
       </div>
 
       {/* 최근 검색어 드롭다운 */}
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[400px] rounded-lg border border-border bg-background shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg border border-border bg-background shadow-lg">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-5 py-4">
             <span className="text-base font-semibold text-foreground">

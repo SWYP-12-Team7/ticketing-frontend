@@ -37,7 +37,7 @@ export function Header({ className }: HeaderProps) {
         )}
       >
         {/* 왼쪽 영역 */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -54,73 +54,98 @@ export function Header({ className }: HeaderProps) {
 
           <Link
             href="/"
-            className="flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
+            className="flex items-center justify-center ml-5 mr-2 bg-primary text-sm font-bold text-primary-foreground"
+            style={{ width: 145, height: 56 }}
           >
             BI
           </Link>
 
           {/* 뷰 네비게이션 */}
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center">
             <Link
               href="/view?mode=map"
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
                 isViewPage && currentMode === "map"
                   ? "border border-[#F36012] text-[#F36012]"
                   : "text-[#6C7180] hover:text-[#6C7180]/80"
               )}
             >
               지도뷰
-              <Image src="/images/header/map-pinned.svg" alt="" width={16} height={16} />
+              <Image
+                src={isViewPage && currentMode === "map"
+                  ? "/images/header/map-pinned2.svg"
+                  : "/images/header/map-pinned.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
             <Link
               href="/calendarview"
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
                 pathname === "/calendarview"
                   ? "border border-[#F36012] text-[#F36012]"
                   : "text-[#6C7180] hover:text-[#6C7180]/80"
               )}
             >
               캘린더뷰
-              <Image src="/images/header/calendar-search.svg" alt="" width={16} height={16} />
+              <Image
+                src={pathname === "/calendarview"
+                  ? "/images/header/calendar-search2.svg"
+                  : "/images/header/calendar-search.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
           </nav>
         </div>
 
-        {/* 검색창 */}
-        <div className="flex-1 flex justify-center max-w-xl">
-          <SearchDropdown />
-        </div>
-
         {/* 오른쪽 영역 */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center rounded-md"
-            aria-label="알림"
-          >
-            <Image src="/images/header/bell-default.svg" alt="" width={20} height={20} />
-          </button>
+        <div className="flex items-center gap-4">
+          {/* 검색창 섹션 */}
+          <div className="flex items-center">
+            <SearchDropdown />
+          </div>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center rounded-md"
-            aria-label="좋아요"
-          >
-            <Image src="/images/header/icon-like.svg" alt="" width={20} height={20} />
-          </button>
+          {/* 아이콘 섹션 */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              className="flex items-center justify-center p-[12px] rounded-md"
+              aria-label="알림"
+            >
+              <Image src="/images/header/bell-default.svg" alt="" width={24} height={24} />
+            </button>
 
-          <Link
-            href="/settings/profile"
-            className={cn(
-              "flex size-9 items-center justify-center rounded-md transition-colors",
-              pathname.startsWith("/settings") && "border border-[#F36012]"
-            )}
-            aria-label="프로필 설정"
-          >
-            <Image src="/images/header/icon-user.svg" alt="" width={20} height={20} />
-          </Link>
+            <button
+              type="button"
+              className="flex items-center justify-center p-[12px] rounded-md"
+              aria-label="좋아요"
+            >
+              <Image src="/images/header/icon-like.svg" alt="" width={24} height={24} />
+            </button>
+
+            <Link
+              href="/settings/profile"
+              className="flex items-center justify-center p-[12px] rounded-md transition-colors"
+              aria-label="프로필 설정"
+            >
+              <Image
+                src={pathname.startsWith("/settings")
+                  ? "/images/header/icon-user2.svg"
+                  : "/images/header/icon-user.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
+            </Link>
+          </div>
         </div>
       </header>
 
