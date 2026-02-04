@@ -12,7 +12,7 @@
 import React from "react";
 import type { CalendarGridProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
-import { CALENDAR_LAYOUT } from "../constants/calendar.layout";
+import { CALENDAR_LAYOUT, WEEKDAY_LABELS } from "../constants/calendar.layout";
 import { CalendarWeekRow } from "./CalendarWeekRow";
 
 /**
@@ -30,13 +30,13 @@ export function CalendarGrid({
 }: CalendarGridProps) {
   // Figma 스펙: 각 요일 헤더의 절대 위치
   const weekdayPositions = [
-    { label: "SUN", left: "70px", width: "54px" },
-    { label: "MON", left: "249px", width: "59px" },
-    { label: "TUE", left: "432px", width: "53px" },
-    { label: "WED", left: "610px", width: "58px" },
-    { label: "THUR", left: "786px", width: "65px" },
-    { label: "FRI", left: "976px", width: "45px" },
-    { label: "SAT", left: "1157px", width: "51px" },
+    { label: WEEKDAY_LABELS[0], left: "70px", width: "54px" }, // 일
+    { label: WEEKDAY_LABELS[1], left: "249px", width: "59px" }, // 월
+    { label: WEEKDAY_LABELS[2], left: "432px", width: "53px" }, // 화
+    { label: WEEKDAY_LABELS[3], left: "610px", width: "58px" }, // 수
+    { label: WEEKDAY_LABELS[4], left: "786px", width: "65px" }, // 목
+    { label: WEEKDAY_LABELS[5], left: "976px", width: "45px" }, // 금
+    { label: WEEKDAY_LABELS[6], left: "1157px", width: "51px" }, // 토
   ];
 
   return (
