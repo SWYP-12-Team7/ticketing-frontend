@@ -62,9 +62,9 @@ export function CalendarToolbar({
         gap: CALENDAR_DESIGN_TOKENS.spacing.toolbar.gap,
       }}
     >
-      {/* single row scrollable - Pills 컨테이너 (flex-grow: 1) */}
+      {/* single row scrollable - Pills 컨테이너 (flex-grow: 1, align-items: flex-start) */}
       <div
-        className="calendar-toolbar__pills-wrapper grow flex items-center"
+        className="calendar-toolbar__pills-wrapper grow flex items-start"
         style={{
           minWidth: 0, // flex 아이템이 줄어들 수 있게 함
           flexShrink: 1,
@@ -98,8 +98,8 @@ export function CalendarToolbar({
         <RotateCcw
           className="shrink-0"
           style={{
-            width: "20px",
-            height: "20px",
+            width: "24px",
+            height: "24px",
             color: CALENDAR_DESIGN_TOKENS.colors.filter.icon,
             strokeWidth: CALENDAR_DESIGN_TOKENS.borders.arrow,
           }}

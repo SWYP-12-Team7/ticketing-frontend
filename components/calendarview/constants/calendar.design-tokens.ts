@@ -94,10 +94,10 @@ export const CALENDAR_DESIGN_TOKENS = {
       width: "1440px",
       height: "1744px",
     },
-    /** 캘린더 섹션 전체 */
+    /** 캘린더 섹션 전체 (MonthNav 31px + Toolbar 60px + GridBox 661px + gaps 20px = 772px) */
     container: {
       width: "1278px",
-      height: "791px",
+      height: "772px",
     },
     /** 월 네비게이션 */
     monthNav: {
@@ -118,6 +118,11 @@ export const CALENDAR_DESIGN_TOKENS = {
     gridBox: {
       width: "1278px",
       height: "661px",
+    },
+    /** 필터 사이드바 (캘린더 그리드와 동일 세로 구간 정렬) */
+    filterSidebar: {
+      /** 그리드 상단과 정렬 (monthNav 31 + gap 10 + toolbar 60 + margin 10) */
+      topOffset: "111px",
     },
     /** 그리드 내부 (날짜 셀 그룹) */
     gridInner: {

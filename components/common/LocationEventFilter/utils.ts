@@ -5,31 +5,45 @@
  */
 
 import type { LocationEventFilterState } from "./types";
-import { REGIONS, POPUP_CATEGORIES, EXHIBITION_CATEGORIES } from "./constants";
+import {
+  REGIONS,
+  POPUP_CATEGORIES,
+  EXHIBITION_CATEGORIES,
+  AMENITY_OPTIONS,
+} from "./constants";
+
+/**
+ * Display Filter 값 (개별 chip, Figma 스펙: 값 chip별 X 버튼)
+ */
+export interface DisplayFilterValue {
+  /** 표시 라벨 (예: "울산", "부산") */
+  label: string;
+  /** 필터 상태용 ID (예: "ulsan", "busan") */
+  id: string;
+}
 
 /**
  * Display Filter 타입 (CalendarToolbar용)
- * Figma 스펙: 레이블 + 값 배열 (그룹화 지원)
+ * Figma 스펙: 레이블 + 값 배열 (그룹화 지원, 값 chip별 X 버튼)
  *
  * 동작:
  * - 전체 선택 시: 필터 표시 안 함 (빈 배열 반환)
  * - 특정 항목 선택 시: 해당 그룹만 표시
+ * - 값 chip별 X: 개별 값만 제거
  *
  * 예시:
- * - { displayLabel: "지역", values: ["울산", "부산"] }  // 여러 개 선택
- * - { displayLabel: "팝업", values: ["뷰티"] }  // 단일 선택
- * - { displayLabel: "가격", values: ["무료", "유료"] }
+ * - { displayLabel: "지역", values: [{ label: "울산", id: "ulsan" }, { label: "부산", id: "busan" }] }
  */
 export interface DisplayFilter {
   /** 고유 ID (그룹 단위) */
   id: string;
   /** 필터 레이블 (예: "지역", "팝업", "전시") */
   displayLabel: string;
-  /** 필터 값 배열 (예: ["전체"] 또는 ["부산", "울산"]) */
-  values: string[];
+  /** 필터 값 배열 (label + id, 개별 제거용) */
+  values: DisplayFilterValue[];
   /** 필터 타입 */
   type: "region" | "popup" | "exhibition" | "price" | "amenity" | "all";
-  /** X 버튼 표시 여부 */
+  /** 그룹 전체 X 버튼 표시 여부 */
   showRemoveButton?: boolean;
 }
 
@@ -97,10 +111,13 @@ export function convertFiltersToDisplayPills(
   }
 
   // 3. 지역 그룹화 ("전체" 제외)
-  const regionValues = filters.regions
+  const regionValues: DisplayFilterValue[] = filters.regions
     .filter((id) => id !== "all")
-    .map((id) => REGIONS.find((r) => r.id === id)?.label)
-    .filter((label): label is string => label !== undefined);
+    .map((id) => {
+      const opt = REGIONS.find((r) => r.id === id);
+      return opt ? { label: opt.label, id: opt.id } : null;
+    })
+    .filter((v): v is DisplayFilterValue => v !== null);
 
   if (regionValues.length > 0) {
     pills.push({
@@ -113,10 +130,13 @@ export function convertFiltersToDisplayPills(
   }
 
   // 4. 팝업 카테고리 그룹화 ("전체" 제외)
-  const popupValues = filters.popupCategories
+  const popupValues: DisplayFilterValue[] = filters.popupCategories
     .filter((id) => id !== "all")
-    .map((id) => POPUP_CATEGORIES.find((c) => c.id === id)?.label)
-    .filter((label): label is string => label !== undefined);
+    .map((id) => {
+      const opt = POPUP_CATEGORIES.find((c) => c.id === id);
+      return opt ? { label: opt.label, id: opt.id } : null;
+    })
+    .filter((v): v is DisplayFilterValue => v !== null);
 
   if (popupValues.length > 0) {
     pills.push({
@@ -129,10 +149,13 @@ export function convertFiltersToDisplayPills(
   }
 
   // 5. 전시 카테고리 그룹화 ("전체" 제외)
-  const exhibitionValues = filters.exhibitionCategories
+  const exhibitionValues: DisplayFilterValue[] = filters.exhibitionCategories
     .filter((id) => id !== "all")
-    .map((id) => EXHIBITION_CATEGORIES.find((c) => c.id === id)?.label)
-    .filter((label): label is string => label !== undefined);
+    .map((id) => {
+      const opt = EXHIBITION_CATEGORIES.find((c) => c.id === id);
+      return opt ? { label: opt.label, id: opt.id } : null;
+    })
+    .filter((v): v is DisplayFilterValue => v !== null);
 
   if (exhibitionValues.length > 0) {
     pills.push({
@@ -145,9 +168,9 @@ export function convertFiltersToDisplayPills(
   }
 
   // 6. 가격 그룹화
-  const priceValues: string[] = [];
-  if (filters.price.free) priceValues.push("무료");
-  if (filters.price.paid) priceValues.push("유료");
+  const priceValues: DisplayFilterValue[] = [];
+  if (filters.price.free) priceValues.push({ label: "무료", id: "free" });
+  if (filters.price.paid) priceValues.push({ label: "유료", id: "paid" });
 
   if (priceValues.length > 0) {
     pills.push({
@@ -160,9 +183,17 @@ export function convertFiltersToDisplayPills(
   }
 
   // 7. 편의사항 그룹화
-  const amenityValues: string[] = [];
-  if (filters.amenities.parking) amenityValues.push("주차가능");
-  if (filters.amenities.petFriendly) amenityValues.push("반려견 동반");
+  const amenityValues: DisplayFilterValue[] = [];
+  if (filters.amenities.parking)
+    amenityValues.push({
+      label: AMENITY_OPTIONS.find((a) => a.id === "parking")!.label,
+      id: "parking",
+    });
+  if (filters.amenities.petFriendly)
+    amenityValues.push({
+      label: AMENITY_OPTIONS.find((a) => a.id === "petFriendly")!.label,
+      id: "petFriendly",
+    });
 
   if (amenityValues.length > 0) {
     pills.push({
@@ -231,6 +262,67 @@ export function removeFilterFromState(
         ...state,
         amenities: { parking: false, petFriendly: false },
       };
+
+    default:
+      return state;
+  }
+}
+
+/**
+ * 필터 그룹 내 개별 값 제거 (Figma 스펙: 값 chip별 X 버튼)
+ *
+ * @param state 현재 필터 상태
+ * @param filterId 그룹 ID (예: "region-group", "popup-group")
+ * @param valueId 제거할 값 ID (예: "ulsan", "beauty", "free")
+ * @returns 업데이트된 필터 상태
+ */
+export function removeFilterValueFromState(
+  state: LocationEventFilterState,
+  filterId: string,
+  valueId: string
+): LocationEventFilterState {
+  switch (filterId) {
+    case "region-group": {
+      const next = state.regions.filter((id) => id !== valueId);
+      return {
+        ...state,
+        regions: next.length === 0 ? ["all"] : next,
+      };
+    }
+
+    case "popup-group": {
+      const next = state.popupCategories.filter((id) => id !== valueId);
+      return {
+        ...state,
+        popupCategories: next.length === 0 ? ["all"] : next,
+      };
+    }
+
+    case "exhibition-group": {
+      const next = state.exhibitionCategories.filter((id) => id !== valueId);
+      return {
+        ...state,
+        exhibitionCategories: next.length === 0 ? ["all"] : next,
+      };
+    }
+
+    case "price-group":
+      if (valueId === "free" || valueId === "paid") {
+        return {
+          ...state,
+          price: { ...state.price, [valueId]: false },
+        };
+      }
+      return state;
+
+    case "amenity-group":
+      if (valueId === "parking" || valueId === "petFriendly") {
+        return {
+          ...state,
+          amenities: { ...state.amenities, [valueId]: false },
+        };
+      }
+      return state;
 
     default:
       return state;

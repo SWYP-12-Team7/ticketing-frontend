@@ -18,26 +18,9 @@ import React from "react";
 import { FilterPill } from "./FilterPill";
 import { cn } from "@/lib/utils";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
+import type { DisplayFilter } from "@/components/common/LocationEventFilter/utils";
 
-/**
- * 표시용 필터 데이터 타입 (그룹화 지원)
- */
-export interface DisplayFilter {
-  /** 고유 ID (그룹 단위, 예: "region-group", "popup-group", "all") */
-  id: string;
-
-  /** 필터 레이블 (예: "지역", "팝업", "전시", "전체") */
-  displayLabel: string;
-
-  /** 필터 값 배열 (예: ["부산", "울산"]) - "전체"는 빈 배열 */
-  values: string[];
-
-  /** 필터 타입 */
-  type: "region" | "popup" | "exhibition" | "price" | "amenity" | "all";
-
-  /** X 버튼 표시 여부 (기본: true) */
-  showRemoveButton?: boolean;
-}
+export type { DisplayFilter };
 
 interface SelectedFilterPillsProps {
   /** 선택된 필터 목록 */
@@ -75,7 +58,7 @@ export function SelectedFilterPills({
   return (
     <div
       className={cn(
-        "flex items-center overflow-x-auto",
+        "flex items-start overflow-x-auto",
         // 스크롤바 스타일링 (선택사항)
         "[&::-webkit-scrollbar]:h-1",
         "[&::-webkit-scrollbar-track]:bg-transparent",

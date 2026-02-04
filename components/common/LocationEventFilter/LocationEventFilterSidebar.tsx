@@ -153,39 +153,17 @@ export function LocationEventFilterSidebar({
   };
 
   return (
-    <>
-      {/* 오버레이 */}
-      <div
-        className={cn(
-          "fixed left-0 right-0 bottom-0 z-40 transition-opacity duration-300",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        style={{
-          top: "80px",
-          backgroundColor: "rgba(18, 18, 18, 0.4)",
-        }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* 사이드바 */}
-      <aside
-        className={cn(
-          "fixed right-0 z-50 bg-white transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-        style={{
-          top: "80px",
-          width: "273px",
-          height: "calc(100vh - 80px)",
-          maxHeight: "661px",
-          boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
-          borderRadius: "12px 16px 16px 12px",
-        }}
-        aria-label="지역/행사 필터"
-        aria-modal="true"
-        role="dialog"
-      >
+    <aside
+      className="bg-white"
+      style={{
+        width: "273px",
+        height: "661px",
+        boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
+        borderRadius: "12px 16px 16px 12px",
+        flexShrink: 0,
+      }}
+      aria-label="지역/행사 필터"
+    >
         <div 
           className="flex flex-col p-[10px]" 
           style={{
@@ -339,6 +317,5 @@ export function LocationEventFilterSidebar({
           </footer>
         </div>
       </aside>
-    </>
   );
 }

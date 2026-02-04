@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarQueryState } from "./hooks/useCalendarQueryState";
 import type { CalendarGridData } from "./hooks/useCalendarGridData";
@@ -18,7 +18,6 @@ import { CalendarMonthNav } from "./CalendarMonthNav";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { HotEventSection, EventSortSelector } from "./HotEventSection";
-import { formatDateKorean } from "./utils/calendar.formatters";
 import {
   generateEventsByDate,
   generatePopularEvents,
@@ -102,8 +101,29 @@ export function CalendarViewPresentation({
    * 필터 사이드바 상태
    */
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFilterClosing, setIsFilterClosing] = useState(false);
+  const [isFilterEntered, setIsFilterEntered] = useState(false);
   const [locationFilterState, setLocationFilterState] =
     useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
+
+  /** 필터 열림 시 enter 애니메이션 (다음 프레임에 visible 적용) */
+  useEffect(() => {
+    if (isFilterOpen && !isFilterClosing) {
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsFilterEntered(true));
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isFilterOpen, isFilterClosing]);
+
+  /** 필터 닫기 핸들러 - exit 애니메이션 후 언마운트 */
+  const handleCloseFilter = () => {
+    setIsFilterClosing(true);
+    setTimeout(() => {
+      setIsFilterOpen(false);
+      setIsFilterClosing(false);
+    }, 300);
+  };
 
   /**
    * 선택된 필터를 display pills로 변환
@@ -178,7 +198,7 @@ export function CalendarViewPresentation({
    */
   const pageMinHeight = useMemo(() => {
     const PADDING_TOP = 64; // Header 아래 여백
-    const CALENDAR_HEIGHT = 791; // 캘린더 전체 높이
+    const CALENDAR_HEIGHT = 772; // 캘린더 전체 높이
     const HOT_EVENT_HEADER_MARGIN = 80; // 캘린더 → HOT EVENT 헤더 간격
     const HOT_EVENT_HEADER_HEIGHT = 31;
     const HOT_EVENT_GRID_MARGIN = 58; // 헤더 → 그리드 간격
@@ -229,17 +249,27 @@ export function CalendarViewPresentation({
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
-      {/* 캘린더 컨테이너 (좌우 가운데 정렬) */}
+      {/* 캘린더 + 필터바 래퍼 */}
       <div
-        className="calendar-view-container flex flex-col"
+        className="flex items-start"
         style={{
-          width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
-          height: CALENDAR_DESIGN_TOKENS.sizing.container.height,
-          gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
-          padding: "0px",
-          zIndex: 10,
+          gap: "24px",
+          transition: "all 300ms ease-in-out",
         }}
       >
+        {/* 캘린더 컨테이너 */}
+        <div
+          className="calendar-view-container flex flex-col"
+          style={{
+            width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
+            height: CALENDAR_DESIGN_TOKENS.sizing.container.height,
+            gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
+            padding: "0px",
+            zIndex: 10,
+            alignSelf: "flex-start",
+            flexShrink: 0,
+          }}
+        >
         {/* Order 0: 월 네비게이션 */}
         <CalendarMonthNav
           title={monthTitle}
@@ -248,14 +278,15 @@ export function CalendarViewPresentation({
         />
 
         {/* Order 1: 필터바 */}
-        <div style={{ marginBottom: "10px" }}>
-          <CalendarToolbar
+        <CalendarToolbar
             selectedFilters={selectedFilterPills}
             onRemoveFilter={handleRemoveFilter}
-            onOpenFilter={() => setIsFilterOpen(true)}
+            onOpenFilter={() => {
+              setIsFilterEntered(false);
+              setIsFilterOpen(true);
+            }}
             onReset={handleResetFilters}
           />
-        </div>
 
         {/* Order 2: 캘린더 그리드 */}
         {(isError || isLoading) && (
@@ -303,11 +334,48 @@ export function CalendarViewPresentation({
         )}
       </div>
 
+      {/* 필터바 (조건부 렌더링) */}
+      {(isFilterOpen || isFilterClosing) && (
+        <>
+          {/* Dimmed 오버레이 - 배경 어둡게 처리 */}
+          <div
+            role="presentation"
+            aria-hidden="true"
+            className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ease-out ${
+              isFilterEntered && !isFilterClosing ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={handleCloseFilter}
+          />
+          <div
+            className={`filter-sidebar-wrapper relative transition-all duration-300 ease-out ${
+              isFilterEntered && !isFilterClosing
+                ? "translate-x-0 opacity-100"
+                : "translate-x-4 opacity-0"
+            }`}
+            style={{
+              width: "273px",
+              flexShrink: 0,
+              marginTop: CALENDAR_DESIGN_TOKENS.sizing.filterSidebar.topOffset,
+              zIndex: 50,
+            }}
+          >
+            <LocationEventFilterSidebar
+              isOpen={isFilterOpen}
+              onClose={handleCloseFilter}
+              filterState={locationFilterState}
+              onApply={handleApplyFilters}
+              resultCount={calculateEventCount(locationFilterState)}
+            />
+          </div>
+        </>
+      )}
+      </div>
+
       {/* HOT EVENT 헤더: 제목 + 정렬 (Figma 간격: 캘린더 하단 + 80px = top: 1011px) */}
       <div
         className="flex items-center justify-between"
         style={{
-          width: "1278px",
+          width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
           height: "31px",
           marginTop: "80px",
           zIndex: 6,
@@ -334,7 +402,7 @@ export function CalendarViewPresentation({
       {/* HOT EVENT 섹션 (Figma 간격: 헤더 하단 + 58px = top: 1069px) */}
       <div
         style={{
-          width: "1278px",
+          width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
           marginTop: "58px",
         }}
       >
@@ -345,15 +413,6 @@ export function CalendarViewPresentation({
           selectedCategories={selectedPillCategories}
         />
       </div>
-
-      {/* 지역/행사 필터 사이드바 */}
-      <LocationEventFilterSidebar
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        filterState={locationFilterState}
-        onApply={handleApplyFilters}
-        resultCount={calculateEventCount(locationFilterState)}
-      />
     </section>
   );
 }
