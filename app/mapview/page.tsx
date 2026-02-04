@@ -1,11 +1,9 @@
 "use client";
 
-import { Suspense, useState, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { CalendarView } from "@/components/calendarview/CalendarView";
-import { HotEventSection } from "@/components/calendarview/HotEventSection";
-import { KakaoMap, MapHoverCard } from "@/components/map";
-import type { Event } from "@/components/common";
+import { useState, useMemo } from "react";
+import { KakaoMap } from "@/components/map";
+import { OverlayEventCard, type Event } from "@/components/common";
+import { X } from "lucide-react";
 
 interface Location {
   id: string;
@@ -48,14 +46,8 @@ const mockLocations: (Location & { event: Event })[] = [
   { id: "24", title: "브랜드 팝업 - 이태원", lat: 37.5325, lng: 126.9926, event: { id: "24", title: "브랜드 팝업 - 이태원", category: "팝업", location: "서울 이태원", period: "2024.01.20 - 2024.03.20", imageUrl: "/images/mockImg.png", likeCount: 14600, viewCount: 4300, tags: ["팝업", "이태원"] } },
 ];
 
-interface MapViewContentProps {
-  onVisibleIdsChange?: (ids: string[]) => void;
-  onClusterIdsChange?: (ids: string[]) => void;
-}
-
-function MapViewContent({ onVisibleIdsChange, onClusterIdsChange }: MapViewContentProps) {
-  const router = useRouter();
-  const [hoveredLocation, setHoveredLocation] = useState<
+export default function MapViewPage() {
+  const [selectedLocation, setSelectedLocation] = useState<
     (typeof mockLocations)[0] | null
   >(null);
 
@@ -71,128 +63,39 @@ function MapViewContent({ onVisibleIdsChange, onClusterIdsChange }: MapViewConte
   );
 
   const handleMarkerClick = (location: Location) => {
-    // 클릭 시 상세 페이지로 이동
-    router.push(`/detail/${location.id}`);
+    const found = mockLocations.find((l) => l.id === location.id);
+    setSelectedLocation(found || null);
   };
 
-  const handleMarkerHover = (location: Location | null) => {
-    if (location) {
-      const found = mockLocations.find((l) => l.id === location.id);
-      setHoveredLocation(found || null);
-    } else {
-      setHoveredLocation(null);
-    }
+  const handleCloseCard = () => {
+    setSelectedLocation(null);
   };
 
   return (
-    <section aria-label="지도 뷰" className="mapViewPage__section">
-      <div className="mapViewPage__container relative h-[650px] rounded-xl overflow-hidden">
-        <KakaoMap
-          center={{ lat: 37.5665, lng: 126.978 }}
-          level={8}
-          maxLevel={5}
-          locations={locations}
-          onMarkerClick={handleMarkerClick}
-          onMarkerHover={handleMarkerHover}
-          onClusterClick={onClusterIdsChange}
-          onVisibleLocationIdsChange={onVisibleIdsChange}
-          className="h-full w-full"
-        />
-
-        {/* 호버된 이벤트 카드 */}
-        {hoveredLocation && (
-          <div className="absolute bottom-6 left-1/2 z-10 w-[300px] -translate-x-1/2 pointer-events-none">
-            <MapHoverCard event={hoveredLocation.event} />
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function ViewContent() {
-  const searchParams = useSearchParams();
-  const mode = searchParams.get("mode") || "calendar";
-  const [visibleIds, setVisibleIds] = useState<string[] | null>(null);
-  const [clusterIds, setClusterIds] = useState<string[] | null>(null);
-
-  // 현재 지도 화면에 보이는 마커 기준으로 이벤트 필터링
-  const handleVisibleIdsChange = (ids: string[]) => {
-    if (clusterIds) return;
-    console.log(`[HOT EVENT] visible ids count: ${ids.length}`);
-    setVisibleIds(ids);
-  };
-
-  const handleClusterIdsChange = (ids: string[]) => {
-    console.log(`[HOT EVENT] cluster ids count: ${ids.length}`);
-    setClusterIds(ids);
-  };
-
-  // 필터 초기화 (전체 보기)
-  const handleResetFilter = () => {
-    setClusterIds(null);
-    setVisibleIds(null);
-  };
-
-  // 이벤트 목록 - 항상 mockLocations 데이터 사용
-  const displayEvents = useMemo(() => {
-    const allEvents = mockLocations.map((loc) => loc.event);
-    if (clusterIds) return allEvents.filter((event) => clusterIds.includes(event.id));
-    if (!visibleIds) return allEvents; // 필터 없으면 전체 이벤트
-    return allEvents.filter((event) => visibleIds.includes(event.id));
-  }, [clusterIds, visibleIds]);
-
-  return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-6">
-      {/* 지도 또는 캘린더 뷰 */}
-      {mode === "map" ? (
-        <Suspense
-          fallback={
-            <div className="h-[650px] rounded-xl bg-muted animate-pulse" />
-          }
-        >
-          <MapViewContent
-            onVisibleIdsChange={handleVisibleIdsChange}
-            onClusterIdsChange={handleClusterIdsChange}
-          />
-        </Suspense>
-      ) : (
-        <Suspense
-          fallback={
-            <div className="rounded-xl bg-[#FFFBF4] p-4">
-              <div className="animate-pulse">
-                <div className="h-12 bg-gray-200 rounded mb-4" />
-                <div className="h-64 bg-gray-200 rounded" />
-              </div>
-            </div>
-          }
-        >
-          <CalendarView />
-        </Suspense>
-      )}
-
-      {/* HOT EVENT 섹션 */}
-      <HotEventSection
-        className="mt-10"
-        events={displayEvents}
-        onResetFilter={clusterIds || visibleIds ? handleResetFilter : undefined}
+    <div className="relative h-[calc(100vh-64px)]">
+      <KakaoMap
+        center={{ lat: 37.5665, lng: 126.978 }}
+        level={8}
+        locations={locations}
+        onMarkerClick={handleMarkerClick}
+        className="h-full w-full"
       />
-    </main>
-  );
-}
 
-export default function ViewPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="mx-auto w-full max-w-7xl px-4 py-6">
-          <div className="flex min-h-[50vh] items-center justify-center">
-            <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
+      {/* 선택된 이벤트 카드 */}
+      {selectedLocation && (
+        <div className="absolute bottom-6 left-1/2 z-10 w-[320px] -translate-x-1/2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleCloseCard}
+              className="absolute -top-2 -right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <OverlayEventCard event={selectedLocation.event} />
           </div>
-        </main>
-      }
-    >
-      <ViewContent />
-    </Suspense>
+        </div>
+      )}
+    </div>
   );
 }
