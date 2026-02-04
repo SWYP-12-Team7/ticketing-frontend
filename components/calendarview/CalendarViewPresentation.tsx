@@ -92,6 +92,15 @@ export function CalendarViewPresentation({
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
 
   /**
+   * Pill 클릭 상태 (전시/팝업 개별 선택)
+   */
+  const [selectedPillEvent, setSelectedPillEvent] = useState<{
+    date: IsoDate;
+    category: "exhibition" | "popup";
+    subcategory: "all";
+  } | null>(null);
+
+  /**
    * 필터 사이드바 상태
    */
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -267,10 +276,21 @@ export function CalendarViewPresentation({
             activeCategories={activeCategories}
             countsByDate={countsByDate}
             selectedDate={selectedDate}
-            selectedEvent={null}
-            onDateClick={onDateClick}
+            selectedEvent={selectedPillEvent}
+            onDateClick={(date) => {
+              // 날짜 변경 시 pill 선택 초기화
+              if (date !== selectedDate) {
+                setSelectedPillEvent(null);
+              }
+              onDateClick?.(date);
+            }}
             onPillClick={(date, category) => {
-              console.log("Pill clicked:", date, category);
+              // Pill 클릭: 해당 날짜 + 카테고리 선택
+              setSelectedPillEvent({ date, category, subcategory: "all" });
+              // 날짜도 함께 선택
+              if (date !== selectedDate) {
+                onDateClick?.(date);
+              }
             }}
           />
         )}
@@ -315,6 +335,7 @@ export function CalendarViewPresentation({
           selectedDate={selectedDate}
           activeCategories={activeCategories}
           sortBy={sortBy}
+          selectedCategory={selectedPillEvent?.category || null}
         />
       </div>
 
