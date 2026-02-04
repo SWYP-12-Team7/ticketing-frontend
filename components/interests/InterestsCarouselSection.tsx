@@ -14,7 +14,7 @@
 
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CalendarEventCard } from "@/components/calendarview/HotEventSection/CalendarEventCard";
@@ -53,6 +53,30 @@ export function InterestsCarouselSection({
   bookmarkedEvents,
   viewedEvents,
 }: InterestsCarouselSectionProps) {
+  // 찜한 팝업･전시 상태 관리 (좋아요 해제 시 목록에서 제거)
+  const [bookmarked, setBookmarked] = useState<Event[]>(
+    bookmarkedEvents ?? MOCK_BOOKMARKED_EVENTS
+  );
+
+  // 다시 보고 싶은 팝업･전시 상태 관리 (좋아요 토글)
+  const [viewed, setViewed] = useState<Event[]>(
+    viewedEvents ?? MOCK_VIEWED_EVENTS
+  );
+
+  // 찜한 팝업･전시 - 좋아요 해제 시 목록에서 제거
+  const handleBookmarkedLike = (id: string) => {
+    setBookmarked((prev) => prev.filter((event) => event.id !== id));
+  };
+
+  // 다시 보고 싶은 팝업･전시 - 좋아요 토글
+  const handleViewedLike = (id: string) => {
+    setViewed((prev) =>
+      prev.map((event) =>
+        event.id === id ? { ...event, isLiked: !event.isLiked } : event
+      )
+    );
+  };
+
   return (
     <div
       className="interests-carousel flex flex-col"
@@ -63,13 +87,15 @@ export function InterestsCarouselSection({
     >
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.bookmarked}
-        events={bookmarkedEvents ?? MOCK_BOOKMARKED_EVENTS}
+        events={bookmarked}
         href="/wishlist"
+        onLikeClick={handleBookmarkedLike}
       />
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.viewed}
-        events={viewedEvents ?? MOCK_VIEWED_EVENTS}
+        events={viewed}
         href="/history"
+        onLikeClick={handleViewedLike}
       />
     </div>
   );
@@ -87,10 +113,12 @@ const CarouselBlock = memo(function CarouselBlock({
   title,
   events,
   href,
+  onLikeClick,
 }: {
   title: string;
   events: Event[];
   href: string;
+  onLikeClick: (id: string) => void;
 }) {
   const { sectionTitle, viewAllButton } = TOKENS.typography;
 
@@ -127,7 +155,7 @@ const CarouselBlock = memo(function CarouselBlock({
             <CalendarEventCard
               key={event.id}
               event={event}
-              onLikeClick={(id) => console.log("Like:", id)}
+              onLikeClick={onLikeClick}
             />
           ))}
         </div>

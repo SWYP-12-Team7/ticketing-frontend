@@ -48,7 +48,7 @@ export default function InterestsSettingsPage() {
         style={{ gap: heroGap }}
         aria-labelledby="interests-hero-title"
       >
-        {/* 제목 - Figma: 32px, #F36012, 600 weight, 82px height (2줄) */}
+        {/* 제목 - Figma: 32px, 첫 줄 #F36012, 둘째 줄 #111928 */}
         <h1
           id="interests-hero-title"
           className="interests-hero-section__title"
@@ -57,12 +57,15 @@ export default function InterestsSettingsPage() {
             fontSize: heroTitle.size,
             fontWeight: heroTitle.weight,
             lineHeight: heroTitle.lineHeight,
-            color: heroTitle.color,
           }}
         >
-          내 취향에 맞는 팝업･전시만
+          <span style={{ color: heroTitle.color }}>
+            내 취향에 맞는 팝업･전시만
+          </span>
           <br />
-          골라 보고 싶다면 설정해 보세요
+          <span style={{ color: "#111928" }}>
+            골라 보고 싶다면 설정해 보세요
+          </span>
         </h1>
 
         {/* 배너 2개 - Figma: gap 16px */}

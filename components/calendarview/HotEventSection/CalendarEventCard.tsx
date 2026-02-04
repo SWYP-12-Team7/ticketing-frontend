@@ -128,11 +128,11 @@ export function CalendarEventCard({
             className="calendar-event-card__image object-cover transition-transform group-hover:scale-105"
           />
 
-          {/* 좋아요 버튼 (우상단 고정) */}
+          {/* 좋아요 버튼 (우상단 고정) - Figma 스펙 준수 */}
           <button
             type="button"
             onClick={handleLikeClick}
-            className="calendar-event-card__likeButton absolute flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="calendar-event-card__likeButton absolute flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             style={{
               width: tokens.sizing.likeButtonSize,
               height: tokens.sizing.likeButtonSize,
@@ -145,12 +145,16 @@ export function CalendarEventCard({
           >
             <Heart
               className={cn(
-                "calendar-event-card__likeIcon transition-colors",
+                "calendar-event-card__likeIcon",
                 isLiked && "fill-current"
               )}
               style={{
-                width: tokens.sizing.likeIconSize,
-                height: tokens.sizing.likeIconSize,
+                width: isLiked
+                  ? tokens.sizing.likeIconSizeActive
+                  : tokens.sizing.likeIconSize,
+                height: isLiked
+                  ? tokens.sizing.likeIconSizeActive
+                  : tokens.sizing.likeIconSize,
                 color: isLiked
                   ? tokens.colors.likeActive
                   : tokens.colors.likeInactive,

@@ -115,19 +115,21 @@ export function EventListCard({
           sizes="169px"
           loading="lazy"
         />
-        {/* action/icon/like - Figma: 48×48px, right 8px, top 8px */}
+        {/* action/icon/like - Figma 스펙 준수: 48×48px, right 8px, top 8px */}
         <button
           type="button"
           onClick={handleLikeClick}
-          className="absolute right-2 top-2 flex size-12 items-center justify-center rounded-full bg-black/40 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="absolute right-2 top-2 flex size-12 items-center justify-center rounded-full bg-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label={event.isLiked ? "좋아요 취소" : "좋아요"}
         >
           <Heart
-            className={cn(
-              "size-6 text-white transition-colors",
-              event.isLiked && "fill-[#EE443F] text-[#EE443F]"
-            )}
-            strokeWidth={1.5}
+            className={cn(event.isLiked && "fill-current")}
+            style={{
+              width: event.isLiked ? "22px" : "20px",
+              height: event.isLiked ? "22px" : "20px",
+              color: event.isLiked ? "#EE443F" : "#FFFFFF",
+              strokeWidth: 1.5,
+            }}
           />
         </button>
       </div>
