@@ -288,7 +288,10 @@ export const CALENDAR_DESIGN_TOKENS = {
       imageHeight: "258px",
       contentHeight: "224px",
       likeButtonSize: "48px",
-      likeIconSize: "24px",
+      /** 좋아요 아이콘 크기 - 비활성화 */
+      likeIconSize: "20px",
+      /** 좋아요 아이콘 크기 - 활성화 */
+      likeIconSizeActive: "22px",
       metaIconSize: "16px",
       dividerWidth: "1px",
       dividerHeight: "10px",
