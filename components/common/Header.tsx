@@ -1,13 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-// ============================================
-// [SWYP-108] Sidebar 고도화 - X 아이콘 추가
-// 작성일: 2026-02-01
-// 변경 이유: Sidebar 열림 상태에서 닫기 버튼 표시
-// 이전 코드: import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
-// ============================================
-import { Menu, Bell, Heart, User, Map, Calendar, X } from "lucide-react";
+import { X } from "lucide-react";
+import Image from "next/image";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
@@ -37,27 +32,12 @@ export function Header({ className }: HeaderProps) {
       ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-75 flex h-14 items-center justify-between border-b border-border bg-background px-4",
+          "sticky top-0 z-75 flex items-center justify-between border-b border-border bg-background px-[80px] py-5",
           className
         )}
       >
         {/* 왼쪽 영역 */}
         <div className="flex items-center gap-4">
-          {/* ============================================
-              [SWYP-108] Menu/X 토글 버튼 구현
-              작성일: 2026-02-01
-              변경 이유: Sidebar 열림 상태를 Header에 명확히 표시
-              
-              이전 코드:
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className="flex size-9 items-center justify-center"
-                aria-label="메뉴"
-              >
-                <Menu className="size-6" />
-              </button>
-          ============================================ */}
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -68,7 +48,7 @@ export function Header({ className }: HeaderProps) {
             {isSidebarOpen ? (
               <X className="size-6" aria-hidden="true" />
             ) : (
-              <Menu className="size-6" aria-hidden="true" />
+              <Image src="/images/header/menu.svg" alt="" width={24} height={24} aria-hidden="true" />
             )}
           </button>
 
@@ -79,76 +59,67 @@ export function Header({ className }: HeaderProps) {
             BI
           </Link>
 
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/map"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
-            >
-              지도
-            </Link>
-            <Link
-              href="/calendar"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
-            >
-              캘린더
-            </Link>
-          </nav>
-        </div>
-
-        {/* 오른쪽 영역 */}
-        <div className="flex items-center gap-3">
-          {/* 뷰 토글 */}
-          <div className="flex h-9 items-center gap-0.5 rounded-full border border-border p-1">
+          {/* 뷰 네비게이션 */}
+          <nav className="flex items-center gap-2">
             <Link
               href="/view?mode=map"
               className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
                 isViewPage && currentMode === "map"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-[#F36012] text-[#F36012]"
+                  : "text-[#6C7180] hover:text-[#6C7180]/80"
               )}
             >
               지도뷰
-              <Map className="size-4" />
+              <Image src="/images/header/map-pinned.svg" alt="" width={16} height={16} />
             </Link>
             <Link
               href="/calendarview"
               className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
                 pathname === "/calendarview"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-[#F36012] text-[#F36012]"
+                  : "text-[#6C7180] hover:text-[#6C7180]/80"
               )}
             >
               캘린더뷰
-              <Calendar className="size-4" />
+              <Image src="/images/header/calendar-search.svg" alt="" width={16} height={16} />
             </Link>
-          </div>
+          </nav>
+        </div>
 
+        {/* 검색창 */}
+        <div className="flex-1 flex justify-center max-w-xl">
           <SearchDropdown />
+        </div>
 
+        {/* 오른쪽 영역 */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            className="flex size-9 items-center justify-center"
+            className="flex size-9 items-center justify-center rounded-md"
             aria-label="알림"
           >
-            <Bell className="size-5" />
+            <Image src="/images/header/bell-default.svg" alt="" width={20} height={20} />
           </button>
 
           <button
             type="button"
-            className="flex size-9 items-center justify-center"
+            className="flex size-9 items-center justify-center rounded-md"
             aria-label="좋아요"
           >
-            <Heart className="size-5" />
+            <Image src="/images/header/icon-like.svg" alt="" width={20} height={20} />
           </button>
 
           <Link
             href="/settings/profile"
-            className="flex size-9 items-center justify-center rounded-md transition-colors hover:bg-gray-100"
+            className={cn(
+              "flex size-9 items-center justify-center rounded-md transition-colors",
+              pathname.startsWith("/settings") && "border border-[#F36012]"
+            )}
             aria-label="프로필 설정"
           >
-            <User className="size-5" />
+            <Image src="/images/header/icon-user.svg" alt="" width={20} height={20} />
           </Link>
         </div>
       </header>
