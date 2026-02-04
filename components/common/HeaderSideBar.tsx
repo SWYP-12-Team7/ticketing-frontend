@@ -15,9 +15,9 @@ import {
   Camera,
   Pencil,
   Box,
-  Tv,
-  Hammer,
-  Building2,
+  PenTool,
+  Paintbrush,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -137,28 +137,28 @@ const MENU_DATA: MenuCategory[] = [
         icon: Pencil,
       },
       {
+        id: "exhibition-illustration",
+        label: "일러스트",
+        href: "/exhibition/illustration",
+        icon: PenTool,
+      },
+      {
+        id: "exhibition-painting",
+        label: "회화",
+        href: "/exhibition/painting",
+        icon: Paintbrush,
+      },
+      {
         id: "exhibition-sculpture",
         label: "조각",
         href: "/exhibition/sculpture",
         icon: Box,
       },
       {
-        id: "exhibition-media",
-        label: "미디어아트",
-        href: "/exhibition/media",
-        icon: Tv,
-      },
-      {
-        id: "exhibition-craft",
-        label: "공예",
-        href: "/exhibition/craft",
-        icon: Hammer,
-      },
-      {
-        id: "exhibition-history",
-        label: "역사전시",
-        href: "/exhibition/history",
-        icon: Building2,
+        id: "exhibition-installation",
+        label: "설치미술",
+        href: "/exhibition/installation",
+        icon: LayoutGrid,
       },
     ],
   },
@@ -198,10 +198,20 @@ const ANIMATION_DURATION = 900;
  * - 키보드 네비게이션 지원 (ESC, Tab)
  *
  * [SWYP-108] Sidebar 고도화 (2026-02-01)
- * - Header 아래에서 시작 (top-14)
+ * - Figma 디자인 스펙 적용 (382px, 내부 패딩 80px/16px)
  * - Sidebar 내부 헤더 제거
  * - Footer 간소화
- * - Figma 디자인 스펙 적용 (382px, 내부 패딩 80px/16px)
+ *
+ * [SWYP-108] Figma 스펙 정밀 반영 (2026-02-05)
+ * - 1depth 카테고리: 비활성 52px, 활성 58px, 폰트 20px/600/128%
+ * - 2depth 서브카테고리: 48px, 폰트 18px/line-height 180%
+ * - 전시 하위 메뉴: 일러스트, 회화, 설치미술 추가
+ * - 비활성 시 down arrow 완전 숨김
+ *
+ * [SWYP-108] 레이아웃 최종 조정 (2026-02-05)
+ * - Header(z-75) 아래에서 시작 (top-14)
+ * - z-index: Header(z-75) > Overlay(z-70) > Sidebar(z-60)
+ * - Figma 스펙 bottom: 0 의도 반영 (Header 아래 영역 전체 커버)
  */
 export function HeaderSideBar({
   isOpen,
@@ -323,7 +333,7 @@ export function HeaderSideBar({
         <div
           id={`submenu-${category.id}`}
           className={cn(
-            "sidebar__submenuContainer overflow-hidden transition-all",
+            "sidebar__submenuContainer overflow-hidden transition-all py-3",
             isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           )}
           style={{ transitionDuration: `${ANIMATION_DURATION}ms` }}
@@ -340,12 +350,12 @@ export function HeaderSideBar({
                   <Link
                     href={subcategory.href}
                     className={cn(
-                      "sidebar__submenuLink flex h-[43px] w-full items-center",
+                      "sidebar__submenuLink flex h-[48px] w-full items-center",
                       "gap-3 px-2 py-1 pl-8 transition-all duration-200",
-                      "text-body-large rounded-[4px]",
+                      "rounded-[4px]",
                       isActive
-                        ? "bg-[#F3F4F6] font-semibold text-[#F36012]"
-                        : "text-[#6C7180] hover:bg-[#F3F4F6]"
+                        ? "bg-[#F3F4F6] text-sidebar-subcategory-active text-[#F36012]"
+                        : "text-sidebar-subcategory text-[#6C7180] hover:bg-[#F3F4F6]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -381,7 +391,7 @@ export function HeaderSideBar({
         ref={overlayRef}
         className={cn(
           "sidebar__overlay fixed inset-0 bg-black/50 transition-opacity",
-          "z-60",
+          "z-70",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         style={{ transitionDuration: `${ANIMATION_DURATION}ms` }}
@@ -392,29 +402,24 @@ export function HeaderSideBar({
       {/* ============================================
           [SWYP-108] Sidebar Container - Figma 스펙 적용
           작성일: 2026-02-01
-          변경 이유: Figma 디자인 스펙에 맞춰 크기 및 위치 조정
-          
-          이전 코드:
-          className={cn(
-            "sidebar fixed left-0 top-0 flex h-full flex-col bg-white shadow-2xl",
-            "transition-transform ease-in-out",
-            isOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-          style={{ width: 250 }}
           
           Figma 스펙:
-          - width: 382px
+          - position: absolute, left: 0, bottom: 0
+          - width: 382px, height: 1292px
           - padding: 0px 16px 0px 80px (내부 콘텐츠 패딩)
-          - 위치: 화면 왼쪽에 붙음 (left-0)
           - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
           
-          변경 후:
-          - width: 250px → 382px
-          - left: 화면 왼쪽 (left-0)
-          - 내부 패딩: pl-20 (80px), pr-4 (16px) 추가
-          - top: 56px (top-14, Header 아래)
-          - h-full → h-[calc(100vh-3.5rem)]
-          - 애니메이션: left 동적 변경
+          구현:
+          - position: fixed (스크롤 시에도 고정)
+          - top: 56px (Header 아래에서부터 시작)
+          - left: 0 (닫힘 시 -382px로 이동)
+          - height: calc(100vh - 56px) (Header 제외한 전체 높이)
+          - padding: 0 16px 0 80px
+          
+          레이어 구조:
+          - z-75: Header (최상위)
+          - z-70: Overlay (Header 아래, Sidebar 뒤)
+          - z-60: Sidebar (Overlay 뒤, Header 아래)
       ============================================ */}
       <aside
         ref={sidebarRef}
@@ -424,7 +429,7 @@ export function HeaderSideBar({
           "pl-20 pr-4",
           "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
           "transition-all ease-in-out",
-          "z-70",
+          "z-60",
           isOpen ? "left-0" : "left-[-382px]",
           className
         )}
@@ -472,11 +477,11 @@ export function HeaderSideBar({
                     onClick={() => handleCategoryToggle(category.id)}
                     onMouseEnter={() => handleCategoryHover(category.id)}
                     className={cn(
-                      "group sidebar__categoryButton flex h-[62px] w-full items-center justify-between",
-                      "pl-3 pr-2 py-2 text-body-medium-bold transition-all duration-200",
+                      "group sidebar__categoryButton flex w-full items-center justify-between",
+                      "py-2 px-2 pl-3 text-sidebar-category transition-all duration-200 rounded",
                       isExpanded
-                        ? "border-l-4 border-[#F36012] font-bold text-[#F36012]"
-                        : "border-l-4 border-transparent text-foreground hover:text-muted-foreground"
+                        ? "h-[58px] border-l-4 border-[#F36012] text-[#F36012]"
+                        : "h-[52px] border-l-4 border-transparent text-foreground hover:text-muted-foreground"
                     )}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${category.id}`}
@@ -484,14 +489,9 @@ export function HeaderSideBar({
                     <span className="sidebar__categoryText">
                       {category.label}
                     </span>
-                    {isExpanded ? (
+                    {isExpanded && (
                       <ChevronUp
-                        className="sidebar__categoryIcon size-5 shrink-0 transition-opacity"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <ChevronDown
-                        className="sidebar__categoryIcon size-5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="sidebar__categoryIcon size-6 shrink-0 transition-opacity"
                         aria-hidden="true"
                       />
                     )}
