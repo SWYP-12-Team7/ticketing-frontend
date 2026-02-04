@@ -143,7 +143,7 @@ function ViewContent() {
   }, [clusterIds, visibleIds]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-6">
+    <main className="w-full py-6">
       {/* 지도 또는 캘린더 뷰 */}
       {mode === "map" ? (
         <Suspense
@@ -189,7 +189,7 @@ export default function ViewPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto w-full max-w-7xl px-4 py-6">
+        <main className="w-full py-6">
           <div className="flex min-h-[50vh] items-center justify-center">
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
