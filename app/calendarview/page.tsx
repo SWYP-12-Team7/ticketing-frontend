@@ -1,26 +1,41 @@
-import { Suspense } from "react";
-import { CalendarView } from "@/components/calendarview/CalendarView";
-import { HotEventSection } from "@/components/calendarview/HotEventSection";
+"use client";
 
+import { Suspense, useState } from "react";
+import { CalendarView } from "@/components/calendarview/CalendarView";
+import type { IsoDate } from "@/types/calendar";
+
+/**
+ * 캘린더 뷰 페이지
+ *
+ * Figma 스펙:
+ * - 페이지: 1440px, background: #FFFFFF
+ * - 캘린더는 left: 80px, top: 140px에 절대 위치
+ */
 export default function CalendarViewPage() {
+  const [selectedDate, setSelectedDate] = useState<IsoDate | null>(null);
+
   return (
-    <main className="calendarViewPage__main mx-auto w-full max-w-7xl px-4 py-6">
-      {/* 캘린더 */}
+    <div
+      className="calendar-view-page mx-auto"
+      style={{
+        width: "1440px",
+        background: "#FFFFFF",
+      }}
+    >
       <Suspense
         fallback={
-          <div className="calendarViewPage__loading rounded-xl bg-[#FFFBF4] p-4">
-            <div className="animate-pulse">
-              <div className="h-12 bg-gray-200 rounded mb-4"></div>
-              <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="calendar-view-loading p-20 text-center">
+            <div className="animate-pulse text-gray-500">
+              캘린더를 불러오는 중...
             </div>
           </div>
         }
       >
-        <CalendarView />
+        <CalendarView
+          selectedDate={selectedDate}
+          onDateClick={setSelectedDate}
+        />
       </Suspense>
-
-      {/* HOT EVENT 섹션 */}
-      <HotEventSection className="mt-10" />
-    </main>
+    </div>
   );
 }
