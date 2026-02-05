@@ -190,28 +190,39 @@ const ANIMATION_DURATION = 900;
  * HeaderSideBar
  *
  * 전역 네비게이션 Sidebar 컴포넌트
- * - 2depth 아코디언 메뉴 구조
+ * - 2depth 아코디언 메뉴 구조 (팝업스토어, 전시)
  * - 호버/클릭으로 카테고리 펼침/접기
  * - 현재 페이지 자동 감지 및 하이라이트
  * - dimmed overlay + slide-in 애니메이션
  * - body scroll lock
  * - 키보드 네비게이션 지원 (ESC, Tab)
  *
- * [SWYP-108] Sidebar 고도화 (2026-02-01)
- * - Figma 디자인 스펙 적용 (382px, 내부 패딩 80px/16px)
- * - Sidebar 내부 헤더 제거
- * - Footer 간소화
+ * [SWYP-108] Sidebar 고도화 - Figma 스펙 완전 반영 (2026-02-05)
  *
- * [SWYP-108] Figma 스펙 정밀 반영 (2026-02-05)
- * - 1depth 카테고리: 비활성 52px, 활성 58px, 폰트 20px/600/128%
- * - 2depth 서브카테고리: 48px, 폰트 18px/line-height 180%
- * - 전시 하위 메뉴: 일러스트, 회화, 설치미술 추가
- * - 비활성 시 down arrow 완전 숨김
+ * Figma 스펙:
+ * - 크기: 382px × calc(100vh - 56px)
+ * - 위치: fixed top-14 left-0 (Header 아래에서 시작)
+ * - padding: 0 16px 0 80px (pl-20 pr-4)
+ * - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
  *
- * [SWYP-108] 레이아웃 최종 조정 (2026-02-05)
- * - Header(z-75) 아래에서 시작 (top-14)
- * - z-index: Header(z-75) > Overlay(z-70) > Sidebar(z-60)
- * - Figma 스펙 bottom: 0 의도 반영 (Header 아래 영역 전체 커버)
+ * 1depth 카테고리:
+ * - 비활성: 52px, 20px/600/128%, #202937, arrow 숨김
+ * - 활성: 58px, 20px/600/128%, #F36012, border-l 4px, arrow 표시
+ *
+ * 2depth 서브카테고리:
+ * - 높이: 48px, padding: 4px 8px 4px 32px, gap: 12px
+ * - 비활성: 18px/400/180%, #6C7180
+ * - 활성: 18px/600/180%, #F36012, bg #F3F4F6
+ * - 컨테이너 padding: 12px 0
+ *
+ * 메뉴 구성:
+ * - 팝업스토어: 전체보기, 패션, 뷰티, F&B, 캐릭터, 테크, 라이프스타일, 기구&인테리어
+ * - 전시: 전체보기, 현대미술, 사진, 디자인, 일러스트, 회화, 조각, 설치미술
+ *
+ * 레이어 구조:
+ * - z-75: Header (최상위)
+ * - z-70: Sidebar (선명하게 보임)
+ * - z-60: Overlay (dimmed, Header 아래만 적용)
  */
 export function HeaderSideBar({
   isOpen,
