@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 // Footer를 숨길 경로 목록
@@ -70,7 +71,15 @@ export function Footer({ className }: FooterProps) {
       <div className="flex flex-wrap gap-4">
         {/* 로고 영역 */}
         <div className="w-[262px] min-w-[240px]">
-          <div className="w-[217px] h-[35px] bg-[#BFC1C2]" />
+          <Link href="/">
+            <Image
+              src="/images/logo.png"
+              alt="와르르"
+              width={217}
+              height={35}
+              className="object-contain"
+            />
+          </Link>
         </div>
 
         {/* 링크 영역 */}

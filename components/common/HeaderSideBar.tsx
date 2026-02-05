@@ -477,7 +477,7 @@ export function HeaderSideBar({
         ============================================ */}
 
         {/* Menu Content - Header 없이 바로 시작 */}
-        <nav className="sidebar__nav flex-1 overflow-y-auto">
+        <nav className="sidebar__nav flex-1 overflow-y-auto pt-6">
           <ul className="sidebar__menuList" role="list">
             {MENU_DATA.map((category) => {
               const isExpanded = expandedCategoryId === category.id;
