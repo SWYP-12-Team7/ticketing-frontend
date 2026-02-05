@@ -9,6 +9,30 @@ import Image from "next/image";
 
 const PAGE_SIZE = 8;
 
+// 카테고리 칩 라벨 매핑
+const CHIP_LABELS: Record<string, Record<string, string>> = {
+  popup: {
+    all: "팝업전체",
+    fashion: "패션",
+    beauty: "뷰티",
+    fnb: "F&B",
+    character: "캐릭터",
+    tech: "테크",
+    lifestyle: "라이프스타일",
+    furniture: "기구 & 인테리어",
+  },
+  exhibition: {
+    all: "전시전체",
+    art: "현대미술",
+    photo: "사진",
+    design: "디자인",
+    illustration: "일러스트",
+    painting: "회화",
+    sculpture: "조각",
+    installation: "설치미술",
+  },
+};
+
 const baseEvent: Omit<Event, "id"> = {
   title: "현대미술 컬렉션: 새로운 시선",
   category: "전시",
@@ -23,8 +47,15 @@ const baseEvent: Omit<Event, "id"> = {
 function SearchContent() {
   const searchParams = useSearchParams();
 
-  // URL에서 검색어 추출
+  // URL에서 파라미터 추출
   const keyword = searchParams.get("keyword") || "";
+  const category = searchParams.get("category") || "";
+  const subcategory = searchParams.get("subcategory") || "";
+
+  // 활성 칩 라벨 계산
+  const activeChipLabel = category && subcategory 
+    ? CHIP_LABELS[category]?.[subcategory] || null
+    : null;
 
   // 목데이터 (나중에 API 연동)
   const events = useMemo(
@@ -72,13 +103,41 @@ function SearchContent() {
     window.history.replaceState(null, "", `?${params.toString()}`);
   };
 
-  // 필터링된 이벤트 (삭제되지 않은 태그를 가진 이벤트만)
+  // 카테고리 칩 삭제
+  const handleRemoveCategory = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("category");
+    params.delete("subcategory");
+    window.history.replaceState(null, "", `/search?${params.toString()}`);
+    window.location.reload();
+  };
+
+  // 필터링된 이벤트
   const filteredEvents = useMemo(() => {
-    if (visibleTags.length === allTags.length) return events;
-    return events.filter((event) =>
-      event.tags.some((tag) => visibleTags.includes(tag))
-    );
-  }, [events, visibleTags, allTags.length]);
+    let filtered = events;
+
+    // 카테고리/서브카테고리 필터링 (TODO: 실제 API 연동 시 서버에서 처리)
+    if (category && subcategory) {
+      // 현재는 목데이터이므로 태그 기반 필터링
+      // 실제로는 API 호출 시 category/subcategory 파라미터 전달
+      const chipLabel = CHIP_LABELS[category]?.[subcategory];
+      if (chipLabel) {
+        // 목데이터 필터링 로직 (실제 구현 시 삭제)
+        filtered = filtered.filter((event) =>
+          event.tags.some((tag) => tag.includes(chipLabel) || chipLabel.includes(tag))
+        );
+      }
+    }
+
+    // 태그 필터링 (삭제되지 않은 태그를 가진 이벤트만)
+    if (visibleTags.length !== allTags.length) {
+      filtered = filtered.filter((event) =>
+        event.tags.some((tag) => visibleTags.includes(tag))
+      );
+    }
+
+    return filtered;
+  }, [events, visibleTags, allTags.length, category, subcategory]);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -160,6 +219,18 @@ function SearchContent() {
 
         {/* 태그 필터 */}
         <div className="mb-8 flex flex-wrap gap-2">
+          {/* 카테고리 칩 (사이드바 메뉴에서 선택) */}
+          {activeChipLabel && (
+            <button
+              type="button"
+              onClick={handleRemoveCategory}
+              className="flex items-center gap-2 rounded-full border border-orange bg-orange/10 px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
+            >
+              <span>{activeChipLabel}</span>
+              <X className="size-3" />
+            </button>
+          )}
+
           {/* 검색어 태그 */}
           {keyword && (
             <button
