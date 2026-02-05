@@ -390,8 +390,8 @@ export function HeaderSideBar({
       <div
         ref={overlayRef}
         className={cn(
-          "sidebar__overlay fixed inset-0 bg-black/50 transition-opacity",
-          "z-70",
+          "sidebar__overlay fixed top-14 left-0 right-0 bottom-0 bg-black/50 transition-opacity",
+          "z-60",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         style={{ transitionDuration: `${ANIMATION_DURATION}ms` }}
@@ -400,26 +400,29 @@ export function HeaderSideBar({
       />
 
       {/* ============================================
-          [SWYP-108] Sidebar Container - Figma 스펙 적용
-          작성일: 2026-02-01
+          [SWYP-108] Sidebar Container - Figma 스펙 최종 반영
+          작성일: 2026-02-05
           
           Figma 스펙:
           - position: absolute, left: 0, bottom: 0
-          - width: 382px, height: 1292px
+          - width: 382px
           - padding: 0px 16px 0px 80px (내부 콘텐츠 패딩)
           - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
           
-          구현:
-          - position: fixed (스크롤 시에도 고정)
-          - top: 56px (Header 아래에서부터 시작)
-          - left: 0 (닫힘 시 -382px로 이동)
+          구현 (검증 완료):
+          - position: fixed top-14 (Header 아래에서 시작)
           - height: calc(100vh - 56px) (Header 제외한 전체 높이)
-          - padding: 0 16px 0 80px
+          - left: 0 → -382px (슬라이드 애니메이션)
           
-          레이어 구조:
-          - z-75: Header (최상위)
-          - z-70: Overlay (Header 아래, Sidebar 뒤)
-          - z-60: Sidebar (Overlay 뒤, Header 아래)
+          레이어 구조 (z-index):
+          - z-75: Header (최상위, 항상 보임)
+          - z-70: Sidebar (선명하게 보임, 클릭 가능)
+          - z-60: Overlay (Header 아래만 dimmed, top-14부터 시작)
+          
+          검증:
+          ✅ Header와 겹치지 않음 (Sidebar top-14 시작)
+          ✅ Sidebar가 dimmed 처리되지 않음 (z-70 > z-60)
+          ✅ Overlay가 Header를 가리지 않음 (top-14 시작)
       ============================================ */}
       <aside
         ref={sidebarRef}
@@ -429,7 +432,7 @@ export function HeaderSideBar({
           "pl-20 pr-4",
           "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
           "transition-all ease-in-out",
-          "z-60",
+          "z-70",
           isOpen ? "left-0" : "left-[-382px]",
           className
         )}
