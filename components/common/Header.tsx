@@ -52,7 +52,7 @@ export function Header({ className }: HeaderProps) {
       ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-75 flex items-center justify-between border-b border-border bg-background px-[80px] py-5",
+          "sticky top-0 z-75 h-25 flex items-center justify-between border-b border-border bg-background px-[80px]",
           className
         )}
       >

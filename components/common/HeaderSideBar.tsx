@@ -401,7 +401,7 @@ export function HeaderSideBar({
       <div
         ref={overlayRef}
         className={cn(
-          "sidebar__overlay fixed top-14 left-0 right-0 bottom-0 bg-black/50 transition-opacity",
+          "sidebar__overlay fixed top-25 left-0 right-0 bottom-0 bg-black/50 transition-opacity",
           "z-60",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
@@ -421,25 +421,25 @@ export function HeaderSideBar({
           - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
           
           구현 (검증 완료):
-          - position: fixed top-14 (Header 아래에서 시작)
-          - height: calc(100vh - 56px) (Header 제외한 전체 높이)
+          - position: fixed top-25 (Header 아래에서 시작)
+          - height: calc(100vh - 100px) (Header 제외한 전체 높이)
           - left: 0 → -382px (슬라이드 애니메이션)
           
           레이어 구조 (z-index):
-          - z-75: Header (최상위, 항상 보임)
+          - z-75: Header (최상위, 항상 보임, h-25 = 100px)
           - z-70: Sidebar (선명하게 보임, 클릭 가능)
-          - z-60: Overlay (Header 아래만 dimmed, top-14부터 시작)
+          - z-60: Overlay (Header 아래만 dimmed, top-25부터 시작)
           
           검증:
-          ✅ Header와 겹치지 않음 (Sidebar top-14 시작)
+          ✅ Header와 겹치지 않음 (Sidebar top-25 시작)
           ✅ Sidebar가 dimmed 처리되지 않음 (z-70 > z-60)
-          ✅ Overlay가 Header를 가리지 않음 (top-14 시작)
+          ✅ Overlay가 Header를 가리지 않음 (top-25 시작)
       ============================================ */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "sidebar fixed top-14 flex flex-col bg-white",
-          "h-[calc(100vh-3.5rem)]",
+          "sidebar fixed top-25 flex flex-col bg-white",
+          "h-[calc(100vh-6.25rem)]",
           "pl-20 pr-4",
           "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
           "transition-all ease-in-out",
@@ -491,15 +491,22 @@ export function HeaderSideBar({
                     onClick={() => handleCategoryToggle(category.id)}
                     onMouseEnter={() => handleCategoryHover(category.id)}
                     className={cn(
-                      "group sidebar__categoryButton flex w-full items-center justify-between",
+                      "group sidebar__categoryButton relative flex w-full items-center justify-between",
                       "py-2 px-2 pl-3 text-sidebar-category transition-all duration-200 rounded",
                       isExpanded
-                        ? "h-[58px] border-l-4 border-[#F36012] text-[#F36012]"
-                        : "h-[52px] border-l-4 border-transparent text-foreground hover:text-muted-foreground"
+                        ? "h-[58px] text-[#F36012]"
+                        : "h-[52px] text-foreground hover:text-muted-foreground"
                     )}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${category.id}`}
                   >
+                    {isExpanded && (
+                      <span
+                        className="absolute left-0 w-1 h-10 bg-[#F36012]"
+                        style={{ top: '11px' }}
+                        aria-hidden="true"
+                      />
+                    )}
                     <span className="sidebar__categoryText">
                       {category.label}
                     </span>
