@@ -30,6 +30,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "와르르",
   description: "SWYP 7th Team front",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({

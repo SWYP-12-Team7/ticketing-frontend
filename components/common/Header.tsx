@@ -41,7 +41,7 @@ export function Header({ className }: HeaderProps) {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="flex size-9 items-center justify-center transition-transform duration-200 hover:bg-gray-100 rounded-md"
+            className="flex size-12 items-center justify-center p-2 transition-transform duration-200 hover:bg-gray-100 rounded-md"
             aria-label={isSidebarOpen ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={isSidebarOpen}
           >
@@ -54,21 +54,27 @@ export function Header({ className }: HeaderProps) {
 
           <Link
             href="/"
-            className="flex items-center justify-center ml-5 mr-2 bg-primary text-sm font-bold text-primary-foreground"
-            style={{ width: 145, height: 56 }}
+            className="flex items-center justify-center ml-5 mr-2"
           >
-            BI
+            <Image
+              src="/images/logo.png"
+              alt="와르르 로고"
+              width={145}
+              height={56}
+              priority
+            />
           </Link>
 
           {/* 뷰 네비게이션 */}
-          <nav className="flex items-center">
+          <nav className="flex items-center gap-1">
             <Link
               href="/view?mode=map"
               className={cn(
-                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
+                "flex items-center justify-center gap-0.5 w-[76px] h-10 p-1 transition-colors",
+                "text-base leading-[180%]",
                 isViewPage && currentMode === "map"
-                  ? "border border-[#F36012] text-[#F36012]"
-                  : "text-[#6C7180] hover:text-[#6C7180]/80"
+                  ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
+                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
               )}
             >
               지도뷰
@@ -85,10 +91,11 @@ export function Header({ className }: HeaderProps) {
             <Link
               href="/calendarview"
               className={cn(
-                "flex items-center justify-center gap-2 w-[127px] h-[56px] px-[10px] rounded-md text-lg font-medium transition-colors",
+                "flex items-center justify-center gap-0.5 w-[90px] h-10 p-1 transition-colors",
+                "text-base leading-[180%]",
                 pathname === "/calendarview"
-                  ? "border border-[#F36012] text-[#F36012]"
-                  : "text-[#6C7180] hover:text-[#6C7180]/80"
+                  ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
+                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
               )}
             >
               캘린더뷰
@@ -116,7 +123,7 @@ export function Header({ className }: HeaderProps) {
           <div className="flex items-center">
             <button
               type="button"
-              className="flex items-center justify-center p-[12px] rounded-md"
+              className="flex size-12 items-center justify-center p-2 rounded-md transition-colors hover:bg-gray-100"
               aria-label="알림"
             >
               <Image src="/images/header/bell-default.svg" alt="" width={24} height={24} />
@@ -124,7 +131,7 @@ export function Header({ className }: HeaderProps) {
 
             <button
               type="button"
-              className="flex items-center justify-center p-[12px] rounded-md"
+              className="flex size-12 items-center justify-center p-2 rounded-md transition-colors hover:bg-gray-100"
               aria-label="좋아요"
             >
               <Image src="/images/header/icon-like.svg" alt="" width={24} height={24} />
@@ -132,7 +139,7 @@ export function Header({ className }: HeaderProps) {
 
             <Link
               href="/settings/profile"
-              className="flex items-center justify-center p-[12px] rounded-md transition-colors"
+              className="flex size-12 items-center justify-center p-2 rounded-md transition-colors hover:bg-gray-100"
               aria-label="프로필 설정"
             >
               <Image
