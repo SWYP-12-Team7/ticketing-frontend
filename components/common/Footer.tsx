@@ -6,11 +6,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 // Footer를 숨길 경로 목록
-const HIDDEN_FOOTER_PATHS = ["/onboarding"];
 
 interface FooterProps {
   className?: string;
 }
+
+const HIDDEN_FOOTER_PATHS = ["/onboarding", "/auth"];
 
 const footerLinks = {
   서비스: [
@@ -53,11 +54,7 @@ const footerLinks = {
 
 export function Footer({ className }: FooterProps) {
   const pathname = usePathname();
-
-  // 숨길 경로인지 확인
-  const shouldHide = HIDDEN_FOOTER_PATHS.some((path) =>
-    pathname.startsWith(path)
-  );
+  const shouldHide = HIDDEN_FOOTER_PATHS.some((path) => pathname.startsWith(path));
 
   if (shouldHide) return null;
 
