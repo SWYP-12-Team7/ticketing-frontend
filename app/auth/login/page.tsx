@@ -8,17 +8,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-8">
-        <h1 className="text-heading-xlarge">로그인</h1>
-        <button
-          onClick={handleKakaoLogin}
-          className="flex items-center gap-2 rounded-lg bg-[#FEE500] px-6 py-3 text-body-medium-bold text-[#000000]/85 transition-opacity hover:opacity-90"
-        >
+    <div className="flex justify-center pt-[139px] overflow-hidden">
+      <div className="flex flex-col gap-51">
+        <div className="flex flex-col items-center gap-7">
+          <div className="w-[410px] h-[229px] bg-amber-200 leading-6">로고</div>
+          <p className="font-bold text-xl">전시가 와르르, 축제가 와르르!</p>
+        </div>
+        <div className="flex flex-col items-end gap-2.5">
+          {/* 말풍선 (전체 SVG) */}
+          <svg width="148" height="58" viewBox="0 0 148 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* 말풍선 본체 */}
+            <path
+              d="M8 1H140C143.866 1 147 4.13401 147 8V40C147 43.866 143.866 47 140 47H120L115 57L110 47H8C4.13401 47 1 43.866 1 40V8C1 4.13401 4.13401 1 8 1Z"
+              fill="white"
+              stroke="#F36012"
+              strokeWidth="1"
+            />
+            {/* 텍스트 */}
+            <text x="12" y="20" textAnchor="start" fill="#F36012" fontSize="12" fontWeight="bold">
+              전시와 팝업을
+            </text>
+            <text x="12" y="38" textAnchor="start" fill="#F36012" fontSize="12" fontWeight="bold">
+              가장 빠르게 만나는 방법
+            </text>
+          </svg>
+          <button
+            onClick={handleKakaoLogin}
+            className="flex items-center gap-2 rounded-lg bg-[#FEE500] px-[234.5px] py-3.25 text-body-medium-bold text-[#000000]/85 transition-opacity hover:opacity-90"
+          >
           <svg
             width="24"
             height="24"
-            viewBox="0 0 24 24"
+            viewBox="0 0 24 24" 
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -29,8 +50,9 @@ export default function LoginPage() {
               fill="#000000"
             />
           </svg>
-          카카오 로그인
-        </button>
+            카카오로 시작하기
+          </button>
+        </div>
       </div>
     </div>
   );

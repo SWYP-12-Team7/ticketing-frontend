@@ -25,10 +25,11 @@ function KakaoCallbackContent() {
     const handleLogin = async () => {
       try {
         const response = await kakaoLogin(code);
+        console.log("✅ 카카오 로그인 성공:", response);
         login(response.user, response.accessToken, response.refreshToken);
         router.replace("/");
       } catch (error) {
-        console.error("카카오 로그인 실패:", error);
+        console.error("❌ 카카오 로그인 실패:", error);
         router.replace("/auth/login");
       }
     };

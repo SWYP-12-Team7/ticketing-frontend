@@ -2,10 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface FooterProps {
   className?: string;
 }
+
+const HIDDEN_FOOTER_PATHS = ["/onboarding", "/auth"];
 
 const footerLinks = {
   서비스: [
@@ -47,6 +50,11 @@ const footerLinks = {
 };
 
 export function Footer({ className }: FooterProps) {
+  const pathname = usePathname();
+  const shouldHide = HIDDEN_FOOTER_PATHS.some((path) => pathname.startsWith(path));
+
+  if (shouldHide) return null;
+
   return (
     <footer
       className={cn(
