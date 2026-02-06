@@ -219,28 +219,28 @@ export function MainCarousel({ className, slides }: MainCarouselProps) {
         <ChevronRight className="size-5 text-white" />
       </button>
 
-      {/* 하단 컨트롤: 도트 + Play/Pause */}
+      {/* 하단 컨트롤: 도트 */}
       <div
         className="absolute bottom-6 left-1/2 z-20 flex
           -translate-x-1/2 items-center gap-3"
       >
         {/* 도트 인디케이터 */}
         <div className="main-carousel-pagination flex gap-1.5" />
-
-        {/* Play/Pause 버튼 */}
-        <button
-          onClick={toggleAutoplay}
-          className="flex size-8 items-center justify-center
-            rounded-full bg-white/30 backdrop-blur transition-colors
-            hover:bg-white/50"
-        >
-          {isPlaying ? (
-            <Pause className="size-3.5 text-white" />
-          ) : (
-            <Play className="size-3.5 text-white" />
-          )}
-        </button>
       </div>
+
+      {/* Play/Pause 버튼 */}
+      <button
+        onClick={toggleAutoplay}
+        className="absolute bottom-6 right-[90px] z-20 flex size-8
+          items-center justify-center rounded-full bg-white/30
+          backdrop-blur transition-colors hover:bg-white/50"
+      >
+        {isPlaying ? (
+          <Pause className="size-3.5 text-white" />
+        ) : (
+          <Play className="size-3.5 text-white" />
+        )}
+      </button>
     </section>
   );
 }
