@@ -47,7 +47,7 @@ export function OverlayEventCard({
     >
       {/* 배경 이미지 */}
       <div
-        className="absolute inset-0 bg-muted bg-cover bg-center bg-no-repeat transition-transform duration-300 group-hover:scale-105"
+        className="absolute inset-0 bg-muted bg-contain bg-center bg-no-repeat transition-transform duration-300 group-hover:scale-105"
         style={{ backgroundImage: `url(${imageUrl})` }}
       />
 
