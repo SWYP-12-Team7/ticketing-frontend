@@ -191,8 +191,8 @@
   }
   .text-heading-large {
     font-size: 24px;
-    font-weight: 700;
-    line-height: 150%;
+    font-weight: 600;
+    line-height: 128%;
     letter-spacing: -0.025em;
   }
   .text-heading-medium {

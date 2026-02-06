@@ -9,6 +9,8 @@ import type { Event } from "@/types/event";
 interface ShowPickProps {
   className?: string;
   title: string;
+  subtitle?: string;
+  subtitleType?: "orange" | "gray";
   events?: Event[];
 }
 
@@ -79,6 +81,8 @@ const mockEvents: Event[] = [
 export function ShowPick({
   className,
   title,
+  subtitle,
+  subtitleType = "gray",
   events,
 }: ShowPickProps) {
   const [startIndex, setStartIndex] = useState(0);
@@ -95,8 +99,18 @@ export function ShowPick({
   return (
     <section className={cn("", className)}>
       {/* 헤더 */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold">{title}</h2>
+      <div className="mb-[24px] flex items-center justify-between">
+        <div>
+          {subtitle && (
+            <p className={cn(
+              "mb-1 text-[14px] font-normal leading-[180%]",
+              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
+            )}>
+              {subtitle}
+            </p>
+          )}
+          <h2 className="text-heading-large">{title}</h2>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
@@ -115,8 +129,8 @@ export function ShowPick({
         </div>
       </div>
 
-      {/* 카드 그리드 */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* 모바일~lg: 2열 / xl~: 4열 */}
+      <div className="flex flex-wrap gap-4">
         {visibleEvents.map((event) => (
           <OverlayEventCard key={event.id} event={event} />
         ))}

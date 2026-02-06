@@ -26,7 +26,7 @@ export default async function Home() {
         </div>
 
         {/* 와르르 PICK */}
-        <ShowPick className="py-6" title="와르르 PICK!" />
+        <ShowPick className="py-6" title="와르르 PICK!" subtitle="취향을 분석해 딱 맞는 행사를 찾았어요" subtitleType="orange"/>
 
         {/* 오픈 예정 행사 */}
         <ShowPick
