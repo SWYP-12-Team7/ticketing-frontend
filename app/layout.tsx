@@ -51,7 +51,7 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
       </head>
-      <body className="flex min-h-screen flex-col font-pretendard">
+      <body className="mx-auto flex min-h-screen max-w-[1440px] flex-col border-x border-[#E5E7EB] font-pretendard">
         <Providers>
           <Suspense fallback={null}>
             <Header />
