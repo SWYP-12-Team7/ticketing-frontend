@@ -20,15 +20,16 @@ export function useKakaoLogin() {
       const onboarding = await getOnboardingSettings();
       console.log("✅ 온보딩 상태:", onboarding);
 
-      return {
-        ...response,
-        isOnboardingCompleted:
-          onboarding.preferredRegions.length > 0 || onboarding.categories.length > 0,
-      };
+      const hasRegions = onboarding.preferredRegions.length > 0;
+      const hasCategories = onboarding.categories.length > 0;
+
+      return { ...response, hasRegions, hasCategories };
     },
     onSuccess: (data) => {
-      if (data.isOnboardingCompleted) {
+      if (data.hasRegions && data.hasCategories) {
         router.replace("/");
+      } else if (data.hasRegions) {
+        router.replace("/onboarding/step2");
       } else {
         router.replace("/onboarding/step1");
       }

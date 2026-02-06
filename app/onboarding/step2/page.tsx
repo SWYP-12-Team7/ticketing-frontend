@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingCategoryCard, OnboardingLayout } from "@/components/onboarding";
+import { useOnboardingStep2 } from "@/queries/auth";
 
 // 줄별 카테고리 (홀수줄 4개, 짝수줄 3개)
 const categoryRows = [
@@ -37,6 +38,7 @@ const categoryRows = [
 export default function OnboardingStep2Page() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { mutate: saveCategories, isPending } = useOnboardingStep2();
 
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategories((prev) => {
@@ -52,9 +54,8 @@ export default function OnboardingStep2Page() {
   };
 
   const handleNext = () => {
-    // TODO: 선택된 카테고리 저장 (API 또는 상태관리)
-    console.log("선택된 카테고리:", selectedCategories);
-    router.push("/");
+    if (selectedCategories.length === 0) return;
+    saveCategories(selectedCategories);
   };
 
   return (
@@ -64,7 +65,7 @@ export default function OnboardingStep2Page() {
       subtitle="관심 있는 행사를 선택해주세요! (최소 1개)"
       onSkip={handleSkip}
       onNext={handleNext}
-      isNextDisabled={selectedCategories.length === 0}
+      isNextDisabled={selectedCategories.length === 0 || isPending}
       nextLabel="완료"
     >
       <div className="flex flex-col items-center gap-5">

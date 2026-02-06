@@ -6,8 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 // Footer를 숨길 경로 목록
-const HIDDEN_FOOTER_PATHS = ["/onboarding"];
-import { usePathname } from "next/navigation";
 
 interface FooterProps {
   className?: string;

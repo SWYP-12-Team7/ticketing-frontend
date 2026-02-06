@@ -18,6 +18,20 @@ export interface OnboardingSettings {
 }
 
 export async function getOnboardingSettings(): Promise<OnboardingSettings> {
-  const response = await axiosInstance.get<OnboardingSettings>("/onboarding/settings");
+  const response = await axiosInstance.get<OnboardingSettings>(
+    "/onboarding/settings"
+  );
   return response.data;
+}
+
+export async function postOnboardingStep1(
+  regions: string[]
+): Promise<void> {
+  await axiosInstance.post("/onboarding/step1", regions);
+}
+
+export async function postOnboardingStep2(
+  categories: string[]
+): Promise<void> {
+  await axiosInstance.post("/onboarding/step2", categories);
 }
