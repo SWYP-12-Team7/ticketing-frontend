@@ -124,7 +124,13 @@ export function FilterSection({ className }: FilterSectionProps) {
       const qs = params.toString();
       router.push(qs ? `/calendarview?${qs}` : "/calendarview");
     } else {
-      router.push("/mapview");
+      const params = new URLSearchParams();
+      params.set("mode", "map");
+      if (region) params.set("region", region);
+      if (parentCategory) params.set("category", parentCategory);
+      if (subCategory) params.set("subCategory", subCategory);
+      if (period) params.set("period", period);
+      router.push(`/view?${params.toString()}`);
     }
   };
 
