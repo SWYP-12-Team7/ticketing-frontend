@@ -18,9 +18,20 @@ import { ScrollToTop } from "@/components/common/ScrollToTop";
 const mockDetailData = {
   images: ["/images/detailMock.png"],
   category: "전시 > 체험",
-  title: "Culpa omnis voluptatem quos libero quo accusantium. Dolores omnis debitis quis architecto eos laudantium et.",
+  title:
+    "Culpa omnis voluptatem quos libero quo accusantium. Dolores omnis debitis quis architecto eos laudantium et.",
   description: "상상의 문을 열다",
-  tags: ["체험전시", "사진", "가족", "커플", "친구", "혼자", "무료", "유료", "주차가능"],
+  tags: [
+    "체험전시",
+    "사진",
+    "가족",
+    "커플",
+    "친구",
+    "혼자",
+    "무료",
+    "유료",
+    "주차가능",
+  ],
   period: "26.01.15 ~ 26.02.15",
   address: "서울 광진구 아차산로 402 그라운드시소 이스트",
   age: "전체 연령 관람",
