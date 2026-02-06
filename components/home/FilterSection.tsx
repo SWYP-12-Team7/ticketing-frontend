@@ -5,12 +5,27 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FilterSelect } from "./FilterSelect";
 
 interface FilterSectionProps {
   className?: string;
 }
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+const REGIONS = [
+  "서울", "부산", "대구", "인천", "광주", "대전",
+  "경기", "충북", "충남", "전북", "전남", "경북", "경남",
+] as const;
+
+const CATEGORY_MAP: Record<string, readonly string[]> = {
+  "팝업스토어": ["패션", "뷰티", "F&B", "캐릭터", "테크", "라이프스타일", "가구/인테리어"],
+  "전시": ["현대미술", "사진", "디자인", "일러스트", "회화", "조각", "설치미술"],
+} as const;
+
+const PARENT_CATEGORIES = Object.keys(CATEGORY_MAP);
+
+const PERIODS = ["오늘", "이번 주말", "일주일 내", "한달 내"] as const;
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -62,6 +77,12 @@ export function FilterSection({ className }: FilterSectionProps) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectingStart, setSelectingStart] = useState(true);
+
+  // 지도 탭 필터 상태
+  const [region, setRegion] = useState("");
+  const [parentCategory, setParentCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
+  const [period, setPeriod] = useState("");
 
   const handlePrevMonth = () => {
     const d = new Date(calYear, calMonth - 1, 1);
@@ -314,9 +335,58 @@ export function FilterSection({ className }: FilterSectionProps) {
           </div>
         </div>
       ) : (
-        /* 퀵 지도 탐색 — 추후 구현 */
-        <div className="flex flex-1 items-center justify-center text-[14px] text-[#999]">
-          지도 탐색 기능 준비 중
+        /* 퀵 지도 탐색 */
+        <div className="flex flex-1 flex-col pt-5">
+          <p className="text-lg font-semibold leading-[128%] tracking-[0.025em] text-[#4B5462]">
+            관심 지역의 핫 플레이스를
+            <br />
+            빠르게 지도에서 확인하세요
+          </p>
+
+          <div className="mt-8 flex flex-col gap-8">
+            {/* 지역선택 */}
+            <FilterSelect
+              label="지역선택"
+              placeholder="지역"
+              options={REGIONS}
+              value={region}
+              onChange={setRegion}
+              columns={2}
+            />
+
+            {/* 카테고리 */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[12px] font-semibold leading-[140%] text-[#6C7180]">
+                카테고리
+              </span>
+              <FilterSelect
+                placeholder="상위 카테고리"
+                options={PARENT_CATEGORIES}
+                value={parentCategory}
+                onChange={(v) => {
+                  setParentCategory(v);
+                  setSubCategory("");
+                }}
+              />
+              <FilterSelect
+                placeholder="하위 카테고리"
+                options={parentCategory ? CATEGORY_MAP[parentCategory] : []}
+                value={subCategory}
+                onChange={setSubCategory}
+                variant="secondary"
+                disabled={!parentCategory}
+              />
+            </div>
+
+            {/* 일시 */}
+            <FilterSelect
+              label="일시"
+              placeholder="기간 선택"
+              options={PERIODS}
+              value={period}
+              onChange={setPeriod}
+            />
+          </div>
         </div>
       )}
 
