@@ -1,16 +1,17 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, getNickname } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { OverlayEventCard } from "@/components/common";
 import type { Event } from "@/types/event";
 
 interface ShowPickProps {
   className?: string;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   subtitleType?: "orange" | "gray";
+  useNickname?: boolean;
   events?: Event[];
 }
 
@@ -83,9 +84,21 @@ export function ShowPick({
   title,
   subtitle,
   subtitleType = "gray",
+  useNickname = false,
   events,
 }: ShowPickProps) {
+  const [nickname, setNickname] = useState<string | null>(null);
   const [startIndex, setStartIndex] = useState(0);
+
+  useEffect(() => {
+    if (useNickname) {
+      setNickname(getNickname());
+    }
+  }, [useNickname]);
+
+  const displayTitle = useNickname && nickname
+    ? <>{nickname}{title}</>
+    : title;
 
   const displayEvents = events || mockEvents;
   const visibleCount = 4;
@@ -109,7 +122,7 @@ export function ShowPick({
               {subtitle}
             </p>
           )}
-          <h2 className="text-heading-large">{title}</h2>
+          <h2 className="text-heading-large">{displayTitle}</h2>
         </div>
         <div className="flex items-center gap-2">
           <button

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { formatDdayStartFromDateString } from "@/lib/date";
 import Image from "next/image";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, ChevronRight, MapPin } from "lucide-react";
 
 interface SavedEvent {
   id: string;
@@ -62,12 +62,12 @@ export function EventSchedule({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border border-[#FA7228] bg-[#F3EAE6]",
+        "flex h-[642px] flex-col rounded-xl border border-[#FA7228] bg-[#F3EAE6] px-[20px] py-[24px]",
         className
       )}
     >
       {/* 개인화 메시지 섹션 */}
-      <div className="flex items-start justify-between px-7.5 pt-7.5 pb-6">
+      <div className="flex items-start justify-between pb-6">
         <div>
           <div className="mb-2.5 flex flex-wrap items-center gap-1 text-base md:text-lg">
             <span className="font-semibold text-[#FA7228]">
@@ -89,7 +89,7 @@ export function EventSchedule({
       </div>
 
       {/* 이벤트 카드 리스트 */}
-      <div className="relative flex flex-col gap-4 px-7.5 pb-4">
+      <div className="relative flex flex-1 flex-col gap-4 overflow-hidden">
         <div className="absolute left-9.5 top-2 h-[calc(100%-16px)] w-px border-l border-dashed border-[#50505078]" />
         <div className="h-9">
            <div className="mt-2 flex w-4 justify-center">
@@ -156,6 +156,12 @@ export function EventSchedule({
           </div>
         ))}
       </div>
+
+      {/* 하단 버튼 */}
+      <button className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-orange px-[12px] py-[12px] text-[16px] font-medium leading-[140%] text-white">
+        타임라인 더보기
+        <ChevronRight className="size-[24px]" />
+      </button>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 interface RankingEvent {
   id: string;
@@ -52,11 +53,11 @@ export function Ranking({ className, events }: RankingProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#FA7228] bg-white px-10 py-3",
+        "flex h-[642px] flex-col justify-between rounded-xl border border-[#FA7228] bg-white px-[20px] py-[24px]",
         className
       )}
     >
-      <div className="flex h-full flex-col justify-center"> 
+      <div className="flex flex-1 flex-col justify-center overflow-hidden">
         {displayEvents.map((event, index) => (
           <Link
             key={event.id}
@@ -88,6 +89,12 @@ export function Ranking({ className, events }: RankingProps) {
           </Link>
         ))}
       </div>
+
+      {/* 하단 버튼 */}
+      <button className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-orange px-[12px] py-[12px] text-[16px] font-medium leading-[140%] text-white">
+        랭킹 전체 보기
+        <ChevronRight className="size-[24px]" />
+      </button>
     </div>
   );
 }
