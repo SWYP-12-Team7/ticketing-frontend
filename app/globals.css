@@ -257,6 +257,24 @@
     line-height: 150%;
   }
 
+  /* Sidebar specific */
+  .text-sidebar-category {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 128%;
+    letter-spacing: -0.025em;
+  }
+  .text-sidebar-subcategory {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 180%;
+  }
+  .text-sidebar-subcategory-active {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 180%;
+  }
+
   /* Scrollbar hide */
   .scrollbar-hide {
     -ms-overflow-style: none;

@@ -93,13 +93,20 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {/* 검색 Input */}
-      <div className="flex items-center gap-2 w-112 rounded-full border border-border px-6 py-4">
+      <div
+        className={cn(
+          "flex items-center w-md h-[57px] rounded-full border px-6 py-4 gap-2 transition-colors",
+          keyword
+            ? "border-[#F36012] bg-white"
+            : "border-[#D3D5DC] bg-white hover:bg-[#F9FAFB]"
+        )}
+      >
         <button
           type="button"
           onClick={() => handleSearch(keyword)}
           aria-label="검색"
         >
-          <Search className="size-4.5 text-[#6C7180]" />
+          <Search className="size-6 text-[#6C7180]" />
         </button>
         <input
           ref={inputRef}
@@ -109,8 +116,18 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="검색어를 입력해주세요"
-          className="w-40 bg-transparent text-sm outline-none placeholder:text-[#A6ABB7]"
+          className="flex-1 bg-transparent text-sm leading-[180%] outline-none text-basic placeholder:text-[#A6ABB7] placeholder:leading-[180%]"
         />
+        {keyword && (
+          <button
+            type="button"
+            onClick={() => setKeyword("")}
+            aria-label="검색어 지우기"
+            className="shrink-0"
+          >
+            <X className="size-6 text-[#6C7180]" />
+          </button>
+        )}
       </div>
 
       {/* 최근 검색어 드롭다운 */}
@@ -155,7 +172,7 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
                     <button
                       type="button"
                       onClick={() => handleDeleteOne(search)}
-                      className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground"
+                      className="ml-2 shrink-0 text-muted-foreground hover:text-foreground"
                       aria-label={`${search} 삭제`}
                     >
                       <X className="size-4" />
