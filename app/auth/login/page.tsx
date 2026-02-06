@@ -1,5 +1,7 @@
 "use client";
 
+import { RequireGuest } from "@/components/auth";
+
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "")}&response_type=code`;
 
 export default function LoginPage() {
@@ -8,6 +10,7 @@ export default function LoginPage() {
   };
 
   return (
+    <RequireGuest>
     <div className="flex justify-center pt-[139px] overflow-hidden">
       <div className="flex flex-col gap-51">
         <div className="flex flex-col items-center gap-7">
@@ -55,5 +58,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </RequireGuest>
   );
 }
