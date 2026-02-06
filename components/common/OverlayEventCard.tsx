@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { formatDdayStart } from "@/lib/date";
-import { Heart, Eye, MapPin, Calendar } from "lucide-react";
+import { Heart, MapPin, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { Event } from "@/types/event";
 
@@ -10,33 +9,25 @@ interface OverlayEventCardProps {
   event: Event;
   onLikeClick?: (id: string) => void;
   className?: string;
-  variant?: "normal" | "countdown";
-  size?: "default" | "compact";
 }
 
 /**
  * 오버레이 스타일 이벤트 카드 컴포넌트
- * - 이미지 위에 정보가 오버레이되는 스타일
- * - ShowPick 등에서 사용
+ * - 기본: 이미지만 표시
+ * - hover: 어두운 오버레이 + 정보 페이드인
  */
 export function OverlayEventCard({
   event,
   onLikeClick,
   className,
-  variant = "normal",
-  size = "default",
 }: OverlayEventCardProps) {
-  const isCompact = size === "compact";
   const {
     id,
     title,
+    category,
     location,
     period,
     imageUrl,
-    viewCount,
-    likeCount,
-    tags = [],
-    openDate,
   } = event;
 
   const handleLikeClick = (e: React.MouseEvent) => {
@@ -50,7 +41,7 @@ export function OverlayEventCard({
       href={`/detail/${id}`}
       className={cn(
         "group relative block overflow-hidden rounded-xl",
-        isCompact ? "aspect-[4/3]" : "aspect-[3/4]",
+        "aspect-[3/4]",
         className
       )}
     >
@@ -60,89 +51,58 @@ export function OverlayEventCard({
         style={{ backgroundImage: `url(${imageUrl})` }}
       />
 
-      {/* 우측 상단: 하트 버튼 */}
-      {!isCompact && (
-        <button
-          type="button"
-          onClick={handleLikeClick}
-          className="absolute right-5.5 top-4 flex size-8 items-center justify-center rounded-full bg-[#BBBBBB]/73 transition-colors hover:bg-[#BBBBBB]/90"
-        >
-          <Heart className="size-5 text-black" strokeWidth={1.5} />
-        </button>
-      )}
+      {/* hover 오버레이 */}
+      <div className="absolute inset-0 flex flex-col justify-between bg-black/60 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        {/* 상단: 하트 버튼 */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleLikeClick}
+            className="flex size-8 items-center justify-center rounded-full transition-colors hover:bg-white/20"
+          >
+            <Heart
+              className="size-5 text-white"
+              strokeWidth={1.5}
+            />
+          </button>
+        </div>
 
-      {/* 하단 그라데이션 + 텍스트 */}
-      <div className={cn(
-        "absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 via-black/70 to-transparent",
-        isCompact ? "p-3 pt-8" : "p-4 pt-20"
-      )}>
-        {/* 태그 */}
-        {tags.length > 0 && !isCompact && (
-          <div className="mb-2 flex gap-1">
-            {tags.map((tag, index) => (
-              <span
-                key={tag}
-                className={
-                  index === 0
-                    ? "rounded-md bg-[#6A8DFF] px-2 py-0.5 text-xs text-white"
-                    : "rounded-md border-[1.5px] border-[#6A8DFF] bg-white px-2 py-0.5 text-xs text-[#6A8DFF]"
-                }
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        {/* 하단: 정보 */}
+        <div className="flex flex-col gap-2">
+          {/* 카테고리 */}
+          {category && (
+            <span className="text-xs font-medium text-white/80">
+              {category}
+            </span>
+          )}
 
-        {/* 제목 */}
-        <h3 className={cn(
-          "font-medium text-white",
-          isCompact ? "mb-1 text-xs line-clamp-1" : "mb-2 text-sm"
-        )}>
-          {title}
-        </h3>
+          {/* 제목 */}
+          <h3 className="text-sm font-semibold text-white line-clamp-2">
+            {title}
+          </h3>
 
-        {/* 위치 */}
-        {location && (
-          <div className={cn(
-            "flex items-center gap-1 text-white/80",
-            isCompact ? "text-[10px]" : "mb-1 text-xs"
-          )}>
-            <MapPin className={isCompact ? "size-2.5" : "size-3"} />
-            <span className={isCompact ? "line-clamp-1" : ""}>{location}</span>
-          </div>
-        )}
-
-        {/* 날짜: variant에 따라 D-day 또는 날짜 표시 */}
-        {!isCompact && (
-          <div className="mb-2 flex items-center gap-1 text-xs">
-            <Calendar className="size-3 text-white/80" />
-            {variant === "countdown" && openDate ? (
-              <span className="font-medium text-[#FF0000]">
-                {formatDdayStart(openDate)}
-              </span>
-            ) : (
-              <span className="text-white/80">{period}</span>
-            )}
-          </div>
-        )}
-
-        {/* 경계선 */}
-        {!isCompact && <div className="mb-2 border-t border-white/30" />}
-
-        {/* 조회수 + 좋아요 */}
-        {!isCompact && (
-          <div className="flex items-center gap-3 text-white/80">
-            <div className="flex items-center gap-1">
-              <Eye className="size-3" />
-              <span className="text-xs">{viewCount.toLocaleString()}</span>
+          {/* 날짜 */}
+          {period && (
+            <div className="flex items-center gap-1 text-xs text-white/80">
+              <Calendar className="size-3" />
+              <span>{period}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Heart className="size-3" />
-              <span className="text-xs">{likeCount.toLocaleString()}</span>
+          )}
+
+          {/* 위치 */}
+          {location && (
+            <div className="flex items-center gap-1 text-xs text-white/80">
+              <MapPin className="size-3" />
+              <span>{location}</span>
             </div>
+          )}
+
+          {/* 자세히 보기 버튼 */}
+          <div className="mt-1 flex items-center justify-center rounded-md border border-white/60 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10">
+            자세히 보기
+            <ArrowRight className="ml-1 size-3" />
           </div>
-        )}
+        </div>
       </div>
     </Link>
   );

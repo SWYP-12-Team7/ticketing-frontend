@@ -3,14 +3,13 @@
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { OverlayEventCard, HotDealCard, type HotDealCardData } from "@/components/common";
+import { OverlayEventCard } from "@/components/common";
 import type { Event } from "@/types/event";
 
 interface ShowPickProps {
   className?: string;
   title: string;
   events?: Event[];
-  variant?: "normal" | "countdown" | "hotdeal";
 }
 
 // 임시 목데이터
@@ -81,7 +80,6 @@ export function ShowPick({
   className,
   title,
   events,
-  variant = "normal",
 }: ShowPickProps) {
   const [startIndex, setStartIndex] = useState(0);
 
@@ -118,19 +116,11 @@ export function ShowPick({
       </div>
 
       {/* 카드 그리드 */}
-      {variant === "hotdeal" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {visibleEvents.map((event) => (
-            <HotDealCard key={event.id} event={event as HotDealCardData} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {visibleEvents.map((event) => (
-            <OverlayEventCard key={event.id} event={event} variant={variant} />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {visibleEvents.map((event) => (
+          <OverlayEventCard key={event.id} event={event} />
+        ))}
+      </div>
     </section>
   );
 }

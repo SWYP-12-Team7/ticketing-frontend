@@ -6,20 +6,14 @@ import {
   ShowPick,
   AdBanner,
 } from "@/components/home";
-
-// SSR: 서버에서 초기 데이터 fetch
-// async function getHomeData() {
-//   const res = await fetch(`${process.env.API_URL}/home`, {
-//     cache: "no-store", // 또는 revalidate 설정
-//   });
-//   return res.json();
-// }
+import { MainDataLogger } from "@/components/home/MainDataLogger";
 
 export default async function Home() {
-  // const data = await getHomeData();
-
   return (
     <>
+      {/* 메인 API 응답 확인용 (콘솔) */}
+      <MainDataLogger />
+
       {/* 히어로 캐러셀 */}
       <MainCarousel />
 
@@ -38,14 +32,13 @@ export default async function Home() {
         <ShowPick
           className="py-6"
           title="오픈 예정 행사를 미리 만나보세요!"
-          variant="countdown"
         />
 
         {/* 광고 배너 */}
         <AdBanner className="py-6" />
 
         {/* Hot Deal */}
-        <ShowPick className="py-6" title="핫딜 행사" variant="hotdeal" />
+        <ShowPick className="py-6" title="핫딜 행사" />
 
         {/* 전문가 PICK 섹션 */}
         <ShowPick className="py-6" title="전문가 PICK!" />
