@@ -92,15 +92,19 @@ export function FilterSection({ className }: FilterSectionProps) {
   };
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (startDate) {
-      params.set("startDate", formatDateParam(startDate));
+    if (activeTab === "calendar") {
+      const params = new URLSearchParams();
+      if (startDate) {
+        params.set("startDate", formatDateParam(startDate));
+      }
+      if (endDate) {
+        params.set("endDate", formatDateParam(endDate));
+      }
+      const qs = params.toString();
+      router.push(qs ? `/calendarview?${qs}` : "/calendarview");
+    } else {
+      router.push("/mapview");
     }
-    if (endDate) {
-      params.set("endDate", formatDateParam(endDate));
-    }
-    const qs = params.toString();
-    router.push(qs ? `/search?${qs}` : "/search");
   };
 
   // 달력 그리드 생성
