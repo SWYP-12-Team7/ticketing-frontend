@@ -1,41 +1,27 @@
 "use client";
 
 import { Suspense, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { kakaoLogin } from "@/services/api/auth";
-import { useAuthStore } from "@/store/auth";
+import { useSearchParams } from "next/navigation";
+import { useKakaoLogin } from "@/queries/auth";
 
 function KakaoCallbackContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const login = useAuthStore((state) => state.login);
+  const { mutate: login } = useKakaoLogin();
   const isProcessing = useRef(false);
 
   useEffect(() => {
     const code = searchParams.get("code");
 
     if (!code) {
-      router.replace("/auth/login");
+      window.location.href = "/auth/login";
       return;
     }
 
     if (isProcessing.current) return;
     isProcessing.current = true;
 
-    const handleLogin = async () => {
-      try {
-        const response = await kakaoLogin(code);
-        console.log("✅ 카카오 로그인 성공:", response);
-        login(response.user, response.accessToken, response.refreshToken);
-        router.replace("/");
-      } catch (error) {
-        console.error("❌ 카카오 로그인 실패:", error);
-        router.replace("/auth/login");
-      }
-    };
-
-    handleLogin();
-  }, [searchParams, login, router]);
+    login(code);
+  }, [searchParams, login]);
 
   return (
     <div className="flex flex-col items-center gap-4">

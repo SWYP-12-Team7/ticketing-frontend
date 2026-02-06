@@ -11,3 +11,13 @@ export async function kakaoLogin(code: string): Promise<LoginResponse> {
 export async function logout(): Promise<void> {
   await axiosInstance.post("/auth/logout");
 }
+
+export interface OnboardingSettings {
+  preferredRegions: string[];
+  categories: string[];
+}
+
+export async function getOnboardingSettings(): Promise<OnboardingSettings> {
+  const response = await axiosInstance.get<OnboardingSettings>("/onboarding/settings");
+  return response.data;
+}
