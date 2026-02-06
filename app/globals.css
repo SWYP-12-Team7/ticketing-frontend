@@ -284,6 +284,20 @@
     display: none;
   }
 
+  /* Main carousel pagination */
+  .main-carousel-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .main-carousel-bullet-active {
+    background: #fa7228;
+    width: 24px;
+  }
+
   /* Custom checkbox */
   .custom-checkbox {
     appearance: none;

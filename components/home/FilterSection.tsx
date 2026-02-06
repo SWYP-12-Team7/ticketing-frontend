@@ -175,13 +175,13 @@ export function FilterSection({ className }: FilterSectionProps) {
       )}
     >
       {/* 탭 */}
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-2 rounded-[10px] bg-[#F9FAFB] p-1">
         <button
           onClick={() => setActiveTab("map")}
           className={cn(
             "flex items-center gap-1 rounded-[10px] px-[15.5px] py-[5px] text-[16px] font-semibold leading-[180%] transition-colors",
             activeTab === "map"
-              ? "text-[#202937] shadow-[0_0_6px_0_rgba(0,0,0,0.10),0_1px_2px_0_rgba(0,0,0,0.10)]"
+              ? "bg-white text-[#202937] shadow-[0_0_6px_0_rgba(0,0,0,0.10),0_1px_2px_0_rgba(0,0,0,0.10)]"
               : "text-[#6C7180]"
           )}
         >
@@ -201,7 +201,7 @@ export function FilterSection({ className }: FilterSectionProps) {
           className={cn(
             "flex items-center gap-1 rounded-[10px] px-[15.5px] py-[5px] text-[16px] font-semibold leading-[180%] transition-colors",
             activeTab === "calendar"
-              ? "text-[#202937] shadow-[0_0_6px_0_rgba(0,0,0,0.10),0_1px_2px_0_rgba(0,0,0,0.10)]"
+              ? "bg-white text-[#202937] shadow-[0_0_6px_0_rgba(0,0,0,0.10),0_1px_2px_0_rgba(0,0,0,0.10)]"
               : "text-[#6C7180]"
           )}
         >
