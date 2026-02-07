@@ -1,13 +1,13 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { OverlayEventCard, type Event } from "@/components/common";
+import { EventCard, type Event } from "@/components/common";
 import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { X } from "lucide-react";
 import Image from "next/image";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12;
 
 // 카테고리 칩 라벨 매핑
 const CHIP_LABELS: Record<string, Record<string, string>> = {
@@ -139,36 +139,24 @@ function SearchContent() {
     return filtered;
   }, [events, visibleTags, allTags.length, category, subcategory]);
 
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState(1);
 
   // 필터 사이드바 상태
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // 필터 변경 시 visibleCount 리셋
+  // 필터 변경 시 페이지 리셋
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
+    setPage(1);
   }, [visibleTags]);
-
-  useEffect(() => {
-    const target = sentinelRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setVisibleCount((prev) =>
-          Math.min(prev + PAGE_SIZE, filteredEvents.length)
-        );
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [filteredEvents.length]);
-
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredEvents.length / PAGE_SIZE)
+  );
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const visibleEvents = filteredEvents.slice(
+    startIndex,
+    startIndex + PAGE_SIZE
+  );
   const totalCount = filteredEvents.length;
 
   return (
@@ -258,37 +246,49 @@ function SearchContent() {
         </div>
 
         {/* 카드 그리드 */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {visibleEvents.map((event, index) => (
             <Fragment key={event.id}>
-              <OverlayEventCard event={event} />
-              {(index + 1) % PAGE_SIZE === 0 &&
-                index + 1 < visibleEvents.length && (
-                  <div className="col-span-full py-4">
-                    <div className="flex h-20 items-center justify-center rounded-lg bg-[#E5E5E5] text-lg font-semibold text-muted-foreground">
-                      배너
-                    </div>
-                  </div>
-                )}
+              <EventCard event={event} />
             </Fragment>
           ))}
         </div>
 
-        {/* 무한 스크롤 감지용 */}
-        <div ref={sentinelRef} className="h-12" />
-
-        {/* 로딩 인디케이터 */}
-        {visibleCount < filteredEvents.length && (
-          <div className="flex justify-center py-6">
-            <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
-          </div>
-        )}
-
-        {visibleCount >= filteredEvents.length && (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            모든 결과를 불러왔습니다.
-          </p>
-        )}
+        {/* 페이지네이션 */}
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+          >
+            이전
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNumber) => (
+              <button
+                key={`page-${pageNumber}`}
+                type="button"
+                onClick={() => setPage(pageNumber)}
+                className={
+                  pageNumber === page
+                    ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
+                    : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                }
+              >
+                {pageNumber}
+              </button>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+          >
+            다음
+          </button>
+        </div>
       </div>
 
       {/* 필터 사이드바 */}
