@@ -2,6 +2,8 @@
  * 캘린더 API 서비스
  *
  * - 월별 이벤트 요약 데이터 조회
+ * - 날짜별 이벤트 목록 조회
+ * - 인기 이벤트 목록 조회
  * - 더미 데이터 생성 (개발 환경)
  * - any 타입 완전 제거
  */
@@ -11,6 +13,9 @@ import type {
   CalendarMonthSummaryParams,
   CalendarMonthSummaryResponse,
   CalendarDaySummary,
+  CalendarEventsByDateParams,
+  CalendarPopularEventsParams,
+  CalendarEventListResponse,
   IsoMonth,
 } from "@/types/calendar";
 import { toValidIsoDate } from "@/components/calendarview/utils/calendar.validation";
@@ -106,6 +111,195 @@ export async function getCalendarMonthSummary(
         month,
         regionId: regionId ?? undefined,
         categories: categories?.length ? categories.join(",") : undefined,
+      },
+    }
+  );
+
+  return res.data;
+}
+
+/**
+ * 특정 날짜의 이벤트 목록 조회
+ *
+ * @description
+ * - 사용자가 캘린더에서 특정 날짜를 클릭했을 때 호출
+ * - 해당 날짜에 진행 중인 모든 이벤트 조회
+ * - 환경변수에 따라 더미 데이터 또는 실제 API 호출
+ * - 카테고리, 지역, 정렬 옵션 지원
+ *
+ * @param params - 날짜 및 필터 파라미터
+ * @returns 이벤트 목록 및 전체 개수
+ *
+ * @example
+ * ```ts
+ * const data = await getCalendarEventsByDate({
+ *   date: '2026-02-08',
+ *   categories: ['exhibition', 'popup'],
+ *   sortBy: 'popular',
+ * });
+ * console.log(data.events); // 이벤트 목록
+ * console.log(data.total);  // 전체 개수
+ * ```
+ */
+export async function getCalendarEventsByDate(
+  params: CalendarEventsByDateParams
+): Promise<CalendarEventListResponse> {
+  const {
+    date,
+    regionId,
+    categories,
+    subcategories,
+    sortBy = "popular",
+    page = 1,
+    size = 24,
+  } = params;
+
+  // 개발 환경에서 더미 데이터 사용
+  const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
+
+  if (USE_DUMMY_DATA) {
+    // 더미 데이터 로드 (동적 import로 번들 크기 최적화)
+    const { generateEventsByDate } = await import(
+      "@/lib/calendar-dummy-events"
+    );
+
+    // API 호출 시뮬레이션 (300ms 딜레이)
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    let events = generateEventsByDate(date);
+
+    // 카테고리 필터링
+    if (categories && categories.length > 0) {
+      events = events.filter((event) => {
+        const eventCategory =
+          event.category === "전시" ? "exhibition" : "popup";
+        return categories.includes(eventCategory);
+      });
+    }
+
+    // 서브카테고리 필터링
+    if (subcategories && subcategories.length > 0) {
+      events = events.filter(
+        (event) => event.subcategory && subcategories.includes(event.subcategory)
+      );
+    }
+
+    return {
+      events,
+      total: events.length,
+      page: 1,
+      totalPages: 1,
+    };
+  }
+
+  // 실제 API 호출
+  const res = await axiosInstance.get<CalendarEventListResponse>(
+    "/calendar/events",
+    {
+      params: {
+        date,
+        regionId: regionId ?? undefined,
+        categories: categories?.length ? categories.join(",") : undefined,
+        subcategories: subcategories?.length
+          ? subcategories.join(",")
+          : undefined,
+        sortBy,
+        page,
+        size,
+      },
+    }
+  );
+
+  return res.data;
+}
+
+/**
+ * 인기 이벤트 목록 조회
+ *
+ * @description
+ * - 날짜 선택이 없을 때 HOT EVENT 섹션에 표시할 인기 이벤트 조회
+ * - 좋아요 수, 조회수 등을 기준으로 정렬된 이벤트 목록
+ * - 환경변수에 따라 더미 데이터 또는 실제 API 호출
+ * - 카테고리, 지역, 정렬 옵션 지원
+ *
+ * @param params - 필터 및 개수 파라미터
+ * @returns 인기 이벤트 목록 및 전체 개수
+ *
+ * @example
+ * ```ts
+ * const data = await getCalendarPopularEvents({
+ *   limit: 24,
+ *   categories: ['exhibition', 'popup'],
+ *   sortBy: 'popular',
+ * });
+ * console.log(data.events); // 인기 이벤트 목록 (최대 24개)
+ * ```
+ */
+export async function getCalendarPopularEvents(
+  params: CalendarPopularEventsParams = {}
+): Promise<CalendarEventListResponse> {
+  const {
+    limit = 24,
+    regionId,
+    categories,
+    subcategories,
+    sortBy = "popular",
+    page = 1,
+    size,
+  } = params;
+
+  // 개발 환경에서 더미 데이터 사용
+  const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
+
+  if (USE_DUMMY_DATA) {
+    // 더미 데이터 로드 (동적 import)
+    const { generatePopularEvents } = await import(
+      "@/lib/calendar-dummy-events"
+    );
+
+    // API 호출 시뮬레이션
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    let events = generatePopularEvents(limit);
+
+    // 카테고리 필터링
+    if (categories && categories.length > 0) {
+      events = events.filter((event) => {
+        const eventCategory =
+          event.category === "전시" ? "exhibition" : "popup";
+        return categories.includes(eventCategory);
+      });
+    }
+
+    // 서브카테고리 필터링
+    if (subcategories && subcategories.length > 0) {
+      events = events.filter(
+        (event) => event.subcategory && subcategories.includes(event.subcategory)
+      );
+    }
+
+    return {
+      events,
+      total: events.length,
+      page: 1,
+      totalPages: 1,
+    };
+  }
+
+  // 실제 API 호출
+  const res = await axiosInstance.get<CalendarEventListResponse>(
+    "/calendar/popular",
+    {
+      params: {
+        limit,
+        regionId: regionId ?? undefined,
+        categories: categories?.length ? categories.join(",") : undefined,
+        subcategories: subcategories?.length
+          ? subcategories.join(",")
+          : undefined,
+        sortBy,
+        page,
+        size: size ?? limit,
       },
     }
   );

@@ -2,21 +2,20 @@
 
 import { X, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { DateRangePicker } from "@/components/common";
 
 interface FilterSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  resultCount?: number;
   onApply?: (filters: FilterState) => void;
 }
 
-interface FilterState {
+export interface FilterState {
+  type?: "POPUP" | "EXHIBITION" | "";
   regions: string[];
   categories: string[];
-  status: string[];
-  price: string[];
   startDate: Date | null;
   endDate: Date | null;
 }
@@ -29,24 +28,22 @@ const CATEGORIES = {
   팝업스토어: ["패션", "뷰티", "F&B", "캐릭터", "테크", "라이프스타일", "가구/인테리어"],
   전시: ["현대미술", "사진", "디자인", "일러스트", "회화", "조각", "설치미술"],
 };
+const CATEGORY_TYPE_MAP: Record<keyof typeof CATEGORIES, "POPUP" | "EXHIBITION"> = {
+  팝업스토어: "POPUP",
+  전시: "EXHIBITION",
+};
 
-const STATUS = ["행사 중", "행사 예정"];
-const PRICE = ["무료", "유료"];
-
-export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: FilterSidebarProps) {
+export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) {
   const [expandedSections, setExpandedSections] = useState({
     region: true,
     category: true,
     date: true,
-    status: true,
-    price: true,
   });
 
   const [filters, setFilters] = useState<FilterState>({
+    type: "",
     regions: [],
     categories: [],
-    status: [],
-    price: [],
     startDate: null,
     endDate: null,
   });
@@ -55,7 +52,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const toggleFilter = (type: "regions" | "categories" | "status" | "price", value: string) => {
+  const toggleFilter = (type: "regions" | "categories", value: string) => {
     setFilters((prev) => ({
       ...prev,
       [type]: prev[type].includes(value)
@@ -64,30 +61,55 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
     }));
   };
 
+  const toggleCategory = (
+    categoryType: "POPUP" | "EXHIBITION",
+    value: string
+  ) => {
+    setFilters((prev) => {
+      const nextCategories = prev.categories.includes(value)
+        ? prev.categories.filter((v) => v !== value)
+        : [...prev.categories, value];
+      return {
+        ...prev,
+        type: nextCategories.length > 0 ? categoryType : "",
+        categories: nextCategories,
+      };
+    });
+  };
+
   const handleApply = () => {
     onApply?.(filters);
     onClose();
   };
 
-  return (
-    <>
-      {/* 오버레이 */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 transition-opacity duration-300",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        style={{ backgroundColor: "rgba(18, 18, 18, 0.4)" }}
-        onClick={onClose}
-      />
+  if (typeof document === "undefined") return null;
 
-      {/* 사이드바 */}
-      <div
-        className={cn(
-          "fixed right-0 top-0 z-50 h-full w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
+  return (
+    createPortal(
+      <>
+        {/* 오버레이 */}
+        <div
+          className={cn(
+            "fixed inset-0 z-[70] transition-opacity duration-300",
+            isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
+          style={{ backgroundColor: "rgba(18, 18, 18, 0.4)" }}
+          onClick={onClose}
+        />
+
+        {/* 패널 기준 컨테이너: 1440px 기준 오른쪽에서 슬라이드 */}
+        <div
+          className={cn(
+            "fixed inset-y-0 left-1/2 z-[90] w-full max-w-[1440px] -translate-x-1/2",
+            isOpen ? "pointer-events-auto" : "pointer-events-none"
+          )}
+        >
+          <div
+            className={cn(
+              "absolute right-0 top-[100px] h-[calc(100vh-100px)] w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
+              isOpen ? "translate-x-0" : "translate-x-full pointer-events-none invisible"
+            )}
+          >
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <button type="button" onClick={onClose}>
@@ -162,7 +184,12 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
                         <button
                           key={item}
                           type="button"
-                          onClick={() => toggleFilter("categories", item)}
+                          onClick={() =>
+                            toggleCategory(
+                              CATEGORY_TYPE_MAP[group as keyof typeof CATEGORIES],
+                              item
+                            )
+                          }
                           className={cn(
                             "rounded-full border px-4 py-1.5 text-sm transition-colors",
                             filters.categories.includes(item)
@@ -209,77 +236,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             )}
           </div>
 
-          {/* 현황 */}
-          <div className="border-b border-border py-4">
-            <button
-              type="button"
-              onClick={() => toggleSection("status")}
-              className="flex w-full items-center justify-between py-2"
-            >
-              <span className="text-lg font-semibold">현황</span>
-              <ChevronUp
-                strokeWidth={1.5}
-                className={cn(
-                  "size-6 text-[#121212] transition-transform",
-                  !expandedSections.status && "rotate-180"
-                )}
-              />
-            </button>
-            {expandedSections.status && (
-              <div className="mt-3 space-y-3">
-                {STATUS.map((status) => (
-                  <label
-                    key={status}
-                    className="flex cursor-pointer items-center gap-3"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.status.includes(status)}
-                      onChange={() => toggleFilter("status", status)}
-                      className="custom-checkbox"
-                    />
-                    <span className="text-sm">{status}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 가격 */}
-          <div className="py-4">
-            <button
-              type="button"
-              onClick={() => toggleSection("price")}
-              className="flex w-full items-center justify-between py-2"
-            >
-              <span className="text-lg font-semibold">가격</span>
-              <ChevronUp
-                strokeWidth={1.5}
-                className={cn(
-                  "size-6 text-[#121212] transition-transform",
-                  !expandedSections.price && "rotate-180"
-                )}
-              />
-            </button>
-            {expandedSections.price && (
-              <div className="mt-3 space-y-3">
-                {PRICE.map((price) => (
-                  <label
-                    key={price}
-                    className="flex cursor-pointer items-center gap-3"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.price.includes(price)}
-                      onChange={() => toggleFilter("price", price)}
-                      className="custom-checkbox"
-                    />
-                    <span className="text-sm">{price}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* 현황/가격 섹션 제거 */}
         </div>
 
         {/* 하단 버튼 */}
@@ -302,10 +259,13 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
             onClick={handleApply}
             className="flex-1 rounded-full bg-orange py-4 text-center font-semibold text-white transition-colors hover:brightness-90"
           >
-            {resultCount}개 행사 검색
+            행사 검색
           </button>
         </div>
-      </div>
-    </>
+          </div>
+        </div>
+      </>,
+      document.body
+    )
   );
 }

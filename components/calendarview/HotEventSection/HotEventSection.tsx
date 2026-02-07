@@ -13,12 +13,12 @@ import React, { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
 import type { Event, EventSortOption } from "@/types/event";
-import type { IsoDate } from "@/types/calendar";
+import type { IsoDate, CalendarCategory } from "@/types/calendar";
 import type { CalendarCategoryActiveMap } from "../utils/calendar.query-state";
 import {
-  generateEventsByDate,
-  generatePopularEvents,
-} from "@/lib/calendar-dummy-events";
+  useCalendarEventsByDate,
+  useCalendarPopularEvents,
+} from "@/queries/calendar";
 import { formatDateKorean } from "../utils/calendar.formatters";
 import { EmptyState } from "./EmptyState";
 
@@ -83,7 +83,63 @@ export function HotEventSection({
   }, [activeCategories]);
 
   /**
-   * 이벤트 데이터 로드 + 카테고리 필터링
+   * activeCategories를 CalendarCategory[] 배열로 변환
+   * - React Query 훅에 전달하기 위함
+   */
+  const selectedCategoriesArray = useMemo(() => {
+    if (!activeCategories) return [];
+    const cats: CalendarCategory[] = [];
+    if (activeCategories.exhibition) cats.push("exhibition");
+    if (activeCategories.popup) cats.push("popup");
+    return cats;
+  }, [activeCategories]);
+
+  /**
+   * 날짜별 이벤트 API 조회
+   * - 날짜 선택됐을 때만 호출 (enabled 옵션)
+   */
+  const {
+    data: dateEventsData,
+    isLoading: isLoadingDateEvents,
+  } = useCalendarEventsByDate(
+    {
+      date: selectedDate!,
+      categories: selectedCategoriesArray,
+      sortBy,
+    },
+    {
+      enabled: !!selectedDate, // 날짜 선택됐을 때만 쿼리 실행
+    }
+  );
+
+  /**
+   * 인기 이벤트 API 조회
+   * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
+   */
+  const {
+    data: popularEventsData,
+    isLoading: isLoadingPopularEvents,
+  } = useCalendarPopularEvents(
+    {
+      limit: 24,
+      categories: selectedCategoriesArray,
+      sortBy,
+    },
+    {
+      enabled: !selectedDate, // 날짜 선택 안 됐을 때만 쿼리 실행
+    }
+  );
+
+  /**
+   * 로딩 상태 결정
+   * - 날짜 선택 여부에 따라 다른 쿼리의 로딩 상태 확인
+   */
+  const isLoading = selectedDate ? isLoadingDateEvents : isLoadingPopularEvents;
+
+  /**
+   * 이벤트 데이터 결정 + 필터링
+   * - API 데이터 우선 사용
+   * - events prop은 폴백으로 유지 (테스트용)
    */
   const displayEvents = useMemo(() => {
     // 카테고리 모두 체크 해제
@@ -97,16 +153,17 @@ export function HotEventSection({
 
     let allEvents: Event[] = [];
 
-    // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트
+    // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트 (API 또는 props)
     if (!selectedDate) {
-      allEvents = events || generatePopularEvents(24);
+      allEvents = popularEventsData?.events ?? events ?? [];
     }
-    // 2️⃣ 날짜 선택됨 → 해당 날짜 이벤트
+    // 2️⃣ 날짜 선택됨 → 해당 날짜 이벤트 (API 또는 props)
     else {
-      allEvents = events || generateEventsByDate(selectedDate);
+      allEvents = dateEventsData?.events ?? events ?? [];
     }
 
-    // 카테고리 필터링
+    // API에서 이미 카테고리 필터링이 되었지만, 추가 필터링 적용
+    // (activeCategories는 이미 API 요청에 포함되어 있으므로 중복이지만 안전장치)
     if (activeCategories) {
       allEvents = allEvents.filter((event) => {
         if (event.category === "전시" && !activeCategories.exhibition) {
@@ -129,7 +186,14 @@ export function HotEventSection({
     }
 
     return allEvents;
-  }, [selectedDate, events, activeCategories, selectedCategories]);
+  }, [
+    selectedDate,
+    popularEventsData,
+    dateEventsData,
+    events,
+    activeCategories,
+    selectedCategories,
+  ]);
 
   /**
    * 정렬 로직
@@ -237,27 +301,38 @@ export function HotEventSection({
       }}
     >
       <div className="hot-event-section__container">
-        {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
-        {eventsWithLikeState.length > 0 ? (
-          <ul
-            className="hot-event-section__grid grid"
-            style={{
-              gridTemplateColumns: "repeat(6, 193px)",
-              rowGap: "26px",
-              columnGap: "24px",
-            }}
-          >
-            {eventsWithLikeState.map((event) => (
-              <li key={event.id}>
-                <CalendarEventCard
-                  event={event}
-                  onLikeClick={handleLikeClick}
-                />
-              </li>
-            ))}
-          </ul>
+        {/* 로딩 상태 */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-pulse text-gray-500 text-sm">
+              이벤트를 불러오는 중...
+            </div>
+          </div>
         ) : (
-          emptyStateType && <EmptyState type={emptyStateType} />
+          <>
+            {/* 카드 그리드 또는 빈 상태 (Figma: 6열, gap: 26px 24px) */}
+            {eventsWithLikeState.length > 0 ? (
+              <ul
+                className="hot-event-section__grid grid"
+                style={{
+                  gridTemplateColumns: "repeat(6, 193px)",
+                  rowGap: "26px",
+                  columnGap: "24px",
+                }}
+              >
+                {eventsWithLikeState.map((event) => (
+                  <li key={event.id}>
+                    <CalendarEventCard
+                      event={event}
+                      onLikeClick={handleLikeClick}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              emptyStateType && <EmptyState type={emptyStateType} />
+            )}
+          </>
         )}
       </div>
     </section>
