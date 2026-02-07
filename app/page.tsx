@@ -7,7 +7,6 @@ import {
   AdBanner,
 } from "@/components/home";
 import { MainDataLogger } from "@/components/home/MainDataLogger";
-import A from './A';
 
 export default async function Home() {
   return (
