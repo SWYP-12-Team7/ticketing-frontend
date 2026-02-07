@@ -84,7 +84,7 @@ export function FilterSidebar({ isOpen, onClose, resultCount = 0, onApply }: Fil
       {/* 사이드바 */}
       <div
         className={cn(
-          "fixed right-0 top-0 z-50 h-full w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
+          "fixed right-0 top-[100px] z-50 h-[calc(100vh-100px)] w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
