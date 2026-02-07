@@ -63,20 +63,12 @@ Beatae qui a aut. Placeat id officia itaque assumenda amet cumque. Minima atque 
 Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.`,
   noticeImageUrl: "https://picsum.photos/seed/notice/800/600",
 
-  // 가격
-  prices: [
-    { name: "대인(만 19세 미만) 입장권", price: 60000 },
-    { name: "소인(만 19세 미만) 입장권", price: 60000 },
-  ],
+  // 가격 (API 없음: 빈 배열로 처리)
+  prices: [],
 
   // 공식채널
-  channels: [
-    { name: "공식 사이트 바로가기", url: "https://example.com" },
-    { name: "SNS 바로가기", url: "https://instagram.com" },
-  ],
+  channels: [{ name: "공식 사이트 바로가기", url: "https://example.com" }],
 };
-
-const TAB_IDS = ["intro", "info", "notice", "location", "price", "channel"];
 
 export default function DetailPage() {
   const params = useParams();
@@ -91,6 +83,60 @@ export default function DetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const isClickScrolling = useRef(false);
 
+  const detailData = useMemo(() => {
+    if (!data) {
+      return {
+        ...mockDetailData,
+        channels: mockDetailData.channels.slice(0, 1),
+      };
+    }
+    const period = data.startDate && data.endDate
+      ? `${data.startDate} ~ ${data.endDate}`
+      : mockDetailData.period;
+    const categoryLabel = type === "POPUP" ? "팝업" : "전시";
+    return {
+      ...mockDetailData,
+      images: [data.thumbnail || data.image || mockDetailData.images[0]],
+      category: `${categoryLabel}`,
+      title: data.title || mockDetailData.title,
+      description: data.subTitle || mockDetailData.description,
+      tags: data.tags?.length ? data.tags : mockDetailData.tags,
+      period,
+      address: data.address || mockDetailData.address,
+      viewCount: data.viewCount ?? mockDetailData.viewCount,
+      likeCount: data.likeCount ?? mockDetailData.likeCount,
+      introText: data.description || mockDetailData.introText,
+      introImageUrl: data.image || data.thumbnail || mockDetailData.introImageUrl,
+      noticeText: data.noticeText || "",
+      noticeImageUrl: data.noticeImageUrl,
+      channels: data.url
+        ? [{ name: "공식 사이트 바로가기", url: data.url }]
+        : mockDetailData.channels.slice(0, 1),
+    };
+  }, [data, type]);
+
+  const tabs = useMemo(() => {
+    const list = [
+      { id: "intro", label: "소개" },
+      { id: "info", label: "이용안내" },
+    ];
+    if (detailData.noticeText || detailData.noticeImageUrl) {
+      list.push({ id: "notice", label: "공지사항" });
+    }
+    list.push({ id: "location", label: "장소" });
+    list.push({ id: "price", label: "가격" });
+    if (detailData.channels?.length) {
+      list.push({ id: "channel", label: "공식채널" });
+    }
+    return list;
+  }, [detailData.noticeText, detailData.noticeImageUrl, detailData.channels]);
+
+  useEffect(() => {
+    if (!tabs.find((tab) => tab.id === activeTab)) {
+      setActiveTab(tabs[0]?.id ?? "intro");
+    }
+  }, [tabs, activeTab]);
+
   // 스크롤에 따라 탭 변경
   useEffect(() => {
     const headerHeight = 56;
@@ -100,7 +146,7 @@ export default function DetailPage() {
     const handleScroll = () => {
       if (isClickScrolling.current) return;
 
-      for (const id of TAB_IDS) {
+      for (const { id } of tabs) {
         const element = document.getElementById(id);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -114,7 +160,7 @@ export default function DetailPage() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [tabs]);
 
   const handleTabChange = (tab: string) => {
     isClickScrolling.current = true;
@@ -142,31 +188,6 @@ export default function DetailPage() {
   const handleBackClick = () => {
     window.history.back();
   };
-
-  const detailData = useMemo(() => {
-    if (!data) return mockDetailData;
-    const period = data.startDate && data.endDate
-      ? `${data.startDate} ~ ${data.endDate}`
-      : mockDetailData.period;
-    const categoryLabel = type === "POPUP" ? "팝업" : "전시";
-    return {
-      ...mockDetailData,
-      images: [data.thumbnail || data.image || mockDetailData.images[0]],
-      category: `${categoryLabel}`,
-      title: data.title || mockDetailData.title,
-      description: data.subTitle || mockDetailData.description,
-      tags: data.tags?.length ? data.tags : mockDetailData.tags,
-      period,
-      address: data.address || mockDetailData.address,
-      viewCount: data.viewCount ?? mockDetailData.viewCount,
-      likeCount: data.likeCount ?? mockDetailData.likeCount,
-      introText: data.description || mockDetailData.introText,
-      introImageUrl: data.image || data.thumbnail || mockDetailData.introImageUrl,
-      channels: data.url
-        ? [{ name: "공식 사이트 바로가기", url: data.url }]
-        : mockDetailData.channels,
-    };
-  }, [data, type]);
 
   if (isLoading && !data) {
     return (
@@ -198,7 +219,11 @@ export default function DetailPage() {
       />
 
       {/* 탭 네비게이션 */}
-      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        tabs={tabs}
+      />
 
       {/* 소개 섹션 */}
       <ContentSection
@@ -218,25 +243,27 @@ export default function DetailPage() {
       />
 
       {/* 공지사항 섹션 */}
-      <ContentSection
-        id="notice"
-        title="공지사항"
-        text={detailData.noticeText}
-        imageUrl={detailData.noticeImageUrl}
-        maxHeight={280}
-      />
+      {(detailData.noticeText || detailData.noticeImageUrl) && (
+        <ContentSection
+          id="notice"
+          title="공지사항"
+          text={detailData.noticeText}
+          imageUrl={detailData.noticeImageUrl}
+          maxHeight={280}
+        />
+      )}
 
       {/* 장소 섹션 */}
-      <LocationSection id="location" address={mockDetailData.address} />
+      <LocationSection id="location" address={detailData.address} />
 
-      {/* 주변 인기 카페·식당 */}
-      <NearbyPlaces />
+      {/* 주변 인기 카페·식당  */} {/* 현재 API 부재 */}
+      {/* <NearbyPlaces /> */} 
 
       {/* 가격 섹션 */}
-      <PriceSection id="price" prices={mockDetailData.prices} />
+      <PriceSection id="price" prices={data ? [] : mockDetailData.prices} />
 
       {/* 공식채널 섹션 */}
-      <OfficialChannel id="channel" channels={mockDetailData.channels} />
+      <OfficialChannel id="channel" channels={detailData.channels} />
 
       {/* 가까운 팝업스토어 */}
       <RelatedPopups />

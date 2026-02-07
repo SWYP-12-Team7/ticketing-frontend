@@ -4,19 +4,20 @@ import { cn } from "@/lib/utils";
 
 interface PriceItem {
   name: string;
-  price: number;
+  price?: number;
 }
 
 interface PriceSectionProps {
   className?: string;
   id?: string;
-  prices: PriceItem[];
+  prices?: PriceItem[];
 }
 
 export function PriceSection({ className, id, prices }: PriceSectionProps) {
-  if (!prices || prices.length === 0) {
-    return null;
-  }
+  const hasPrices = !!prices && prices.length > 0;
+  const rows = hasPrices
+    ? prices
+    : [{ name: "입장권", price: undefined }];
 
   return (
     <section className={cn("border-t border-border py-10", className)} id={id}>
@@ -24,14 +25,16 @@ export function PriceSection({ className, id, prices }: PriceSectionProps) {
         <h2 className="mb-6 text-lg font-bold text-foreground">가격</h2>
 
         <div className="space-y-3">
-          {prices.map((item, index) => (
+          {rows.map((item, index) => (
             <div
               key={index}
-              className="flex items-center justify-between rounded-lg border border-border bg-white px-5 py-4"
+              className="flex items-center justify-between rounded-lg  border-border bg-whitepx-5 py-4"
             >
-              <span className="text-sm text-foreground">{item.name}</span>
-              <span className="text-sm font-semibold text-[#6A8DFF]">
-                {item.price.toLocaleString()}원
+              <span className="text-md font-semibold text-[#4B5462]">{item.name}</span>
+              <span className="text-sm font-semibold text-basic">
+                {typeof item.price === "number"
+                  ? `${item.price.toLocaleString()}원`
+                  : "현장 문의 필요"}
               </span>
             </div>
           ))}

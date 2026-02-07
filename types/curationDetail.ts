@@ -17,6 +17,8 @@ export interface CurationDetailResponse {
   url: string;
   description: string;
   image: string;
+  noticeText?: string;
+  noticeImageUrl?: string;
   reservationStatus: "ALL" | "FREE" | "PAID" | string;
   likeCount: number;
   viewCount: number;

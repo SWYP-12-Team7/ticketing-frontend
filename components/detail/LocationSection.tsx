@@ -58,11 +58,11 @@ export function LocationSection({
         </div>
 
         {/* 카카오맵 자리 */}
-        <div className="flex h-[300px] items-center justify-center rounded-lg border border-border bg-muted">
+        {/* <div className="flex h-[300px] items-center justify-center rounded-lg border border-border bg-muted">
           <span className="text-sm text-muted-foreground">
             카카오맵이 들어갈 자리입니다
           </span>
-        </div>
+        </div> */}
       </div>
     </section>
   );
