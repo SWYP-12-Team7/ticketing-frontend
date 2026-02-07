@@ -1,4 +1,4 @@
-export { EmptyState } from "./EmptyState";
+export { EmptyState } from "./404/EmptyState";
 export { EventCard } from "./EventCard";
 export { OverlayEventCard } from "./OverlayEventCard";
 export { HotDealCard, type HotDealCardData } from "./HotDealCard";
