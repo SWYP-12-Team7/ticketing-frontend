@@ -35,11 +35,11 @@ export function EmptyState({ type }: EmptyStateProps) {
   // type === "no-events"
   return (
     <div className="empty-state-with-character relative flex flex-col items-center justify-center py-20">
-      {/* 스위프 캐릭터 (Figma: 211px × 292px) */}
+      {/* 빈 상태 아이콘 (돋보기 + 위치 핀, 크기: 211px × 292px) */}
       <div className="relative z-10 mb-6">
         <Image
-          src="/images/swyp-character.png"
-          alt=""
+          src="/images/404/emptyImg2.png"
+          alt="검색 결과 없음"
           width={211}
           height={292}
           priority
