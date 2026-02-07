@@ -5,60 +5,37 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Info } from "lucide-react";
+import { EmptyState } from "@/components/common";
+import { usePopular } from "@/queries/main";
+import type {
+  PopularItem,
+  PopularPeriod,
+} from "@/types/popular";
 
-interface RankingEvent {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  imageUrl: string;
-  dday?: string;
-  isBookmarked?: boolean;
-}
+type TabKey = "realtime" | "weekly" | "monthly";
+type CategoryKey = "popup" | "exhibition";
+
+const TAB_TO_PERIOD: Record<TabKey, PopularPeriod> = {
+  realtime: "daily",
+  weekly: "weekly",
+  monthly: "monthly",
+};
 
 interface RankingProps {
   className?: string;
-  events?: RankingEvent[];
 }
 
-export function Ranking({ className, events }: RankingProps) {
-  const [activeTab, setActiveTab] = useState<
-    "realtime" | "weekly" | "daily"
-  >("realtime");
-  const [activeCategory, setActiveCategory] = useState<
-    "popup" | "exhibit"
-  >("popup");
+export function Ranking({ className }: RankingProps) {
+  const [activeTab, setActiveTab] =
+    useState<TabKey>("realtime");
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryKey>("popup");
 
-  // 더미 데이터
-  const defaultEvents: RankingEvent[] = [
-    {
-      id: "1",
-      title: "현대미술 컬렉션: 새로운 시선",
-      location: "서울 마포구 합정동",
-      date: "2024.01.20 - 2024.03.20",
-      imageUrl: "https://picsum.photos/id/1035/300/400",
-      isBookmarked: true,
-    },
-    {
-      id: "2",
-      title: "현대미술 컬렉션: 새로운 시선",
-      location: "서울 마포구 합정동",
-      date: "2024.01.20 - 2024.03.20",
-      imageUrl: "https://picsum.photos/id/1025/300/400",
-      isBookmarked: false,
-    },
-    {
-      id: "3",
-      title: "현대미술 컬렉션: 새로운 시선",
-      location: "서울 마포구 합정동",
-      date: "2024.01.20 - 2024.03.20",
-      dday: "D-7 시작",
-      imageUrl: "https://picsum.photos/id/1011/300/400",
-      isBookmarked: false,
-    },
-  ];
+  const { data } = usePopular();
 
-  const displayEvents = events || defaultEvents;
+  const period = TAB_TO_PERIOD[activeTab];
+  const items: PopularItem[] =
+    data?.data?.[activeCategory]?.[period] ?? [];
 
   return (
     <div
@@ -81,7 +58,7 @@ export function Ranking({ className, events }: RankingProps) {
               [
                 { key: "realtime", label: "실시간 급상승" },
                 { key: "weekly", label: "주간 베스트" },
-                { key: "daily", label: "일간 베스트" },
+                { key: "monthly", label: "월간 베스트" },
               ] as const
             ).map((tab) => (
               <button
@@ -114,10 +91,12 @@ export function Ranking({ className, events }: RankingProps) {
                 팝업
               </button>
               <button
-                onClick={() => setActiveCategory("exhibit")}
+                onClick={() =>
+                  setActiveCategory("exhibition")
+                }
                 className={cn(
                   "rounded-full border px-4.5 py-[6px] text-[14px] font-normal",
-                  activeCategory === "exhibit"
+                  activeCategory === "exhibition"
                     ? "border-transparent bg-[#6C7180] text-white"
                     : "border-[#D5D9E0] bg-white text-[#4B5462]"
                 )}
@@ -133,45 +112,44 @@ export function Ranking({ className, events }: RankingProps) {
         </div>
 
         <div className="py-2.5 flex flex-1 flex-col gap-2 overflow-hidden">
-          {displayEvents.map((event, index) => (
-            <Link
-              key={event.id}
-              href={`/detail/${event.id}`}
-              className={cn(
-                "flex items-center gap-3 rounded-[8px] px-2 py-3 transition-colors hover:bg-[#F3F4F6]",
-                index !== displayEvents.length - 1 &&
-                  "border-b border-[#E8E8E8]"
-              )}
-            >
-              <div className="w-6 text-center text-[16px] font-semibold text-[#5B5F66]">
-                {index + 1}
-              </div>
-              <div className="relative h-[84px] w-[60px] p-2.5 shrink-0 overflow-hidden rounded-[4px] bg-[#EAEAEA]">
-                <Image
-                  src={event.imageUrl}
-                  alt={event.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="min-w-0">
-                <h4 className="truncate text-[15px] font-semibold text-[#111111]">
-                  {event.title}
-                </h4>
-                <p className="mt-1 text-[12px] text-[#7A7A7A]">
-                  {event.location}
-                </p>
-                <div className="mt-1 flex items-center gap-2 text-[12px] text-[#7A7A7A]">
-                  <span>{event.date}</span>
-                  {event.dday && (
-                    <span className="font-semibold text-[#E74C3C]">
-                      {event.dday}
-                    </span>
-                  )}
+          {items.length === 0 ? (
+            <EmptyState message="아직 인기 행사가 없어요" />
+          ) : (
+            items.map((item, index) => (
+              <Link
+                key={item.id}
+                href={`/detail/${item.id}`}
+                className={cn(
+                  "flex items-center gap-3 rounded-[8px] px-2 py-3 transition-colors hover:bg-[#F3F4F6]",
+                  index !== items.length - 1 &&
+                    "border-b border-[#E8E8E8]"
+                )}
+              >
+                <div className="w-6 text-center text-[16px] font-semibold text-[#5B5F66]">
+                  {item.rank}
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="relative h-[84px] w-[60px] p-2.5 shrink-0 overflow-hidden rounded-[4px] bg-[#EAEAEA]">
+                  <Image
+                    src={item.thumbnail}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="truncate text-[15px] font-semibold text-[#111111]">
+                    {item.title}
+                  </h4>
+                  <p className="mt-1 text-[12px] text-[#7A7A7A]">
+                    {item.address}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-[12px] text-[#7A7A7A]">
+                    <span>{item.period}</span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
