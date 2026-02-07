@@ -1,9 +1,10 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { EventCard, type Event } from "@/components/common";
-import { FilterSidebar } from "@/components/search/FilterSidebar";
+import { EmptyState } from "@/components/common/404/EmptyState";
+import { FilterSidebar, type FilterState } from "@/components/search/FilterSidebar";
 import Image from "next/image";
 import { searchCurations } from "@/services/api/search";
 
@@ -27,9 +28,20 @@ function SearchContent() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
+    type: "",
+    regions: [],
+    categories: [],
+    startDate: null,
+    endDate: null,
+  });
 
   const [page, setPage] = useState(1);
 
+  const hasClientFilters =
+    appliedFilters.regions.length > 0 ||
+    !!appliedFilters.startDate ||
+    !!appliedFilters.endDate;
 
   // 필터 사이드바 상태
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -37,19 +49,33 @@ function SearchContent() {
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setPage(1);
-  }, [keyword, type, category, subcategory, size]);
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    appliedFilters.regions,
+    appliedFilters.startDate,
+    appliedFilters.endDate,
+  ]);
 
   useEffect(() => {
+    if (hasClientFilters) return;
     const controller = new AbortController();
     const run = async () => {
       setIsLoading(true);
       try {
-        const categoryParam = subcategory || category;
+        const selectedCategory =
+          appliedFilters.categories[0] || subcategory || category;
+        const typeParam = appliedFilters.type || type;
         const { events: fetched, total, totalPages: pages } =
           await searchCurations({
             keyword: keyword || undefined,
-            type: type || undefined,
-            category: categoryParam || undefined,
+            type: typeParam || undefined,
+            category: selectedCategory || undefined,
             page,
             size,
           });
@@ -70,8 +96,124 @@ function SearchContent() {
     };
     run();
     return () => controller.abort();
-  }, [keyword, type, category, subcategory, page, size]);
-  const visibleEvents = events;
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    page,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    hasClientFilters,
+  ]);
+
+  useEffect(() => {
+    if (!hasClientFilters) return;
+    const controller = new AbortController();
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const selectedCategory =
+          appliedFilters.categories[0] || subcategory || category;
+        const typeParam = appliedFilters.type || type;
+        const baseParams = {
+          keyword: keyword || undefined,
+          type: typeParam || undefined,
+          category: selectedCategory || undefined,
+          size,
+        };
+        const first = await searchCurations({
+          ...baseParams,
+          page: 1,
+        });
+        if (controller.signal.aborted) return;
+        let allEvents = first.events;
+        const pages = first.totalPages;
+        if (pages > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: pages - 1 }, (_, i) =>
+              searchCurations({ ...baseParams, page: i + 2 })
+            )
+          );
+          if (controller.signal.aborted) return;
+          allEvents = allEvents.concat(
+            ...rest.flatMap((response) => response.events)
+          );
+        }
+        if (controller.signal.aborted) return;
+        setEvents(allEvents);
+        setTotalCount(allEvents.length);
+        setTotalPages(Math.max(1, Math.ceil(allEvents.length / size)));
+      } catch {
+        if (controller.signal.aborted) return;
+        setEvents([]);
+        setTotalCount(0);
+        setTotalPages(1);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    run();
+    return () => controller.abort();
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    appliedFilters.regions,
+    appliedFilters.startDate,
+    appliedFilters.endDate,
+    hasClientFilters,
+  ]);
+  const visibleEvents = useMemo(() => {
+    const { startDate, endDate, regions } = appliedFilters;
+    const hasRegionFilter = regions.length > 0;
+    const hasDateFilter = !!startDate || !!endDate;
+    if (!hasRegionFilter && !hasDateFilter) return events;
+
+    const toDate = (value: string) => {
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    const parsePeriod = (period?: string) => {
+      if (!period) return { start: null, end: null };
+      const parts = period.split("~").map((p) => p.trim());
+      const start = toDate(parts[0] || "");
+      const end = toDate(parts[1] || "");
+      return { start, end };
+    };
+
+    return events.filter((event) => {
+      if (hasRegionFilter && event.location) {
+        if (!regions.includes(event.location)) return false;
+      } else if (hasRegionFilter) {
+        return false;
+      }
+      const { start, end } = parsePeriod(event.period);
+      if (!start || !end) return !hasDateFilter;
+      const filterStart = startDate ?? start;
+      const filterEnd = endDate ?? end;
+      return start <= filterEnd && end >= filterStart;
+    });
+  }, [events, appliedFilters]);
+
+  const pagedEvents = useMemo(() => {
+    if (!hasClientFilters) return visibleEvents;
+    const start = (page - 1) * size;
+    return visibleEvents.slice(start, start + size);
+  }, [visibleEvents, hasClientFilters, page, size]);
+
+  const displayCount = hasClientFilters ? visibleEvents.length : totalCount;
+  const displayTotalPages = hasClientFilters
+    ? Math.max(1, Math.ceil(visibleEvents.length / size))
+    : totalPages;
 
   return (
     <main className="min-h-screen bg-background py-5">
@@ -80,7 +222,7 @@ function SearchContent() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-medium text-orange">
-              {totalCount}
+              {displayCount}
             </span>
             <span className="text-2xl font-medium text-foreground mb-5">
               개의 행사가 검색되었어요!
@@ -127,56 +269,64 @@ function SearchContent() {
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
         )}
-        <div className="flex flex-wrap gap-6">
-          {visibleEvents.map((event, index) => (
-            <Fragment key={event.id}>
-              <EventCard event={event} />
-            </Fragment>
-          ))}
-        </div>
+        {visibleEvents.length === 0 && !isLoading ? (
+          <div className="min-h-[calc(100vh-100px-220px)] flex items-center justify-center">
+  <EmptyState message="일치하는 데이터가 없습니다" />
+</div>
+        ) : (
+          <div className="flex flex-wrap gap-6">
+            {pagedEvents.map((event) => (
+              <Fragment key={event.id}>
+                <EventCard event={event} />
+              </Fragment>
+            ))}
+          </div>
+        )}
 
         {/* 페이지네이션 */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
-          >
-            이전
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-            (pageNumber) => (
-              <button
-                key={`page-${pageNumber}`}
-                type="button"
-                onClick={() => setPage(pageNumber)}
-                className={
-                  pageNumber === page
-                    ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
-                    : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
-                }
-              >
-                {pageNumber}
-              </button>
-            )
-          )}
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
-          >
-            다음
-          </button>
-        </div>
+        {visibleEvents.length > 0 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+            >
+              이전
+            </button>
+            {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <button
+                  key={`page-${pageNumber}`}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  className={
+                    pageNumber === page
+                      ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
+                      : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                  }
+                >
+                  {pageNumber}
+                </button>
+              )
+            )}
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(displayTotalPages, p + 1))}
+              disabled={page === displayTotalPages}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+            >
+              다음
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 필터 사이드바 */}
       <FilterSidebar
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        resultCount={totalCount}
+        onApply={setAppliedFilters}
       />
     </main>
   );
