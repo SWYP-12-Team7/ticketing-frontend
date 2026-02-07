@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import type {
   PopularItem,
   PopularPeriod,
 } from "@/types/popular";
+import { getNowStampText } from "@/lib/time";
 
 type TabKey = "realtime" | "weekly" | "monthly";
 type CategoryKey = "popup" | "exhibition";
@@ -32,6 +33,7 @@ export function Ranking({ className }: RankingProps) {
     useState<CategoryKey>("popup");
 
   const { data } = usePopular();
+   const nowTime = useMemo(() => getNowStampText(), []);
 
   const period = TAB_TO_PERIOD[activeTab];
   const items: PopularItem[] =
@@ -105,7 +107,8 @@ export function Ranking({ className }: RankingProps) {
               </button>
             </div>
             <div className="flex items-center gap-1 text-[12px] text-[#6C7180] font-normal">
-              <span>오늘 00:00 기준</span>
+              <span>{nowTime}</span>
+              
               <Info className="size-3.5" />
             </div>
           </div>

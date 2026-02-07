@@ -18,7 +18,7 @@ export function EmptyState({
       )}
     >
       <Image
-        src="/images/404/emptyImg.svg"
+        src="/images/404/emptyImg2.png"
         alt="데이터 없음"
         width={120}
         height={210}

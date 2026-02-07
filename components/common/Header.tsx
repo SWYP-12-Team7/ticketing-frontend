@@ -6,7 +6,7 @@ import Image from "next/image";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 interface HeaderProps {
@@ -15,6 +15,7 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -136,7 +137,13 @@ export function Header({ className }: HeaderProps) {
         <div className="flex items-center gap-4">
           {/* 검색창 섹션 */}
           <div className="flex items-center">
-            <SearchDropdown />
+            <SearchDropdown
+              onSearch={(keyword) => {
+                const params = new URLSearchParams();
+                params.set("keyword", keyword);
+                router.push(`/search?${params.toString()}`);
+              }}
+            />
           </div>
 
           {/* 아이콘 섹션 */}
