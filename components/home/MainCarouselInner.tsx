@@ -121,7 +121,7 @@ export function MainCarouselInner() {
             return (
               <SwiperSlide
                 key={slide._key}
-                className="flex items-center px-2"
+                className="flex w-[260px] items-center px-2 md:w-[320px]"
               >
                 <CarouselCard
                   data={slide}

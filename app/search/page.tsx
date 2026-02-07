@@ -1,186 +1,230 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { OverlayEventCard, type Event } from "@/components/common";
-import { FilterSidebar } from "@/components/search/FilterSidebar";
-import { X } from "lucide-react";
+import { EventCard, type Event } from "@/components/common";
+import { EmptyState } from "@/components/common/404/EmptyState";
+import { FilterSidebar, type FilterState } from "@/components/search/FilterSidebar";
 import Image from "next/image";
+import { searchCurations } from "@/services/api/search";
 
-const PAGE_SIZE = 8;
-
-// 카테고리 칩 라벨 매핑
-const CHIP_LABELS: Record<string, Record<string, string>> = {
-  popup: {
-    all: "팝업전체",
-    fashion: "패션",
-    beauty: "뷰티",
-    fnb: "F&B",
-    character: "캐릭터",
-    tech: "테크",
-    lifestyle: "라이프스타일",
-    furniture: "기구 & 인테리어",
-  },
-  exhibition: {
-    all: "전시전체",
-    art: "현대미술",
-    photo: "사진",
-    design: "디자인",
-    illustration: "일러스트",
-    painting: "회화",
-    sculpture: "조각",
-    installation: "설치미술",
-  },
-};
-
-const baseEvent: Omit<Event, "id"> = {
-  title: "현대미술 컬렉션: 새로운 시선",
-  category: "전시",
-  location: "서울 코엑스",
-  period: "2024.01.20 - 2024.03.20",
-  imageUrl: "/images/mockImg.png",
-  likeCount: 18353,
-  viewCount: 2444,
-  tags: ["전시", "현대미술"],
-};
+const DEFAULT_PAGE_SIZE = 15;
 
 function SearchContent() {
   const searchParams = useSearchParams();
 
   // URL에서 파라미터 추출
   const keyword = searchParams.get("keyword") || "";
+  const type = searchParams.get("type") || "";
   const category = searchParams.get("category") || "";
   const subcategory = searchParams.get("subcategory") || "";
-
-  // 활성 칩 라벨 계산
-  const activeChipLabel = category && subcategory 
-    ? CHIP_LABELS[category]?.[subcategory] || null
-    : null;
-
-  // 목데이터 (나중에 API 연동)
-  const events = useMemo(
-    () =>
-      Array.from({ length: 32 }, (_, index) => ({
-        ...baseEvent,
-        id: String(index + 1),
-        // 다양한 태그를 가진 목데이터
-        tags:
-          index % 3 === 0
-            ? ["전시", "현대미술"]
-            : index % 3 === 1
-              ? ["팝업", "캐릭터"]
-              : ["전시", "현대미술"],
-      })),
-    []
+  const sizeParamRaw = searchParams.get("size");
+  const size = Math.max(
+    1,
+    Number(sizeParamRaw || DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE
   );
 
-  // 검색 결과 카드들에서 태그 추출 (중복 제거)
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    events.forEach((event) => {
-      event.tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet);
-  }, [events]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
+    type: "",
+    regions: [],
+    categories: [],
+    startDate: null,
+    endDate: null,
+  });
 
-  // 표시할 태그 목록 (삭제된 태그 제외)
-  const [visibleTags, setVisibleTags] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
 
-  // allTags가 변경되면 visibleTags 초기화
-  useEffect(() => {
-    setVisibleTags(allTags);
-  }, [allTags]);
-
-  // 태그 삭제
-  const handleRemoveTag = (tag: string) => {
-    setVisibleTags((prev) => prev.filter((t) => t !== tag));
-  };
-
-  // 검색어 태그 삭제
-  const handleRemoveKeyword = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("keyword");
-    window.history.replaceState(null, "", `?${params.toString()}`);
-  };
-
-  // 카테고리 칩 삭제
-  const handleRemoveCategory = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("category");
-    params.delete("subcategory");
-    window.history.replaceState(null, "", `/search?${params.toString()}`);
-    window.location.reload();
-  };
-
-  // 필터링된 이벤트
-  const filteredEvents = useMemo(() => {
-    let filtered = events;
-
-    // 카테고리/서브카테고리 필터링 (TODO: 실제 API 연동 시 서버에서 처리)
-    if (category && subcategory) {
-      // 현재는 목데이터이므로 태그 기반 필터링
-      // 실제로는 API 호출 시 category/subcategory 파라미터 전달
-      const chipLabel = CHIP_LABELS[category]?.[subcategory];
-      if (chipLabel) {
-        // 목데이터 필터링 로직 (실제 구현 시 삭제)
-        filtered = filtered.filter((event) =>
-          event.tags.some((tag) => tag.includes(chipLabel) || chipLabel.includes(tag))
-        );
-      }
-    }
-
-    // 태그 필터링 (삭제되지 않은 태그를 가진 이벤트만)
-    if (visibleTags.length !== allTags.length) {
-      filtered = filtered.filter((event) =>
-        event.tags.some((tag) => visibleTags.includes(tag))
-      );
-    }
-
-    return filtered;
-  }, [events, visibleTags, allTags.length, category, subcategory]);
-
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const hasClientFilters =
+    appliedFilters.regions.length > 0 ||
+    !!appliedFilters.startDate ||
+    !!appliedFilters.endDate;
 
   // 필터 사이드바 상태
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // 필터 변경 시 visibleCount 리셋
+  // 필터 변경 시 페이지 리셋
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [visibleTags]);
+    setPage(1);
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    appliedFilters.regions,
+    appliedFilters.startDate,
+    appliedFilters.endDate,
+  ]);
 
   useEffect(() => {
-    const target = sentinelRef.current;
-    if (!target) return;
+    if (hasClientFilters) return;
+    const controller = new AbortController();
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const selectedCategory =
+          appliedFilters.categories[0] || subcategory || category;
+        const typeParam = appliedFilters.type || type;
+        const { events: fetched, total, totalPages: pages } =
+          await searchCurations({
+            keyword: keyword || undefined,
+            type: typeParam || undefined,
+            category: selectedCategory || undefined,
+            page,
+            size,
+          });
+        if (controller.signal.aborted) return;
+        setEvents(fetched);
+        setTotalCount(total);
+        setTotalPages(pages);
+      } catch {
+        if (controller.signal.aborted) return;
+        setEvents([]);
+        setTotalCount(0);
+        setTotalPages(1);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    run();
+    return () => controller.abort();
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    page,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    hasClientFilters,
+  ]);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setVisibleCount((prev) =>
-          Math.min(prev + PAGE_SIZE, filteredEvents.length)
-        );
-      },
-      { rootMargin: "200px" }
-    );
+  useEffect(() => {
+    if (!hasClientFilters) return;
+    const controller = new AbortController();
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const selectedCategory =
+          appliedFilters.categories[0] || subcategory || category;
+        const typeParam = appliedFilters.type || type;
+        const baseParams = {
+          keyword: keyword || undefined,
+          type: typeParam || undefined,
+          category: selectedCategory || undefined,
+          size,
+        };
+        const first = await searchCurations({
+          ...baseParams,
+          page: 1,
+        });
+        if (controller.signal.aborted) return;
+        let allEvents = first.events;
+        const pages = first.totalPages;
+        if (pages > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: pages - 1 }, (_, i) =>
+              searchCurations({ ...baseParams, page: i + 2 })
+            )
+          );
+          if (controller.signal.aborted) return;
+          allEvents = allEvents.concat(
+            ...rest.flatMap((response) => response.events)
+          );
+        }
+        if (controller.signal.aborted) return;
+        setEvents(allEvents);
+        setTotalCount(allEvents.length);
+        setTotalPages(Math.max(1, Math.ceil(allEvents.length / size)));
+      } catch {
+        if (controller.signal.aborted) return;
+        setEvents([]);
+        setTotalCount(0);
+        setTotalPages(1);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    run();
+    return () => controller.abort();
+  }, [
+    keyword,
+    type,
+    category,
+    subcategory,
+    size,
+    appliedFilters.type,
+    appliedFilters.categories,
+    appliedFilters.regions,
+    appliedFilters.startDate,
+    appliedFilters.endDate,
+    hasClientFilters,
+  ]);
+  const visibleEvents = useMemo(() => {
+    const { startDate, endDate, regions } = appliedFilters;
+    const hasRegionFilter = regions.length > 0;
+    const hasDateFilter = !!startDate || !!endDate;
+    if (!hasRegionFilter && !hasDateFilter) return events;
 
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [filteredEvents.length]);
+    const toDate = (value: string) => {
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
 
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
-  const totalCount = filteredEvents.length;
+    const parsePeriod = (period?: string) => {
+      if (!period) return { start: null, end: null };
+      const parts = period.split("~").map((p) => p.trim());
+      const start = toDate(parts[0] || "");
+      const end = toDate(parts[1] || "");
+      return { start, end };
+    };
+
+    return events.filter((event) => {
+      if (hasRegionFilter && event.location) {
+        if (!regions.includes(event.location)) return false;
+      } else if (hasRegionFilter) {
+        return false;
+      }
+      const { start, end } = parsePeriod(event.period);
+      if (!start || !end) return !hasDateFilter;
+      const filterStart = startDate ?? start;
+      const filterEnd = endDate ?? end;
+      return start <= filterEnd && end >= filterStart;
+    });
+  }, [events, appliedFilters]);
+
+  const pagedEvents = useMemo(() => {
+    if (!hasClientFilters) return visibleEvents;
+    const start = (page - 1) * size;
+    return visibleEvents.slice(start, start + size);
+  }, [visibleEvents, hasClientFilters, page, size]);
+
+  const displayCount = hasClientFilters ? visibleEvents.length : totalCount;
+  const displayTotalPages = hasClientFilters
+    ? Math.max(1, Math.ceil(visibleEvents.length / size))
+    : totalPages;
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background py-5">
       <div className="mx-auto max-w-300 px-5 py-10">
         {/* 헤더: 검색 결과 수 + 정렬/필터 */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-medium text-orange">
-              {totalCount}
+              {displayCount}
             </span>
-            <span className="text-2xl font-medium text-foreground">
+            <span className="text-2xl font-medium text-foreground mb-5">
               개의 행사가 검색되었어요!
             </span>
           </div>
@@ -217,77 +261,64 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* 태그 필터 */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {/* 카테고리 칩 (사이드바 메뉴에서 선택) */}
-          {activeChipLabel && (
-            <button
-              type="button"
-              onClick={handleRemoveCategory}
-              className="flex items-center gap-2 rounded-full border border-orange bg-orange/10 px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
-            >
-              <span>{activeChipLabel}</span>
-              <X className="size-3" />
-            </button>
-          )}
-
-          {/* 검색어 태그 */}
-          {keyword && (
-            <button
-              type="button"
-              onClick={handleRemoveKeyword}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
-            >
-              <span>검색어 : {keyword}</span>
-              <X className="size-3" />
-            </button>
-          )}
-
-          {/* 카드 태그들 */}
-          {visibleTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => handleRemoveTag(tag)}
-              className="flex items-center gap-2 rounded-full border border-orange px-3 py-1.5 text-sm font-medium text-orange transition-colors hover:brightness-90"
-            >
-              <span>{tag}</span>
-              <X className="size-3" />
-            </button>
-          ))}
-        </div>
+        {/* 태그/필터 칩 제거 (사이드바 패널로만 조작) */}
 
         {/* 카드 그리드 */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {visibleEvents.map((event, index) => (
-            <Fragment key={event.id}>
-              <OverlayEventCard event={event} />
-              {(index + 1) % PAGE_SIZE === 0 &&
-                index + 1 < visibleEvents.length && (
-                  <div className="col-span-full py-4">
-                    <div className="flex h-20 items-center justify-center rounded-lg bg-[#E5E5E5] text-lg font-semibold text-muted-foreground">
-                      배너
-                    </div>
-                  </div>
-                )}
-            </Fragment>
-          ))}
-        </div>
-
-        {/* 무한 스크롤 감지용 */}
-        <div ref={sentinelRef} className="h-12" />
-
-        {/* 로딩 인디케이터 */}
-        {visibleCount < filteredEvents.length && (
+        {isLoading && (
           <div className="flex justify-center py-6">
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
         )}
+        {visibleEvents.length === 0 && !isLoading ? (
+          <div className="min-h-[calc(100vh-100px-220px)] flex items-center justify-center">
+  <EmptyState message="일치하는 데이터가 없습니다" />
+</div>
+        ) : (
+          <div className="flex flex-wrap gap-6">
+            {pagedEvents.map((event) => (
+              <Fragment key={event.id}>
+                <EventCard event={event} />
+              </Fragment>
+            ))}
+          </div>
+        )}
 
-        {visibleCount >= filteredEvents.length && (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            모든 결과를 불러왔습니다.
-          </p>
+        {/* 페이지네이션 */}
+        {visibleEvents.length > 0 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+            >
+              이전
+            </button>
+            {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <button
+                  key={`page-${pageNumber}`}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  className={
+                    pageNumber === page
+                      ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
+                      : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                  }
+                >
+                  {pageNumber}
+                </button>
+              )
+            )}
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(displayTotalPages, p + 1))}
+              disabled={page === displayTotalPages}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+            >
+              다음
+            </button>
+          </div>
         )}
       </div>
 
@@ -295,7 +326,7 @@ function SearchContent() {
       <FilterSidebar
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        resultCount={totalCount}
+        onApply={setAppliedFilters}
       />
     </main>
   );
