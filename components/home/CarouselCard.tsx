@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export interface CarouselCardData {
   id: number;
@@ -10,11 +11,24 @@ export interface CarouselCardData {
 
 interface CarouselCardProps {
   data: CarouselCardData;
+  isActive?: boolean;
+  onClick?: () => void;
 }
 
-export function CarouselCard({ data }: CarouselCardProps) {
+export function CarouselCard({ data, isActive = false, onClick }: CarouselCardProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isActive && onClick) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_4px_4px_rgba(0,0,0,0.25)]">
+    <Link
+      href={`/detail/${data.id}`}
+      onClick={handleClick}
+      className="relative block h-full w-full overflow-hidden rounded-2xl shadow-[0_4px_4px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-90"
+    >
       <Image
         src={data.imageUrl}
         alt={data.title}
@@ -35,6 +49,6 @@ export function CarouselCard({ data }: CarouselCardProps) {
           {data.period}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

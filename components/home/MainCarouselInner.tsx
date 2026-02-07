@@ -115,14 +115,22 @@ export function MainCarouselInner() {
           }}
           className="main-carousel h-[512px] w-full"
         >
-          {slides.map((slide) => (
-            <SwiperSlide
-              key={slide._key}
-              className="flex items-center px-2"
-            >
-              <CarouselCard data={slide} />
-            </SwiperSlide>
-          ))}
+          {slides.map((slide, index) => {
+            const realIndex = index % MOCK_SLIDES.length;
+            const isActive = realIndex === activeIndex;
+            return (
+              <SwiperSlide
+                key={slide._key}
+                className="flex items-center px-2"
+              >
+                <CarouselCard
+                  data={slide}
+                  isActive={isActive}
+                  onClick={() => goToSlide(realIndex)}
+                />
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
 
         {/* 좌우 화살표 */}
