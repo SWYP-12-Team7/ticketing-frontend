@@ -17,6 +17,8 @@ import type {
   CalendarPopularEventsParams,
   CalendarEventListResponse,
   IsoMonth,
+  IsoDate,
+  CalendarRegion,
 } from "@/types/calendar";
 import { toValidIsoDate } from "@/components/calendarview/utils/calendar.validation";
 
@@ -74,8 +76,10 @@ function generateDummyCalendarData(
 /**
  * 캘린더 월별 요약 데이터 조회
  *
- * - 환경변수에 따라 더미 데이터 또는 실제 API 호출
- * - 타입 안정성 보장
+ * @description
+ * - Swagger API: GET /curations/calendar
+ * - 백엔드에서 날짜별 전시/팝업 개수 반환
+ * - 프론트엔드에서 CalendarMonthSummaryResponse 형태로 변환
  *
  * @param params - 월, 지역, 카테고리 파라미터
  * @returns 월별 일자별 이벤트 개수 및 지역 목록
@@ -83,8 +87,8 @@ function generateDummyCalendarData(
  * @example
  * ```ts
  * const data = await getCalendarMonthSummary({
- *   month: '2025-02',
- *   regionId: 'haeundae',
+ *   month: '2026-02',
+ *   regionId: 'seoul',
  *   categories: ['exhibition', 'popup']
  * });
  * ```
@@ -94,28 +98,74 @@ export async function getCalendarMonthSummary(
 ): Promise<CalendarMonthSummaryResponse> {
   const { month, regionId, categories } = params;
 
-  // 개발 환경에서는 더미 데이터 사용 (백엔드 API 개발 전)
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
   if (USE_DUMMY_DATA) {
-    // API 호출을 시뮬레이션하기 위한 딜레이
     await new Promise((resolve) => setTimeout(resolve, 300));
     return generateDummyCalendarData(month);
   }
 
-  // 실제 API 호출
-  const res = await axiosInstance.get<CalendarMonthSummaryResponse>(
-    "/calendar/month-summary",
+  // ISO 문자열을 year, month로 분리
+  const [yearStr, monthStr] = month.split("-");
+  const year = parseInt(yearStr, 10);
+  const monthNum = parseInt(monthStr, 10);
+
+  // 백엔드 API 응답 타입 정의
+  interface BackendCalendarDayResponse {
+    date: string; // "2026-02-04"
+    exhibitionCount: number;
+    popupCount: number;
+  }
+
+  // 실제 API 호출 (Swagger 기준)
+  const res = await axiosInstance.get<BackendCalendarDayResponse[]>(
+    "/curations/calendar",
     {
       params: {
-        month,
-        regionId: regionId ?? undefined,
-        categories: categories?.length ? categories.join(",") : undefined,
+        year,
+        month: monthNum,
+        region: regionId || undefined,
+        category: categories?.join(",") || undefined,
       },
     }
   );
 
-  return res.data;
+  // 백엔드 응답을 프론트엔드 타입으로 변환
+  const days: CalendarDaySummary[] = res.data.map((item) => ({
+    date: item.date as IsoDate,
+    counts: {
+      exhibition: item.exhibitionCount,
+      popup: item.popupCount,
+    },
+  }));
+
+  // 지역 목록 (백엔드 API에 없으므로 하드코딩)
+  const regions: CalendarRegion[] = [
+    { id: "all", label: "전체" },
+    { id: "seoul", label: "서울" },
+    { id: "busan", label: "부산" },
+    { id: "incheon", label: "인천" },
+    { id: "daegu", label: "대구" },
+    { id: "gwangju", label: "광주" },
+    { id: "daejeon", label: "대전" },
+    { id: "ulsan", label: "울산" },
+    { id: "sejong", label: "세종" },
+    { id: "gyeonggi", label: "경기" },
+    { id: "gangwon", label: "강원" },
+    { id: "chungbuk", label: "충북" },
+    { id: "chungnam", label: "충남" },
+    { id: "jeonbuk", label: "전북" },
+    { id: "jeonnam", label: "전남" },
+    { id: "gyeongbuk", label: "경북" },
+    { id: "gyeongnam", label: "경남" },
+    { id: "jeju", label: "제주" },
+  ];
+
+  return {
+    month,
+    days,
+    regions,
+  };
 }
 
 /**
@@ -124,8 +174,8 @@ export async function getCalendarMonthSummary(
  * @description
  * - 사용자가 캘린더에서 특정 날짜를 클릭했을 때 호출
  * - 해당 날짜에 진행 중인 모든 이벤트 조회
- * - 환경변수에 따라 더미 데이터 또는 실제 API 호출
- * - 카테고리, 지역, 정렬 옵션 지원
+ * - ⚠️ Swagger에 해당 API 없음 (백엔드 개발 필요)
+ * - 현재는 더미 데이터만 사용
  *
  * @param params - 날짜 및 필터 파라미터
  * @returns 이벤트 목록 및 전체 개수
@@ -146,18 +196,18 @@ export async function getCalendarEventsByDate(
 ): Promise<CalendarEventListResponse> {
   const {
     date,
-    regionId,
+    regionId: _regionId,
     categories,
     subcategories,
-    sortBy = "popular",
-    page = 1,
-    size = 24,
+    sortBy: _sortBy = "popular",
+    page: _page = 1,
+    size: _size = 24,
   } = params;
 
-  // 개발 환경에서 더미 데이터 사용
+  // 실제 API가 없으므로 더미 데이터 강제 사용
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
-  if (USE_DUMMY_DATA) {
+  if (USE_DUMMY_DATA || true) {
     // 더미 데이터 로드 (동적 import로 번들 크기 최적화)
     const { generateEventsByDate } = await import(
       "@/lib/calendar-dummy-events"
@@ -192,25 +242,8 @@ export async function getCalendarEventsByDate(
     };
   }
 
-  // 실제 API 호출
-  const res = await axiosInstance.get<CalendarEventListResponse>(
-    "/calendar/events",
-    {
-      params: {
-        date,
-        regionId: regionId ?? undefined,
-        categories: categories?.length ? categories.join(",") : undefined,
-        subcategories: subcategories?.length
-          ? subcategories.join(",")
-          : undefined,
-        sortBy,
-        page,
-        size,
-      },
-    }
-  );
-
-  return res.data;
+  // TODO: 백엔드에 날짜별 이벤트 목록 API 추가 후 활성화
+  throw new Error("날짜별 이벤트 목록 API가 아직 구현되지 않았습니다.");
 }
 
 /**
@@ -219,8 +252,8 @@ export async function getCalendarEventsByDate(
  * @description
  * - 날짜 선택이 없을 때 HOT EVENT 섹션에 표시할 인기 이벤트 조회
  * - 좋아요 수, 조회수 등을 기준으로 정렬된 이벤트 목록
- * - 환경변수에 따라 더미 데이터 또는 실제 API 호출
- * - 카테고리, 지역, 정렬 옵션 지원
+ * - ⚠️ Swagger에 해당 API 없음 (백엔드 개발 필요)
+ * - 현재는 더미 데이터만 사용
  *
  * @param params - 필터 및 개수 파라미터
  * @returns 인기 이벤트 목록 및 전체 개수
@@ -240,18 +273,18 @@ export async function getCalendarPopularEvents(
 ): Promise<CalendarEventListResponse> {
   const {
     limit = 24,
-    regionId,
+    regionId: _regionId,
     categories,
     subcategories,
-    sortBy = "popular",
-    page = 1,
-    size,
+    sortBy: _sortBy = "popular",
+    page: _page = 1,
+    size: _size,
   } = params;
 
-  // 개발 환경에서 더미 데이터 사용
+  // 실제 API가 없으므로 더미 데이터 강제 사용
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
-  if (USE_DUMMY_DATA) {
+  if (USE_DUMMY_DATA || true) {
     // 더미 데이터 로드 (동적 import)
     const { generatePopularEvents } = await import(
       "@/lib/calendar-dummy-events"
@@ -286,23 +319,6 @@ export async function getCalendarPopularEvents(
     };
   }
 
-  // 실제 API 호출
-  const res = await axiosInstance.get<CalendarEventListResponse>(
-    "/calendar/popular",
-    {
-      params: {
-        limit,
-        regionId: regionId ?? undefined,
-        categories: categories?.length ? categories.join(",") : undefined,
-        subcategories: subcategories?.length
-          ? subcategories.join(",")
-          : undefined,
-        sortBy,
-        page,
-        size: size ?? limit,
-      },
-    }
-  );
-
-  return res.data;
+  // TODO: 백엔드에 인기 이벤트 목록 API 추가 후 활성화
+  throw new Error("인기 이벤트 목록 API가 아직 구현되지 않았습니다.");
 }
