@@ -2,7 +2,7 @@
 
 import { cn, getNickname } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useMemo, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { OverlayEventCard } from "@/components/common";
@@ -183,19 +183,20 @@ export function ShowPick({
   events,
 }: ShowPickProps) {
   const swiperRef = useRef<SwiperType | null>(null);
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const nickname = useMemo(
+    () => (useNickname ? getNickname() : null),
+    [useNickname]
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    if (useNickname) {
-      setNickname(getNickname());
-    }
-  }, [useNickname]);
-
-  const displayTitle = mounted && useNickname && nickname
-    ? <>{nickname}{title}</>
-    : title;
+  const displayTitle =
+    useNickname && nickname ? (
+      <>
+        {nickname}
+        {title}
+      </>
+    ) : (
+      title
+    );
 
   const displayEvents = events || mockEvents;
 
