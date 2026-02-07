@@ -191,8 +191,8 @@
   }
   .text-heading-large {
     font-size: 24px;
-    font-weight: 700;
-    line-height: 150%;
+    font-weight: 600;
+    line-height: 128%;
     letter-spacing: -0.025em;
   }
   .text-heading-medium {
@@ -284,6 +284,20 @@
     display: none;
   }
 
+  /* Main carousel pagination */
+  .main-carousel-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .main-carousel-bullet-active {
+    background: #fa7228;
+    width: 24px;
+  }
+
   /* Custom checkbox */
   .custom-checkbox {
     appearance: none;
@@ -313,3 +327,19 @@
   }
 }
 
+/* Main carousel (레이어 밖 — Swiper 스타일보다 우선) */
+.main-carousel .swiper-wrapper {
+  align-items: center;
+}
+.main-carousel .swiper-slide {
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  width: 302px !important;
+  height: 378px;
+  transform: scale(1);
+  opacity: 0.65;
+}
+.main-carousel .swiper-slide-active {
+  transform: scale(1.358) !important;
+  opacity: 1;
+  z-index: 2;
+}
