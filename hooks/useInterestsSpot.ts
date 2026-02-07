@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import type { Event } from "@/types/event";
 import { INTERESTS_CHIP_LABELS } from "@/components/interests/constants";
 import { MOCK_SPOT_EVENTS } from "@/lib/mock-data/interests.mock";

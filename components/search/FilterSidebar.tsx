@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { DateRangePicker } from "@/components/common";
@@ -34,7 +34,6 @@ const CATEGORY_TYPE_MAP: Record<keyof typeof CATEGORIES, "POPUP" | "EXHIBITION">
 };
 
 export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) {
-  const [mounted, setMounted] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     region: true,
     category: true,
@@ -83,11 +82,7 @@ export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) 
     onClose();
   };
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   return (
     createPortal(
