@@ -65,7 +65,7 @@ export function EventCard({
       <Link href={`/detail/${id}`} className="eventCard__imageLink">
         <div
           className={cn(
-            "eventCard__imageContainer relative mb-3 h-[258px] w-full overflow-hidden rounded-xl bg-muted",
+            "eventCard__imageContainer border-1 relative mb-3 h-[258px] w-full overflow-hidden rounded-xl",
             imageAspectRatio
           )}
         >
@@ -74,7 +74,7 @@ export function EventCard({
             alt={title}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-            className="eventCard__image object-contain transition-transform duration-300 group-hover:scale-105"
+            className="eventCard__image object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
           {/* 좋아요 버튼 */}
