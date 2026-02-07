@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { OverlayEventCard } from "@/components/common";
+import { EmptyState } from "@/components/common/404/EmptyState";
 import type { Event } from "@/types/event";
 
 import "swiper/css";
@@ -181,16 +182,18 @@ export function ShowPick({
   useNickname = false,
   events,
 }: ShowPickProps) {
-  const [nickname, setNickname] = useState<string | null>(null);
   const swiperRef = useRef<SwiperType | null>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (useNickname) {
       setNickname(getNickname());
     }
   }, [useNickname]);
 
-  const displayTitle = useNickname && nickname
+  const displayTitle = mounted && useNickname && nickname
     ? <>{nickname}{title}</>
     : title;
 
@@ -203,6 +206,27 @@ export function ShowPick({
   const handleNext = () => {
     swiperRef.current?.slideNext();
   };
+
+  if (!displayEvents || displayEvents.length === 0) {
+    return (
+      <section className={cn("", className)}>
+        <div className="mb-[24px]">
+          {subtitle && (
+            <p className={cn(
+              "mb-1 text-[14px] font-normal leading-[180%]",
+              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
+            )}>
+              {subtitle}
+            </p>
+          )}
+          <h2 className="text-heading-large">{displayTitle}</h2>
+        </div>
+        <div className="h-[404px] rounded-xl border border-orange">
+          <EmptyState message="등록된 행사가 없습니다" className="h-full" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={cn("", className)}>

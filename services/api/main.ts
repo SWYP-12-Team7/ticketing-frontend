@@ -1,8 +1,9 @@
 import axiosInstance from "@/services/axios";
 import type { PopularResponse } from "@/types/popular";
+import type { MainResponse } from "@/types/main";
 
 export async function getMain() {
-  const response = await axiosInstance.get("/main");
+  const response = await axiosInstance.get<MainResponse>("/main");
   return response.data;
 }
 

@@ -2,7 +2,7 @@ import axios, { type AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth";
 
 const axiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
