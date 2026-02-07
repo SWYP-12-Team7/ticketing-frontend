@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useCurationDetail } from "@/queries/detail/useCurationDetail";
 import {
   HeroSection,
   TabNavigation,
@@ -14,7 +16,7 @@ import {
 } from "@/components/detail";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
 
-// 임시 목데이터
+// 임시 목데이터 (일부 필드 fallback)
 const mockDetailData = {
   images: ["/images/detailMock.png"],
   category: "전시 > 체험",
@@ -77,6 +79,14 @@ Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices di
 const TAB_IDS = ["intro", "info", "notice", "location", "price", "channel"];
 
 export default function DetailPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const id = String(params.id);
+  const type = (searchParams.get("type") || "EXHIBITION") as
+    | "EXHIBITION"
+    | "POPUP";
+  const { data, isLoading } = useCurationDetail(id, type);
+
   const [activeTab, setActiveTab] = useState("intro");
   const [isLiked, setIsLiked] = useState(false);
   const isClickScrolling = useRef(false);
@@ -133,20 +143,55 @@ export default function DetailPage() {
     window.history.back();
   };
 
+  const detailData = useMemo(() => {
+    if (!data) return mockDetailData;
+    const period = data.startDate && data.endDate
+      ? `${data.startDate} ~ ${data.endDate}`
+      : mockDetailData.period;
+    const categoryLabel = type === "POPUP" ? "팝업" : "전시";
+    return {
+      ...mockDetailData,
+      images: [data.thumbnail || data.image || mockDetailData.images[0]],
+      category: `${categoryLabel}`,
+      title: data.title || mockDetailData.title,
+      description: data.subTitle || mockDetailData.description,
+      tags: data.tags?.length ? data.tags : mockDetailData.tags,
+      period,
+      address: data.address || mockDetailData.address,
+      viewCount: data.viewCount ?? mockDetailData.viewCount,
+      likeCount: data.likeCount ?? mockDetailData.likeCount,
+      introText: data.description || mockDetailData.introText,
+      introImageUrl: data.image || data.thumbnail || mockDetailData.introImageUrl,
+      channels: data.url
+        ? [{ name: "공식 사이트 바로가기", url: data.url }]
+        : mockDetailData.channels,
+    };
+  }, [data, type]);
+
+  if (isLoading && !data) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* 히어로 섹션 */}
       <HeroSection
-        images={mockDetailData.images}
-        category={mockDetailData.category}
-        title={mockDetailData.title}
-        description={mockDetailData.description}
-        tags={mockDetailData.tags}
-        period={mockDetailData.period}
-        address={mockDetailData.address}
-        age={mockDetailData.age}
-        viewCount={mockDetailData.viewCount}
-        likeCount={mockDetailData.likeCount}
+        images={detailData.images}
+        category={detailData.category}
+        title={detailData.title}
+        description={detailData.description}
+        tags={detailData.tags}
+        period={detailData.period}
+        address={detailData.address}
+        age={detailData.age}
+        viewCount={detailData.viewCount}
+        likeCount={detailData.likeCount}
         isLiked={isLiked}
         onBackClick={handleBackClick}
         onLikeClick={handleLikeClick}
@@ -159,25 +204,25 @@ export default function DetailPage() {
       <ContentSection
         id="intro"
         title="소개"
-        text={mockDetailData.introText}
-        imageUrl={mockDetailData.introImageUrl}
+        text={detailData.introText}
+        imageUrl={detailData.introImageUrl}
       />
 
       {/* 이용안내 섹션 */}
       <InfoSection
         id="info"
-        period={mockDetailData.period}
-        operatingHours={mockDetailData.operatingHours}
-        closedDays={mockDetailData.closedDays}
-        contact={mockDetailData.contactNumber}
+        period={detailData.period}
+        operatingHours={detailData.operatingHours}
+        closedDays={detailData.closedDays}
+        contact={detailData.contactNumber}
       />
 
       {/* 공지사항 섹션 */}
       <ContentSection
         id="notice"
         title="공지사항"
-        text={mockDetailData.noticeText}
-        imageUrl={mockDetailData.noticeImageUrl}
+        text={detailData.noticeText}
+        imageUrl={detailData.noticeImageUrl}
         maxHeight={280}
       />
 

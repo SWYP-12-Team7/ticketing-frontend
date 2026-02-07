@@ -42,6 +42,7 @@ export function EventCard({
     id,
     title,
     category,
+    type,
     period,
     imageUrl,
     viewCount,
@@ -52,6 +53,10 @@ export function EventCard({
   } = event;
   const typeLabel = category;
   const tagLabel = tags?.[0] ?? subcategory ?? "";
+  const typeParam =
+    type ??
+    (category === "전시" ? "EXHIBITION" : category === "팝업" ? "POPUP" : "");
+  const detailHref = typeParam ? `/detail/${id}?type=${typeParam}` : `/detail/${id}`;
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,7 +67,7 @@ export function EventCard({
   return (
     <article className={cn("eventCard group w-[193px]", className)}>
       {/* 이미지 섹션 */}
-      <Link href={`/detail/${id}`} className="eventCard__imageLink">
+      <Link href={detailHref} className="eventCard__imageLink">
         <div
           className={cn(
             "eventCard__imageContainer border-1 relative mb-3 h-[258px] w-full overflow-hidden rounded-xl",
@@ -97,7 +102,7 @@ export function EventCard({
       </Link>
 
       {/* 정보 섹션 */}
-      <Link href={`/detail/${id}`} className="eventCard__infoLink block">
+      <Link href={detailHref} className="eventCard__infoLink block">
         {/* 타입 | 태그 */}
         <p className="eventCard__category mb-1 text-caption-medium text-muted-foreground">
           <span className="text-orange">{typeLabel}</span>

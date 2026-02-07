@@ -73,6 +73,7 @@ export async function searchCurations(params: SearchCurationsParams) {
     id: String(item.id),
     title: item.title,
     category: mapTypeLabel(item.type),
+    type: item.type?.toUpperCase(),
     subcategory: item.tags?.[0],
     location: item.location,
     period: item.period || "",
