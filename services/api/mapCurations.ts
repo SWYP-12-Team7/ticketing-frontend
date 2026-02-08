@@ -21,12 +21,20 @@ export interface MapCurationsParams {
   date: string;
   region?: string;
   category?: string;
+  subCategory?: string;
+  period?: string;
 }
 
 export async function getMapCurations(params: MapCurationsParams) {
+  const { date, region, category, subCategory } = params;
+  const requestParams = {
+    date,
+    region,
+    category: subCategory || category,
+  };
   const response = await axiosInstance.get<MapCurationsResponse>(
     "/curations/map",
-    { params }
+    { params: requestParams }
   );
   return response.data.items ?? [];
 }

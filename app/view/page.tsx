@@ -89,11 +89,19 @@ function MapViewContent({
 function ViewContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "calendar";
+  const regionParam = searchParams.get("region") || undefined;
+  const categoryParam = searchParams.get("category") || undefined;
+  const subCategoryParam = searchParams.get("subCategory") || undefined;
+  const periodParam = searchParams.get("period") || undefined;
   const [visibleIds, setVisibleIds] = useState<string[] | null>(null);
   const [clusterIds, setClusterIds] = useState<string[] | null>(null);
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const { data: mapCurations = [] } = useMapCurations({
     date: today,
+    region: regionParam,
+    category: categoryParam,
+    subCategory: subCategoryParam,
+    period: periodParam,
   });
 
   const mapLocations = useMemo<MapLocation[]>(
