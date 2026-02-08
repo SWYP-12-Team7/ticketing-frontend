@@ -59,6 +59,7 @@ export function EventCard({
     type ??
     (category === "전시" ? "EXHIBITION" : category === "팝업" ? "POPUP" : "");
   const detailHref = typeParam ? `/detail/${id}?type=${typeParam}` : `/detail/${id}`;
+  const fallbackImage = "/images/404/emptyImg2.png";
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,11 +78,18 @@ export function EventCard({
           )}
         >
           <Image
-            src={imageUrl}
+            src={imageUrl || fallbackImage}
             alt={title}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
             className="eventCard__image object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (target.src !== fallbackImage) {
+                target.src = fallbackImage;
+                target.srcset = "";
+              }
+            }}
           />
 
           {/* 좋아요 버튼 */}
