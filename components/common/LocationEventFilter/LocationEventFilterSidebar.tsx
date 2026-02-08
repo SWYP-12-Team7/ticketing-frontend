@@ -156,7 +156,7 @@ export function LocationEventFilterSidebar({
     <aside
       className="bg-white"
       style={{
-        width: "273px",
+        width: "422px",
         height: "661px",
         boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
         borderRadius: "12px 16px 16px 12px",
@@ -174,12 +174,13 @@ export function LocationEventFilterSidebar({
           {/* 헤더 */}
           <header className="flex items-center justify-between px-4 pr-4">
             <h2
-              className="text-[#222222]"
+              className="text-[#000000]"
               style={{
                 fontFamily: "Pretendard Variable",
                 fontSize: "20px",
-                fontWeight: 700,
-                lineHeight: "28px",
+                fontWeight: 600,
+                lineHeight: "26px",
+                letterSpacing: "-0.025em",
               }}
             >
               필터
@@ -187,10 +188,10 @@ export function LocationEventFilterSidebar({
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center justify-center w-6 h-6"
+              className="flex items-center justify-center w-12 h-12"
               aria-label="필터 닫기"
             >
-              <X className="w-6 h-6 text-black" strokeWidth={2} />
+              <X className="w-6 h-6" style={{ color: "#6C7180" }} strokeWidth={1.5} />
             </button>
           </header>
 

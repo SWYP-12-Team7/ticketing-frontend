@@ -3,10 +3,10 @@
  *
  * 여러 개의 Pill 버튼을 flex-wrap으로 배치
  *
- * Figma 스펙:
+ * Figma 스펙 (2026-02-08 업데이트):
  * - display: flex
  * - flex-wrap: wrap
- * - gap: 10px (row), 14px (column)
+ * - gap: 8px (균일)
  */
 
 "use client";
@@ -53,7 +53,7 @@ export function PillButtonGroup({
     <div
       className={cn(
         "flex flex-wrap items-start content-start",
-        "gap-x-[14px] gap-y-[10px]",
+        "gap-2",
         className
       )}
     >

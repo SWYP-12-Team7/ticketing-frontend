@@ -337,13 +337,14 @@ export function CalendarViewPresentation({
       {/* 필터바 (조건부 렌더링) */}
       {(isFilterOpen || isFilterClosing) && (
         <>
-          {/* Dimmed 오버레이 - 배경 어둡게 처리 */}
+          {/* Dimmed 오버레이 - 배경 어둡게 처리 (헤더 포함) */}
           <div
             role="presentation"
             aria-hidden="true"
-            className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ease-out ${
+            className={`fixed inset-0 bg-black/30 transition-opacity duration-300 ease-out ${
               isFilterEntered && !isFilterClosing ? "opacity-100" : "opacity-0"
             }`}
+            style={{ zIndex: 76 }}
             onClick={handleCloseFilter}
           />
           <div
@@ -353,10 +354,10 @@ export function CalendarViewPresentation({
                 : "translate-x-4 opacity-0"
             }`}
             style={{
-              width: "273px",
+              width: "422px",
               flexShrink: 0,
               marginTop: CALENDAR_DESIGN_TOKENS.sizing.filterSidebar.topOffset,
-              zIndex: 50,
+              zIndex: 77,
             }}
           >
             <LocationEventFilterSidebar
