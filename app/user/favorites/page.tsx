@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
 import { getFavorites } from "@/services/api/favorite";
 import type { FavoriteItem } from "@/types/favorite";
+import { RequireAuth } from "@/components/auth";
 import { Console } from "console";
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -304,7 +305,9 @@ export default function FavoritePage() {
         </main>
       }
     >
-      <FavoriteContent />
+      <RequireAuth>
+        <FavoriteContent />
+      </RequireAuth>
     </Suspense>
   );
 }
