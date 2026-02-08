@@ -5,6 +5,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
+import { Toaster } from "sonner";
 
 // ===== 폰트 설정 =====
 
@@ -59,6 +60,7 @@ export default function RootLayout({
           <main className="mx-auto w-full max-w-[1440px] flex-1 px-[80px]">{children}</main>
           <Footer />
         </Providers>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

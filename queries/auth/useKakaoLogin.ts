@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { kakaoLogin } from "@/services/api/auth";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 export function useKakaoLogin() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export function useKakaoLogin() {
     },
     onError: (error) => {
       console.error("카카오 로그인 실패:", error);
+      toast.error("카카오 로그인에 실패했습니다. 다시 시도해주세요.");
       router.replace("/auth/login");
     },
   });

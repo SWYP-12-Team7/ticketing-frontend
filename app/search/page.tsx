@@ -238,7 +238,7 @@ function SearchContent() {
 
           <div className="flex items-center gap-3">
             {/* 정렬 드롭다운 */}
-            <button
+            {/* <button
               type="button"
               className="flex items-center gap-1 text-sm font-medium text-foreground"
             >
@@ -249,7 +249,7 @@ function SearchContent() {
                 width={20}
                 height={20}
               />
-            </button>
+            </button> */}
 
             {/* 필터 버튼 */}
             <button
