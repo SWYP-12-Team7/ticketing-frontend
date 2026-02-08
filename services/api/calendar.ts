@@ -20,6 +20,7 @@ import type {
   IsoDate,
   CalendarRegion,
 } from "@/types/calendar";
+import type { Event } from "@/types/event";
 import { toValidIsoDate } from "@/components/calendarview/utils/calendar.validation";
 
 /**
@@ -96,7 +97,8 @@ function generateDummyCalendarData(
 export async function getCalendarMonthSummary(
   params: CalendarMonthSummaryParams
 ): Promise<CalendarMonthSummaryResponse> {
-  const { month, regionId, categories } = params;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { month, regionId, categories: _categories } = params;
 
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
@@ -123,7 +125,22 @@ export async function getCalendarMonthSummary(
     days: BackendCalendarDayItem[];
   }
 
+  /**
+   * ⚠️ 백엔드 API의 category 파라미터가 제대로 작동하지 않음
+   * - category 파라미터 없음: 정상 동작 (79개)
+   * - category 파라미터 있음: 항상 0개 반환
+   * - 해결책: category 파라미터를 보내지 않고 전체 데이터 조회
+   * - TODO: 백엔드 API 수정 후 아래 주석 해제
+   */
+  
+  // const categoryParam = categories?.length
+  //   ? categories
+  //       .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
+  //       .join(",")
+  //   : undefined;
+
   // 실제 API 호출 (Swagger 기준)
+  // ⚠️ category 파라미터 제외 (백엔드 버그로 인해)
   const res = await axiosInstance.get<BackendCalendarResponse>(
     "/curations/calendar",
     {
@@ -131,7 +148,7 @@ export async function getCalendarMonthSummary(
         year,
         month: monthNum,
         region: regionId || undefined,
-        category: categories?.join(",") || undefined,
+        // category: categoryParam,  // 백엔드 버그로 인해 주석 처리
       },
     }
   );
@@ -187,52 +204,50 @@ export async function getCalendarMonthSummary(
  * @description
  * - 사용자가 캘린더에서 특정 날짜를 클릭했을 때 호출
  * - 해당 날짜에 진행 중인 모든 이벤트 조회
- * - ⚠️ Swagger에 해당 API 없음 (백엔드 개발 필요)
- * - 현재는 더미 데이터만 사용
+ * - API: GET /curations/calendar/list
+ * - 카테고리 필터링: exhibition → EXHIBITION, popup → POPUP
  *
  * @param params - 날짜 및 필터 파라미터
  * @returns 이벤트 목록 및 전체 개수
  *
  * @example
  * ```ts
+ * // 기본 조회
  * const data = await getCalendarEventsByDate({
  *   date: '2026-02-08',
- *   categories: ['exhibition', 'popup'],
- *   sortBy: 'popular',
  * });
- * console.log(data.events); // 이벤트 목록
- * console.log(data.total);  // 전체 개수
+ *
+ * // 카테고리 필터링
+ * const filtered = await getCalendarEventsByDate({
+ *   date: '2026-02-08',
+ *   categories: ['exhibition', 'popup'],
+ *   regionId: 'seoul-seongsu',
+ * });
  * ```
  */
 export async function getCalendarEventsByDate(
   params: CalendarEventsByDateParams
 ): Promise<CalendarEventListResponse> {
-  const {
-    date,
-    regionId: _regionId,
-    categories,
-    subcategories,
-    sortBy: _sortBy = "popular",
-    page: _page = 1,
-    size: _size = 24,
-  } = params;
+  const { date, regionId, categories } = params;
+  
+  // 백엔드 미지원 파라미터 (향후 확장을 위해 타입에는 존재)
+  // - subcategories: 세부 카테고리 필터링
+  // - sortBy: 정렬 기준
+  // - page, size: 페이지네이션
 
-  // 실제 API가 없으므로 더미 데이터 강제 사용
+  // ========== 더미 데이터 분기 ==========
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
-  if (USE_DUMMY_DATA || true) {
-    // 더미 데이터 로드 (동적 import로 번들 크기 최적화)
+  if (USE_DUMMY_DATA) {
     const { generateEventsByDate } = await import(
       "@/lib/calendar-dummy-events"
     );
-
-    // API 호출 시뮬레이션 (300ms 딜레이)
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     let events = generateEventsByDate(date);
 
     // 카테고리 필터링
-    if (categories && categories.length > 0) {
+    if (categories?.length) {
       events = events.filter((event) => {
         const eventCategory =
           event.category === "전시" ? "exhibition" : "popup";
@@ -241,9 +256,10 @@ export async function getCalendarEventsByDate(
     }
 
     // 서브카테고리 필터링
-    if (subcategories && subcategories.length > 0) {
+    if (params.subcategories?.length) {
       events = events.filter(
-        (event) => event.subcategory && subcategories.includes(event.subcategory)
+        (event) =>
+          event.subcategory && params.subcategories!.includes(event.subcategory)
       );
     }
 
@@ -255,8 +271,92 @@ export async function getCalendarEventsByDate(
     };
   }
 
-  // TODO: 백엔드에 날짜별 이벤트 목록 API 추가 후 활성화
-  throw new Error("날짜별 이벤트 목록 API가 아직 구현되지 않았습니다.");
+  // ========== 실제 API 호출 ==========
+
+  /**
+   * 백엔드 API 응답 타입 정의
+   * - GET /curations/calendar/list
+   */
+  interface BackendEventItem {
+    id: number;
+    title: string;
+    type: "EXHIBITION" | "POPUP";
+    category: string[]; // ["패션", "뷰티"] 형태
+    thumbnail: string;
+    dateText: string; // "2026.02.08 ~ 2026.02.28"
+    viewCount: number;
+    likeCount: number;
+  }
+
+  interface BackendCalendarListResponse {
+    items: BackendEventItem[];
+  }
+
+  /**
+   * 카테고리 파라미터 변환
+   * - FE: ["exhibition", "popup"] → BE: "EXHIBITION,POPUP"
+   */
+  const categoryParam = categories?.length
+    ? categories
+        .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
+        .join(",")
+    : undefined;
+
+  // API 요청
+  const response = await axiosInstance.get<BackendCalendarListResponse>(
+    "/curations/calendar/list",
+    {
+      params: {
+        date, // ISO Date: "2026-02-08"
+        region: regionId || undefined, // Optional
+        category: categoryParam, // Optional: "EXHIBITION,POPUP"
+      },
+    }
+  );
+
+  // 응답 검증
+  if (!response.data || !Array.isArray(response.data.items)) {
+    throw new Error(
+      `[API Error] Invalid response structure. Expected { items: [] }, got: ${JSON.stringify(response.data)}`
+    );
+  }
+
+  /**
+   * 백엔드 응답 → 프론트엔드 Event 타입 변환
+   */
+  const events: Event[] = response.data.items.map((item) => ({
+    // ID: number → string 변환
+    id: item.id.toString(),
+
+    // 제목
+    title: item.title,
+
+    // 카테고리: EXHIBITION → "전시", POPUP → "팝업"
+    category: item.type === "EXHIBITION" ? "전시" : "팝업",
+
+    // 서브카테고리: category 배열의 첫 번째 요소
+    subcategory: item.category[0] || undefined,
+
+    // 기간: dateText 그대로 사용
+    period: item.dateText,
+
+    // 이미지: thumbnail → imageUrl
+    imageUrl: item.thumbnail,
+
+    // 조회수/좋아요
+    viewCount: item.viewCount,
+    likeCount: item.likeCount,
+
+    // 좋아요 여부: 기본값 false (향후 찜하기 API 연동 필요)
+    isLiked: false,
+  }));
+
+  return {
+    events,
+    total: events.length,
+    page: 1,
+    totalPages: 1,
+  };
 }
 
 /**
@@ -284,20 +384,18 @@ export async function getCalendarEventsByDate(
 export async function getCalendarPopularEvents(
   params: CalendarPopularEventsParams = {}
 ): Promise<CalendarEventListResponse> {
-  const {
-    limit = 24,
-    regionId: _regionId,
-    categories,
-    subcategories,
-    sortBy: _sortBy = "popular",
-    page: _page = 1,
-    size: _size,
-  } = params;
+  const { limit = 24, categories } = params;
 
-  // 실제 API가 없으므로 더미 데이터 강제 사용
+  // 백엔드 미지원 파라미터 (향후 확장을 위해 타입에는 존재)
+  // - regionId: 지역 필터링
+  // - subcategories: 세부 카테고리 필터링
+  // - sortBy: 정렬 기준 (현재 daily만 사용)
+  // - page, size: 페이지네이션
+
+  // ========== 더미 데이터 분기 ==========
   const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
 
-  if (USE_DUMMY_DATA || true) {
+  if (USE_DUMMY_DATA) {
     // 더미 데이터 로드 (동적 import)
     const { generatePopularEvents } = await import(
       "@/lib/calendar-dummy-events"
@@ -309,7 +407,7 @@ export async function getCalendarPopularEvents(
     let events = generatePopularEvents(limit);
 
     // 카테고리 필터링
-    if (categories && categories.length > 0) {
+    if (categories?.length) {
       events = events.filter((event) => {
         const eventCategory =
           event.category === "전시" ? "exhibition" : "popup";
@@ -318,9 +416,11 @@ export async function getCalendarPopularEvents(
     }
 
     // 서브카테고리 필터링
-    if (subcategories && subcategories.length > 0) {
+    if (params.subcategories?.length) {
       events = events.filter(
-        (event) => event.subcategory && subcategories.includes(event.subcategory)
+        (event) =>
+          event.subcategory &&
+          params.subcategories!.includes(event.subcategory)
       );
     }
 
@@ -332,6 +432,123 @@ export async function getCalendarPopularEvents(
     };
   }
 
-  // TODO: 백엔드에 인기 이벤트 목록 API 추가 후 활성화
-  throw new Error("인기 이벤트 목록 API가 아직 구현되지 않았습니다.");
+  // ========== 실제 API 호출 ==========
+
+  /**
+   * 백엔드 API 응답 타입 정의
+   * - GET /main/popular
+   */
+  interface PopularEventItem {
+    rank: number;
+    id: number;
+    title: string;
+    thumbnail: string;
+    address: string;
+    period: string; // "2026-01-21 ~ 2026-02-12"
+  }
+
+  interface PopularEventsResponse {
+    result: string;
+    data: {
+      exhibition: {
+        daily: PopularEventItem[];
+        weekly: PopularEventItem[];
+        monthly: PopularEventItem[];
+      };
+      popup: {
+        daily: PopularEventItem[];
+        weekly: PopularEventItem[];
+        monthly: PopularEventItem[];
+      };
+    };
+  }
+
+  // API 요청
+  const response = await axiosInstance.get<PopularEventsResponse>(
+    "/main/popular",
+    {
+      params: {
+        limit, // 현재 백엔드는 고정 10개 반환, limit 파라미터 무시
+      },
+    }
+  );
+
+  // 응답 검증
+  if (!response.data || response.data.result !== "SUCCESS") {
+    throw new Error(
+      `[API Error] Invalid response from /main/popular: ${JSON.stringify(response.data)}`
+    );
+  }
+
+  /**
+   * 카테고리별 이벤트 수집
+   */
+  const allEvents: Event[] = [];
+
+  // 카테고리 필터링 여부 확인
+  const shouldIncludeExhibition =
+    !categories?.length || categories.includes("exhibition");
+  const shouldIncludePopup =
+    !categories?.length || categories.includes("popup");
+
+  // 전시 이벤트 추가
+  if (shouldIncludeExhibition) {
+    const exhibitionEvents: Event[] = response.data.data.exhibition.daily.map(
+      (item) => ({
+        // ID: number → string 변환
+        id: item.id.toString(),
+
+        // 제목
+        title: item.title,
+
+        // 카테고리: 전시로 고정
+        category: "전시",
+
+        // 이미지: thumbnail → imageUrl
+        imageUrl: item.thumbnail,
+
+        // 기간: 그대로 사용
+        period: item.period,
+
+        // 지역: address → region
+        region: item.address,
+
+        // 조회수/좋아요: 백엔드에서 제공하지 않으므로 기본값 0
+        viewCount: 0,
+        likeCount: 0,
+
+        // 좋아요 여부: 기본값 false
+        isLiked: false,
+      })
+    );
+    allEvents.push(...exhibitionEvents);
+  }
+
+  // 팝업 이벤트 추가
+  if (shouldIncludePopup) {
+    const popupEvents: Event[] = response.data.data.popup.daily.map(
+      (item) => ({
+        id: item.id.toString(),
+        title: item.title,
+        category: "팝업",
+        imageUrl: item.thumbnail,
+        period: item.period,
+        region: item.address,
+        viewCount: 0,
+        likeCount: 0,
+        isLiked: false,
+      })
+    );
+    allEvents.push(...popupEvents);
+  }
+
+  // limit 적용 (상위 N개만)
+  const limitedEvents = allEvents.slice(0, limit);
+
+  return {
+    events: limitedEvents,
+    total: limitedEvents.length,
+    page: 1,
+    totalPages: 1,
+  };
 }
