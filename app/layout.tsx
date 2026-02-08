@@ -56,7 +56,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <Header />
           </Suspense>
-          <main className="flex-1 px-[80px] max-w-[1440px]  ">{children}</main>
+          <main className="flex-1 px-[80px] max-w-[1440px] mx-auto  ">{children}</main>
           <Footer />
         </Providers>
       </body>

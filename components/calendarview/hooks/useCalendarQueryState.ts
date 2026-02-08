@@ -16,7 +16,6 @@ import type {
   ExhibitionSubcategory,
 } from "@/types/calendar";
 import {
-  parseMonthParam,
   parseRegionIdParam,
   parseCategoriesParam,
   serializeCategoriesParam,
@@ -25,6 +24,7 @@ import {
   parseExhibitionSubcategoryParam,
   type CalendarCategoryActiveMap,
 } from "../utils/calendar.query-state";
+import { toValidIsoMonth, isValidIsoMonth } from "../utils/calendar.validation";
 
 /**
  * 캘린더 뷰의 URL 쿼리 스트링 상태를 관리하는 커스텀 훅
@@ -60,13 +60,20 @@ export function useCalendarQueryState() {
 
   // 개별 파라미터 파싱 (메모이제이션 최적화)
   const monthParam = searchParams.get("month");
+  const yearParam = searchParams.get("year");
   const regionIdParam = searchParams.get("regionId");
   const categoriesParam = searchParams.get("categories");
   const popupSubcategoryParam = searchParams.get("popupSubcategory");
   const exhibitionSubcategoryParam = searchParams.get("exhibitionSubcategory");
 
   // 파싱된 값들 (각 파라미터만 의존성으로 설정)
-  const month = useMemo(() => parseMonthParam(monthParam), [monthParam]);
+  const month = useMemo(() => {
+    if (monthParam && isValidIsoMonth(monthParam)) return monthParam;
+    const yearNum = Number(yearParam);
+    const monthNum = Number(monthParam);
+    const derived = toValidIsoMonth(yearNum, monthNum);
+    return derived ?? toIsoMonth(new Date());
+  }, [monthParam, yearParam]);
 
   const regionId = useMemo(
     () => parseRegionIdParam(regionIdParam),
@@ -112,7 +119,10 @@ export function useCalendarQueryState() {
       const newSearchParams = new URLSearchParams(searchParams.toString());
 
       if (updates.month !== undefined) {
-        newSearchParams.set("month", updates.month);
+        const [yearStr, monthStr] = updates.month.split("-");
+        const monthNum = Number(monthStr);
+        newSearchParams.set("year", yearStr);
+        newSearchParams.set("month", String(monthNum));
       }
 
       if (updates.regionId !== undefined) {
