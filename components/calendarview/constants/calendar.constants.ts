@@ -8,7 +8,7 @@ import type { CalendarCategory } from "@/types/calendar";
  *
  * @example
  * ```ts
- * const exhibitionLabel = CALENDAR_CATEGORY_META.exhibition.label; // "전시회"
+ * const exhibitionLabel = CALENDAR_CATEGORY_META.exhibition.label; // "전시"
  * ```
  */
 export const CALENDAR_CATEGORY_META: Record<
@@ -23,7 +23,7 @@ export const CALENDAR_CATEGORY_META: Record<
   }>
 > = {
   exhibition: {
-    label: "전시회",
+    label: "전시",
     accentBorderColor: "#A2C5FF",
     pillBackgroundColor: "#F8F9FA",
   },

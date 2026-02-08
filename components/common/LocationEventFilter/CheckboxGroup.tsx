@@ -3,12 +3,13 @@
  *
  * 가격/편의사항 필터에서 사용하는 체크박스 그룹
  *
- * Figma 스펙:
- * - 선택 안됨: border 1.125px #B1B1B1, bg #FFFFFF
- * - 선택됨: border 0.642857px #FA7228, bg #FA7228
- * - Size: 18px × 18px
- * - Border-radius: 2.25px (선택 안됨), 2.57143px (선택됨)
- * - Gap: 20px (vertical)
+ * Figma 스펙 (2026-02-08 업데이트):
+ * - 선택 안됨: border 1px #6C7180, bg #FFFFFF
+ * - 선택됨: bg #FA7228
+ * - Size: 24px × 24px
+ * - Border-radius: 4px
+ * - Gap: 12px (vertical)
+ * - Label: 14px, #6C7180
  */
 
 "use client";
@@ -35,14 +36,14 @@ export function CheckboxGroup({
   className,
 }: CheckboxGroupProps) {
   return (
-    <div className={cn("flex flex-col gap-5", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
       {options.map((option) => {
         const isChecked = values[option.id] || false;
 
         return (
           <label
             key={option.id}
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group"
           >
             {/* 커스텀 체크박스 */}
             <div className="relative flex items-center justify-center">
@@ -54,27 +55,24 @@ export function CheckboxGroup({
               />
               <div
                 className={cn(
-                  "w-[18px] h-[18px] flex items-center justify-center transition-all",
+                  "w-6 h-6 flex items-center justify-center transition-all rounded",
                   isChecked
-                    ? "bg-[#FA7228] border-[0.64px] border-[#FA7228]"
-                    : "bg-white border-[1.125px] border-[#B1B1B1]"
+                    ? "bg-[#FA7228] border border-[#FA7228]"
+                    : "bg-white border border-[#6C7180]"
                 )}
-                style={{
-                  borderRadius: isChecked ? "2.57px" : "2.25px",
-                }}
               >
                 {isChecked && (
                   <svg
-                    width="12"
-                    height="9"
-                    viewBox="0 0 12 9"
+                    width="14"
+                    height="10"
+                    viewBox="0 0 14 10"
                     fill="none"
                     className="text-white"
                   >
                     <path
-                      d="M1 4.5L4.5 8L11 1"
+                      d="M1 5L5 9L13 1"
                       stroke="currentColor"
-                      strokeWidth="1.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
@@ -85,12 +83,12 @@ export function CheckboxGroup({
 
             {/* 레이블 */}
             <span
-              className="text-[#121212]"
+              className="text-[#6C7180]"
               style={{
-                fontFamily: "Pretendard",
-                fontSize: "16px",
-                fontWeight: 500,
-                lineHeight: "19px",
+                fontFamily: "Pretendard Variable",
+                fontSize: "14px",
+                fontWeight: 400,
+                lineHeight: "140%",
               }}
             >
               {option.label}

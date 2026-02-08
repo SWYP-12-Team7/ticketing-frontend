@@ -36,19 +36,19 @@ export const CALENDAR_DESIGN_TOKENS = {
     pill: {
       exhibition: {
         /** 테두리 색상 */
-        border: "#75A8FF",
+        border: "#5093FF",
         /** 선택 시 배경 (동그라미 채우기) */
         background: "#75A8FF",
         /** 레이블 텍스트 */
-        text: "#1D4DA7",
+        text: "#194488",
         /** 개수 텍스트 */
-        textCount: "#424A57",
+        textCount: "#4B5462",
       },
       popup: {
-        border: "#FF9F53",
+        border: "#FF8F44",
         background: "#FF9F53",
-        text: "#A33C0F",
-        textCount: "#424A57",
+        text: "#86350A",
+        textCount: "#4B5462",
       },
     },
     /** 텍스트 색상 */
@@ -94,21 +94,22 @@ export const CALENDAR_DESIGN_TOKENS = {
       width: "1440px",
       height: "1744px",
     },
-    /** 캘린더 섹션 전체 */
+    /** 캘린더 섹션 전체 (MonthNav 31px + Toolbar 60px + GridBox 661px + gaps 20px = 772px) */
     container: {
-      width: "1280px",
-      height: "791px",
+      width: "1278px",
+      height: "772px",
     },
     /** 월 네비게이션 */
     monthNav: {
-      width: "1280px",
+      width: "1278px",
       height: "31px",
       arrowSize: "24px",
-      titleWidth: "784px",
+      titleWidth: "auto",
+      gap: "25px",
     },
     /** 필터바 */
     toolbar: {
-      width: "1280px",
+      width: "1278px",
       height: "60px",
       filterItemHeight: "32px",
       filterIconSize: "24px",
@@ -117,6 +118,11 @@ export const CALENDAR_DESIGN_TOKENS = {
     gridBox: {
       width: "1278px",
       height: "661px",
+    },
+    /** 필터 사이드바 (캘린더 그리드와 동일 세로 구간 정렬) */
+    filterSidebar: {
+      /** 그리드 상단과 정렬 (monthNav 31 + gap 10 + toolbar 60 + margin 10) */
+      topOffset: "111px",
     },
     /** 그리드 내부 (날짜 셀 그룹) */
     gridInner: {
@@ -151,7 +157,7 @@ export const CALENDAR_DESIGN_TOKENS = {
     /** 페이지 여백 */
     page: {
       left: "80px",
-      topFromHeader: "140px",
+      topFromHeader: "64px",
     },
     /** 캘린더 컨테이너 */
     container: {
@@ -320,10 +326,10 @@ export const CALENDAR_DESIGN_TOKENS = {
 
     /** 색상 */
     colors: {
-      /** 카테고리 - 전시 */
-      categoryExhibition: "#F36012",
-      /** 카테고리 - 팝업스토어 */
-      categoryPopup: "#2970E2",
+      /** 카테고리 - 전시 (파란색) */
+      categoryExhibition: "#2970E2",
+      /** 카테고리 - 팝업스토어 (주황색) */
+      categoryPopup: "#F36012",
       /** 서브카테고리 */
       subcategory: "#6C7180",
       /** 서브카테고리 (단독 표시 시) */
@@ -406,51 +412,56 @@ export const CALENDAR_DESIGN_TOKENS = {
   },
 
   /**
-   * 필터 Pill 디자인 토큰 (Figma 스펙 완전 준수)
+   * 필터 Pill 디자인 토큰 (Figma 스펙 2026-02-04 완전 준수)
    */
   filterPill: {
-    /** 컨테이너 (전체 pill) */
+    /** 컨테이너 (외부 chip) */
     container: {
-      padding: "4px",
-      gap: "6px",
+      padding: "0px 16px",
+      gap: "4px",
       height: "32px",
-      background: "#FFF4EC",
-      borderRadius: "24px",
+      minWidth: "48px",
+      background: "#FFF2E6",
+      border: "1px solid #F36012",
+      borderRadius: "100px",
     },
 
-    /** 레이블 영역 ("지역", "팝업" 등) */
+    /** 레이블 영역 ("지역", "팝업" 등) - 외부 컨테이너와 동일 배경 */
     label: {
-      padding: "4px 6px",
-      minWidth: "40px",
-      height: "24px",
-      background: "#FFF4EC",
-      borderRadius: "24px",
+      /** 레이블 폰트 */
+      fontFamily: "Pretendard Variable",
+      fontWeight: 400,
+      fontSize: "14px",
+      lineHeight: "140%",
       color: "#F36012",
     },
 
-    /** 값 영역 ("부산", "뷰티" 등) */
+    /** 값 영역 ("부산", "뷰티" 등) - 내부 chip */
     value: {
-      padding: "2px 10px",
+      padding: "0px 8px",
       minWidth: "48px",
-      height: "26px",
+      height: "24px",
       background: "#FFFFFF",
-      borderRadius: "24px",
-      color: "#202937",
+      borderRadius: "100px",
+      /** 값 폰트 */
+      fontFamily: "Pretendard Variable",
+      fontWeight: 400,
+      fontSize: "12px",
+      lineHeight: "140%",
+      color: "#4B5462",
     },
 
     /** X 버튼 */
     removeButton: {
       size: "16px",
-      color: "#202937",
+      color: "#F36012",
       hoverOpacity: 0.7,
     },
 
-    /** 폰트 */
-    fonts: {
-      family: "Pretendard Variable",
-      weight: 500,
-      size: "16px",
-      lineHeight: "140%",
+    /** 스크롤 컨테이너 */
+    scrollContainer: {
+      gap: "8px",
+      height: "32px",
     },
   },
 } as const;

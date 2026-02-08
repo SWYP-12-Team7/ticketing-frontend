@@ -35,35 +35,32 @@ export function EmptyState({ type }: EmptyStateProps) {
   // type === "no-events"
   return (
     <div className="empty-state-with-character relative flex flex-col items-center justify-center py-20">
-      {/* 주황색 radial gradient 빛 효과 (Figma Ellipse 149) */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: "319px",
-          height: "106px",
-          bottom: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background:
-            "radial-gradient(58.33% 58.33% at 50% 50%, #F36012 0%, rgba(255, 255, 255, 0) 100%)",
-          zIndex: 0,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* 스위프 캐릭터 (Figma: 211px × 292px) */}
+      {/* 빈 상태 아이콘 (돋보기 + 위치 핀, 크기: 211px × 292px) */}
       <div className="relative z-10 mb-6">
         <Image
-          src="/images/swyp-character.png"
-          alt=""
+          src="/images/404/emptyImg2.png"
+          alt="검색 결과 없음"
           width={211}
           height={292}
           priority
         />
       </div>
 
-      {/* 메시지 */}
-      <p className="relative z-10 text-lg font-medium text-gray-600">
+      {/* 메시지 (Figma spec) */}
+      <p
+        className="relative z-10 flex items-end"
+        style={{
+          width: "257px",
+          height: "32px",
+          fontFamily: "Pretendard Variable",
+          fontStyle: "normal",
+          fontWeight: 400,
+          fontSize: "18px",
+          lineHeight: "180%",
+          textAlign: "center",
+          color: "#4B5462",
+        }}
+      >
         선택하신 조건에 맞는 행사가 없어요!
       </p>
     </div>

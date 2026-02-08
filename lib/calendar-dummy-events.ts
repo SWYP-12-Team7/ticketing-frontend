@@ -68,6 +68,11 @@ export function generateEventsByDate(date: IsoDate): Event[] {
     const [year, month, day] = date.split("-");
     const endDay = String(Number(day) + 7).padStart(2, "0");
 
+    // 최신순 정렬용: 최근 30일 내 랜덤 날짜
+    const daysAgo = random(30, i);
+    const createdDate = new Date();
+    createdDate.setDate(createdDate.getDate() - daysAgo);
+
     events.push({
       id: `${date}-event-${i + 1}`,
       title: isExhibition
@@ -82,6 +87,8 @@ export function generateEventsByDate(date: IsoDate): Event[] {
       viewCount: random(100000, i * 100),
       likeCount: random(50000, i * 50),
       isLiked: i % 7 === 0,
+      createdAt: createdDate.toISOString(),
+      endDate: `${year}-${month}-${endDay}`,
     });
   }
 
@@ -106,6 +113,16 @@ export function generatePopularEvents(count = 24): Event[] {
       ? SUBCATEGORIES.exhibition
       : SUBCATEGORIES.popup;
 
+    // 최신순 정렬용: 최근 60일 내 랜덤 날짜
+    const daysAgo = i * 2; // 2일 간격
+    const createdDate = new Date();
+    createdDate.setDate(createdDate.getDate() - daysAgo);
+
+    // 마감임박순 정렬용: 앞으로 30일 내 랜덤 종료일
+    const daysUntilEnd = i + 5; // 5일 후부터 시작
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + daysUntilEnd);
+
     events.push({
       id: `popular-event-${i + 1}`,
       title: isExhibition
@@ -121,6 +138,8 @@ export function generatePopularEvents(count = 24): Event[] {
       viewCount: baseViewCount - i * 1000,
       likeCount: baseLikeCount - i * 500,
       isLiked: i % 5 === 0,
+      createdAt: createdDate.toISOString(),
+      endDate: endDate.toISOString().split("T")[0], // YYYY-MM-DD 형식
     });
   }
 

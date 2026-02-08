@@ -3,9 +3,9 @@
  *
  * 필터 섹션을 접고 펼 수 있는 Accordion
  *
- * Figma 스펙:
- * - Title: 16px, weight 400, line-height 150%, color #121212
- * - Chevron: 24px × 24px
+ * Figma 스펙 (2026-02-08 업데이트):
+ * - Title: 18px, weight 600, line-height 128%, color #121212
+ * - Chevron: 24px × 24px, color #6C7180
  * - Border-bottom: 1px solid #F7F7F7
  * - Padding: 20px 0px 10px (첫 번째), 10px 0px (나머지)
  */
@@ -58,9 +58,10 @@ export function AccordionSection({
         <span
           className="text-[#121212] text-left"
           style={{
-            fontSize: "16px",
-            fontWeight: 400,
-            lineHeight: "150%",
+            fontFamily: "Pretendard Variable",
+            fontSize: "18px",
+            fontWeight: 600,
+            lineHeight: "128%",
             letterSpacing: "-0.025em",
           }}
         >
@@ -68,7 +69,7 @@ export function AccordionSection({
         </span>
         <ChevronUp
           className={cn(
-            "w-6 h-6 text-[#121212] transition-transform duration-200 shrink-0",
+            "w-6 h-6 text-[#6C7180] transition-transform duration-200 shrink-0",
             !isExpanded && "rotate-180"
           )}
           strokeWidth={1.5}

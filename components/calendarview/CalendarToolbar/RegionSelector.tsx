@@ -48,7 +48,7 @@ export function RegionSelector({
   selectedRegionId,
   onRegionChange,
 }: RegionSelectorProps) {
-  const selectedRegion = regions.find((r) => r.id === selectedRegionId);
+  const _selectedRegion = regions.find((r) => r.id === selectedRegionId);
 
   return (
     <div

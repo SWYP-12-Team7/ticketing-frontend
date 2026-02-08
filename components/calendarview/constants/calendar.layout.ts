@@ -30,30 +30,32 @@ export const CALENDAR_LAYOUT = {
 } as const;
 
 /**
- * 요일 레이블 (영문 약자)
+ * 요일 레이블 (한글)
+ * 일요일부터 토요일까지 순서
  */
 export const WEEKDAY_LABELS = [
-  "SUN",
-  "MON",
-  "TUE",
-  "WED",
-  "THU",
-  "FRI",
-  "SAT",
+  "일",
+  "월",
+  "화",
+  "수",
+  "목",
+  "금",
+  "토",
 ] as const;
 
 /**
- * 요일 레이블 (한글 전체)
+ * 요일 레이블 (한글 전체 - WEEKDAY_LABELS와 동일)
  * 접근성 및 스크린 리더 지원용
+ * @deprecated WEEKDAY_LABELS를 사용하세요
  */
 export const WEEKDAY_LABELS_KO = [
-  "일요일",
-  "월요일",
-  "화요일",
-  "수요일",
-  "목요일",
-  "금요일",
-  "토요일",
+  "일",
+  "월",
+  "화",
+  "수",
+  "목",
+  "금",
+  "토",
 ] as const;
 
 /**

@@ -80,9 +80,7 @@ export function CalendarEventPill({
           height: CALENDAR_DESIGN_TOKENS.sizing.pill.iconSize,
           backgroundColor: isSelected ? pillColors.background : "transparent",
           borderColor: pillColors.border,
-          borderWidth: isSelected
-            ? "0px"
-            : CALENDAR_DESIGN_TOKENS.borders.pillDefault,
+          borderWidth: "1px",
           borderStyle: "solid",
         }}
         aria-hidden="true"

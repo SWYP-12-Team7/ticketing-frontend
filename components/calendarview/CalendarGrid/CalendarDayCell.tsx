@@ -11,7 +11,6 @@
  */
 
 import React from "react";
-import { cn } from "@/lib/utils";
 import { isSameMonth, toIsoDateLocal } from "@/lib/calendar-date";
 import type { CalendarDayCellProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
@@ -29,7 +28,7 @@ function CalendarDayCellComponent({
   activeCategories,
   counts,
   selectedDate,
-  selectedEvent,
+  selectedPillCategories,
   onDateClick,
   onPillClick,
 }: CalendarDayCellProps) {
@@ -41,11 +40,11 @@ function CalendarDayCellComponent({
   const showExhibition = inMonth && activeCategories.exhibition;
   const showPopup = inMonth && activeCategories.popup;
 
-  // Pill 선택 상태 확인
+  // Pill 선택 상태 확인 (선택된 날짜이면서 해당 카테고리가 선택됨)
   const isExhibitionPillSelected =
-    selectedEvent?.date === iso && selectedEvent?.category === "exhibition";
+    isDateSelected && (selectedPillCategories?.has("exhibition") ?? false);
   const isPopupPillSelected =
-    selectedEvent?.date === iso && selectedEvent?.category === "popup";
+    isDateSelected && (selectedPillCategories?.has("popup") ?? false);
 
   // 표시할 pill 개수 계산
   const visiblePills = [
@@ -166,7 +165,7 @@ function CalendarDayCellComponent({
               category="exhibition"
               count={counts.exhibition}
               isSelected={isExhibitionPillSelected}
-              onClick={(e) => {
+              onClick={() => {
                 onPillClick?.(iso, "exhibition");
               }}
             />
@@ -189,7 +188,7 @@ function CalendarDayCellComponent({
               category="popup"
               count={counts.popup}
               isSelected={isPopupPillSelected}
-              onClick={(e) => {
+              onClick={() => {
                 onPillClick?.(iso, "popup");
               }}
             />

@@ -65,7 +65,7 @@ export function SubcategorySelector({
 
   const label = category === "popup" ? "팝업" : "전시";
 
-  const selectedOption = options.find(
+  const _selectedOption = options.find(
     (opt) => opt.value === selectedSubcategory
   );
 

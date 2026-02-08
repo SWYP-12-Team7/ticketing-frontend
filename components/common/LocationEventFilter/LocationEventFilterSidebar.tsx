@@ -153,43 +153,34 @@ export function LocationEventFilterSidebar({
   };
 
   return (
-    <>
-      {/* 오버레이 */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 transition-opacity duration-300",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        style={{ backgroundColor: "rgba(18, 18, 18, 0.4)" }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* 사이드바 */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-white transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-        style={{
-          width: "273px",
-          boxShadow: "2px 0px 2px rgba(0, 0, 0, 0.15)",
-          borderRadius: "12px 16px 16px 12px",
-        }}
-        aria-label="지역/행사 필터"
-        aria-modal="true"
-        role="dialog"
-      >
-        <div className="flex h-full flex-col p-[10px] gap-[11px]">
+    <aside
+      className="bg-white"
+      style={{
+        width: "422px",
+        height: "661px",
+        boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
+        borderRadius: "12px 16px 16px 12px",
+        flexShrink: 0,
+      }}
+      aria-label="지역/행사 필터"
+    >
+        <div 
+          className="flex flex-col p-[10px]" 
+          style={{
+            height: "100%",
+            gap: "11px",
+          }}
+        >
           {/* 헤더 */}
           <header className="flex items-center justify-between px-4 pr-4">
             <h2
-              className="text-[#222222]"
+              className="text-[#000000]"
               style={{
                 fontFamily: "Pretendard Variable",
                 fontSize: "20px",
-                fontWeight: 700,
-                lineHeight: "28px",
+                fontWeight: 600,
+                lineHeight: "26px",
+                letterSpacing: "-0.025em",
               }}
             >
               필터
@@ -197,17 +188,18 @@ export function LocationEventFilterSidebar({
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center justify-center w-6 h-6"
+              className="flex items-center justify-center w-12 h-12"
               aria-label="필터 닫기"
             >
-              <X className="w-6 h-6 text-black" strokeWidth={2} />
+              <X className="w-6 h-6" style={{ color: "#6C7180" }} strokeWidth={1.5} />
             </button>
           </header>
 
           {/* 필터 섹션들 (스크롤 가능) */}
           <div
-            className="flex-1 overflow-y-auto px-3"
+            className="flex-1 overflow-y-scroll px-3"
             style={{
+              height: "530px",
               scrollbarWidth: "thin",
               scrollbarColor: "#D9D9D9 transparent",
             }}
@@ -326,6 +318,5 @@ export function LocationEventFilterSidebar({
           </footer>
         </div>
       </aside>
-    </>
   );
 }
