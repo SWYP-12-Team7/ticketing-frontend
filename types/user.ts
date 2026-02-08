@@ -71,6 +71,8 @@ export interface BackendSocialAccount {
  */
 export interface UpdateAddressRequest {
   address: string;
+  latitude: number;
+  longitude: number;
 }
 
 /**

@@ -71,11 +71,71 @@ export async function updateNickname(nickname: string): Promise<void> {
 }
 
 /**
+ * 주소를 좌표로 변환 (카카오 Geocoder API)
+ * 
+ * @description
+ * - 카카오 Maps Geocoder API 사용
+ * - 주소 문자열 → 위도/경도 변환
+ * - 변환 실패 시 서울시청 좌표 반환
+ * 
+ * @param address - 변환할 주소
+ * @returns { latitude, longitude }
+ * 
+ * @throws {Error} Window가 없거나 Kakao Maps API가 로드되지 않은 경우
+ * 
+ * @example
+ * const coords = await getCoordinatesFromAddress("서울시 강남구");
+ * console.log(coords); // { latitude: 37.5011, longitude: 127.0397 }
+ */
+async function getCoordinatesFromAddress(
+  address: string
+): Promise<{ latitude: number; longitude: number }> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") {
+      reject(new Error("Window is not defined"));
+      return;
+    }
+
+    if (!window.kakao?.maps?.services) {
+      reject(new Error("Kakao Maps API is not loaded"));
+      return;
+    }
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+
+    geocoder.addressSearch(
+      address,
+      (
+        result: Array<{ x: string; y: string }>,
+        status: string
+      ) => {
+        if (status === window.kakao.maps.services.Status.OK && result.length > 0) {
+          resolve({
+            latitude: parseFloat(result[0].y),
+            longitude: parseFloat(result[0].x),
+          });
+        } else {
+          // 좌표 변환 실패 시 서울시청 좌표 (기본값)
+          console.warn(
+            `주소 변환 실패: ${address}, 기본 좌표(서울시청) 사용`
+          );
+          resolve({
+            latitude: 37.5665,
+            longitude: 126.9780,
+          });
+        }
+      }
+    );
+  });
+}
+
+/**
  * 2. 주소 변경
  * 
  * @description
  * - API: PATCH /users/address
- * - Request Body: { address: string }
+ * - Request Body: { address, latitude, longitude }
+ * - 카카오 Geocoder API로 주소 → 좌표 자동 변환
  * 
  * @param address - 변경할 주소
  * @returns void (200 OK)
@@ -84,10 +144,17 @@ export async function updateNickname(nickname: string): Promise<void> {
  * 
  * @example
  * await updateAddress("서울시 강남구 역삼동");
+ * // → { address: "서울시 강남구 역삼동", latitude: 37.5011, longitude: 127.0397 }
  */
 export async function updateAddress(address: string): Promise<void> {
+  // 1. 주소 → 좌표 변환
+  const { latitude, longitude } = await getCoordinatesFromAddress(address);
+
+  // 2. 백엔드 API 호출
   await axiosInstance.patch<void>("/users/address", {
     address,
+    latitude,
+    longitude,
   } as UpdateAddressRequest);
 }
 
@@ -307,6 +374,27 @@ declare global {
         onclose: () => void;
       }) => {
         open: () => void;
+      };
+    };
+    kakao?: {
+      maps?: {
+        services?: {
+          Status: {
+            OK: string;
+            ZERO_RESULT: string;
+            ERROR: string;
+          };
+          Geocoder: new () => {
+            addressSearch: (
+              address: string,
+              callback: (
+                result: Array<{ x: string; y: string }>,
+                status: string
+              ) => void
+            ) => void;
+          };
+        };
+        load?: (callback: () => void) => void;
       };
     };
   }
