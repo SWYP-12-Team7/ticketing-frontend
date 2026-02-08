@@ -9,6 +9,8 @@ export interface Event {
   id: string;
   title: string;
   category: string;
+  /** 원본 타입 (예: "POPUP", "EXHIBITION") */
+  type?: string;
 
   /** 서브카테고리 (예: "라이프스타일", "현대미술") */
   subcategory?: string;

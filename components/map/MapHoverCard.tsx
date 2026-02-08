@@ -13,16 +13,24 @@ interface MapHoverCardProps {
  */
 export function MapHoverCard({ event }: MapHoverCardProps) {
   const { title, location, period, imageUrl, category } = event;
+  const fallbackImage = "/images/404/emptyImg2.png";
 
   return (
     <div className="flex gap-3 rounded-xl bg-white p-3 shadow-lg">
       {/* 이미지 썸네일 */}
       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
         <Image
-          src={imageUrl || "/images/mockImg.png"}
+          src={imageUrl || fallbackImage}
           alt={title}
           fill
           className="object-cover"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (target.src !== fallbackImage) {
+              target.src = fallbackImage;
+              target.srcset = "";
+            }
+          }}
         />
       </div>
 

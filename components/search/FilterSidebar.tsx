@@ -90,26 +90,21 @@ export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) 
         {/* 오버레이 */}
         <div
           className={cn(
-            "fixed inset-0 z-[70] transition-opacity duration-300",
+            "fixed inset-x-0 bottom-0 top-[100px] z-[70] transition-opacity duration-300",
             isOpen ? "opacity-100" : "pointer-events-none opacity-0"
           )}
           style={{ backgroundColor: "rgba(18, 18, 18, 0.4)" }}
           onClick={onClose}
         />
 
-        {/* 패널 기준 컨테이너: 1440px 기준 오른쪽에서 슬라이드 */}
+        {/* 패널: 화면 오른쪽에서 슬라이드 */}
         <div
           className={cn(
-            "fixed inset-y-0 left-1/2 z-[90] w-full max-w-[1440px] -translate-x-1/2",
-            isOpen ? "pointer-events-auto" : "pointer-events-none"
+            "fixed inset-y-0 right-0 z-[90] w-full max-w-[720px] transition-transform duration-300 ease-in-out",
+            isOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
           )}
         >
-          <div
-            className={cn(
-              "absolute right-0 top-[100px] h-[calc(100vh-100px)] w-full max-w-[720px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
-              isOpen ? "translate-x-0" : "translate-x-full pointer-events-none invisible"
-            )}
-          >
+          <div className="absolute right-0 top-[100px] h-[calc(100vh-100px)] w-full bg-white shadow-xl">
         {/* 헤더 */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <button type="button" onClick={onClose}>

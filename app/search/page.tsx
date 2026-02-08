@@ -4,11 +4,16 @@ import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { EventCard, type Event } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
-import { FilterSidebar, type FilterState } from "@/components/search/FilterSidebar";
+import type { FilterState } from "@/components/search/FilterSidebar";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { searchCurations } from "@/services/api/search";
 
 const DEFAULT_PAGE_SIZE = 15;
+const FilterSidebar = dynamic(
+  () => import("@/components/search/FilterSidebar").then((m) => m.FilterSidebar),
+  { ssr: false }
+);
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -215,11 +220,13 @@ function SearchContent() {
     ? Math.max(1, Math.ceil(visibleEvents.length / size))
     : totalPages;
 
+    
+
   return (
     <main className="min-h-screen bg-background py-5">
-      <div className="mx-auto max-w-300 px-5 py-10">
+      <div className="relative mx-auto max-w-7xl py-10">
         {/* 헤더: 검색 결과 수 + 정렬/필터 */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center w-[1280px] justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-medium text-orange">
               {displayCount}
@@ -264,20 +271,16 @@ function SearchContent() {
         {/* 태그/필터 칩 제거 (사이드바 패널로만 조작) */}
 
         {/* 카드 그리드 */}
-        {isLoading && (
-          <div className="flex justify-center py-6">
-            <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
-          </div>
-        )}
+      
         {visibleEvents.length === 0 && !isLoading ? (
           <div className="min-h-[calc(100vh-100px-220px)] flex items-center justify-center">
-  <EmptyState message="일치하는 데이터가 없습니다" />
-</div>
+            <EmptyState message="일치하는 데이터가 없습니다" />
+          </div>
         ) : (
-          <div className="flex flex-wrap gap-6">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {pagedEvents.map((event) => (
               <Fragment key={event.id}>
-                <EventCard event={event} />
+                <EventCard event={event} showMeta={false} />
               </Fragment>
             ))}
           </div>
@@ -320,6 +323,13 @@ function SearchContent() {
             </button>
           </div>
         )}
+
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex min-h-[50vh] items-center justify-center bg-white/70 backdrop-blur-sm">
+            <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
+          </div>
+        )}
+
       </div>
 
       {/* 필터 사이드바 */}

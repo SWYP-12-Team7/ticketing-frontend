@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Map, MapMarker, MarkerClusterer, ZoomControl, useKakaoLoader } from "react-kakao-maps-sdk";
 import { LocateFixed, Search, X } from "lucide-react";
 
@@ -24,6 +24,7 @@ interface KakaoMapProps {
   level?: number;
   maxLevel?: number;
   locations?: Location[];
+  lockView?: boolean;
   onMarkerClick?: (location: Location) => void;
   onMarkerHover?: (location: Location | null) => void;
   onClusterClick?: (locationIds: string[]) => void;
@@ -38,6 +39,7 @@ export function KakaoMap({
   level: initialLevel = 5,
   maxLevel = 12,
   locations = [],
+  lockView = false,
   onMarkerClick,
   onMarkerHover,
   onClusterClick,
@@ -54,7 +56,7 @@ export function KakaoMap({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const mapRef = useRef<kakao.maps.Map>(null);
+  const mapRef = useRef<kakao.maps.Map | null>(null);
   const markerIdMapRef = useRef(new WeakMap<kakao.maps.Marker, string>());
 
   const [loading, error] = useKakaoLoader({
@@ -110,6 +112,15 @@ export function KakaoMap({
     },
     [locations, onVisibleLocationIdsChange]
   );
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const rafId = requestAnimationFrame(() => {
+      map.relayout();
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [locations.length]);
 
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
@@ -267,14 +278,22 @@ export function KakaoMap({
         level={level}
         maxLevel={maxLevel}
         className="h-full w-full"
-        ref={mapRef}
-        onCenterChanged={(map) => setCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() })}
-        onZoomChanged={(map) => setLevel(map.getLevel())}
+        onCreate={(map) => {
+          mapRef.current = map;
+        }}
+        onCenterChanged={(map) => {
+          if (lockView) return;
+          setCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
+        }}
+        onZoomChanged={(map) => {
+          if (lockView) return;
+          setLevel(map.getLevel());
+        }}
         onIdle={emitVisibleLocationIds}
       >
         <MarkerClusterer
           averageCenter={true}
-          minLevel={7}
+          minLevel={8}
           styles={clusterStyles}
           calculator={[50]}
           onClusterclick={(_, cluster) => {

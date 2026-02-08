@@ -28,6 +28,7 @@ export function SettingsSidebar() {
 
         // 로컬 상태 초기화
         resetProfile();
+        localStorage.removeItem("auth");
 
         // 홈으로 이동
         router.push("/");

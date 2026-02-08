@@ -2,13 +2,16 @@
 
 import { cn } from "@/lib/utils";
 import { Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { KakaoMap } from "@/components/map/KakaoMap";
 
 interface LocationSectionProps {
   className?: string;
   id?: string;
   address: string;
   detailAddress?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export function LocationSection({
@@ -16,10 +19,27 @@ export function LocationSection({
   id,
   address,
   detailAddress,
+  lat,
+  lng,
 }: LocationSectionProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   const fullAddress = detailAddress ? `${address} ${detailAddress}` : address;
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
+  const locations = useMemo(
+    () =>
+      hasCoords
+        ? [
+            {
+              id: "detail-location",
+              title: fullAddress,
+              lat,
+              lng,
+            },
+          ]
+        : [],
+    [hasCoords, fullAddress, lat, lng]
+  );
 
   const handleCopyAddress = async () => {
     try {
@@ -57,11 +77,25 @@ export function LocationSection({
           </button>
         </div>
 
-        {/* 카카오맵 자리 */}
-        <div className="flex h-[300px] items-center justify-center rounded-lg border border-border bg-muted">
-          <span className="text-sm text-muted-foreground">
-            카카오맵이 들어갈 자리입니다
-          </span>
+        <div className="h-[300px] overflow-hidden rounded-lg border border-border bg-muted">
+          {hasCoords ? (
+            <KakaoMap
+              key={`${lat}-${lng}-detail`}
+              center={{ lat: lat!, lng: lng! }}
+              level={5}
+              maxLevel={6}
+              locations={locations}
+              showSearch={false}
+              showMyLocation={false}
+              lockView
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <span className="text-sm text-muted-foreground">
+                카카오맵이 들어갈 자리입니다
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </section>
