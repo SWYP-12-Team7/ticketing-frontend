@@ -149,3 +149,26 @@ export interface UpdateFolderNameParams {
   folderId: number;
   folderName: string;
 }
+
+/**
+ * 폴더 정보
+ * 
+ * @description
+ * - GET /users/me/folders 응답의 개별 폴더 타입
+ */
+export interface Folder {
+  id: number;
+  name: string;
+  totalCount: number;      // 총 찜 개수
+  popupCount: number;      // 팝업 개수
+  exhibitionCount: number; // 전시 개수
+}
+
+/**
+ * 폴더 목록 응답
+ * 
+ * @description
+ * - GET /users/me/folders
+ * - 배열 형태로 반환
+ */
+export type FoldersResponse = Folder[];

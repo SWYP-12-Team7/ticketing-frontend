@@ -7,7 +7,8 @@ import type {
   UserTasteResponse,
   AddFavoriteRequest,
   EventType,
-  UpdateFolderNameParams
+  UpdateFolderNameParams,
+  FoldersResponse
 } from "@/types/user";
 
 // ========== 헬퍼 함수 ==========
@@ -454,6 +455,55 @@ export async function updateFolderName(
       },
     }
   );
+}
+
+/**
+ * 9. 폴더 삭제
+ * 
+ * @description
+ * - API: DELETE /users/me/folders/{folderId}
+ * - Request Body: 없음
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @param folderId - 삭제할 폴더 ID
+ * @returns void (200 OK)
+ * 
+ * @throws {Error} 403 Forbidden - 인증 실패
+ * @throws {Error} 404 Not Found - 폴더가 존재하지 않음
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * await deleteFolder(22);
+ */
+export async function deleteFolder(folderId: number): Promise<void> {
+  // ⚠️ 주의: Query parameter 보내지 않음 (Swagger 버그)
+  // 회원탈퇴 API(deleteUser)와 동일한 패턴
+  await axiosInstance.delete(`/users/me/folders/${folderId}`);
+}
+
+/**
+ * 10. 폴더 목록 조회
+ * 
+ * @description
+ * - API: GET /users/me/folders
+ * - Response: 폴더 목록 배열
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @returns 폴더 목록 (id, name, totalCount, popupCount, exhibitionCount)
+ * 
+ * @throws {Error} 403 Forbidden - 인증 실패
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * const folders = await getFolders();
+ * console.log(folders[0].name); // "내가 좋아하는 전시"
+ * console.log(folders[0].totalCount); // 15
+ */
+export async function getFolders(): Promise<FoldersResponse> {
+  // ⚠️ 주의: Query parameter 보내지 않음 (Swagger 버그)
+  // getUserProfile(), getUserTaste()와 동일한 패턴
+  const response = await axiosInstance.get<FoldersResponse>("/users/me/folders");
+  return response.data;
 }
 
 // ========== 타입 정의 ==========
