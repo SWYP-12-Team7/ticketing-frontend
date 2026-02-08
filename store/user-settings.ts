@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { UserProfile, NotificationSettings } from "@/types/user";
 import { updateUserProfile, deleteUser } from "@/services/api/user";
 import { useAuthStore } from "@/store/auth";
+import { AxiosError } from "axios";
 
 interface UserSettingsState {
   // 현재 편집 중인 프로필 (임시 저장)
@@ -118,9 +119,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
           // 3초 후 저장 완료 메시지 제거
           setTimeout(() => set({ isSaved: false }), 3000);
-        } catch (error: any) {
+        } catch (error) {
           // 403 에러: 인증 문제
-          if (error?.response?.status === 403) {
+          if (error instanceof AxiosError && error.response?.status === 403) {
             set({
               isLoading: false,
               error: "로그인이 필요합니다",
@@ -129,7 +130,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           }
 
           // 401 에러: 토큰 만료 (interceptor에서 처리하지만 혹시 모를 경우)
-          if (error?.response?.status === 401) {
+          if (error instanceof AxiosError && error.response?.status === 401) {
             set({
               isLoading: false,
               error: "인증이 만료되었습니다. 다시 로그인해주세요",
