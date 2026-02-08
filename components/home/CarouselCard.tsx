@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 export interface CarouselCardData {
   id: number;
@@ -24,10 +23,11 @@ export function CarouselCard({ data, isActive = false, onClick }: CarouselCardPr
   };
 
   return (
-    <Link
-      href={`/detail/${data.id}`}
+    <button
+      type="button"
       onClick={handleClick}
       className="relative block h-full w-full overflow-hidden rounded-2xl shadow-[0_4px_4px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-90"
+      aria-label={`${data.title} 슬라이드`}
     >
       <Image
         src={data.imageUrl}
@@ -49,6 +49,6 @@ export function CarouselCard({ data, isActive = false, onClick }: CarouselCardPr
           {data.period}
         </span>
       </div>
-    </Link>
+    </button>
   );
 }
