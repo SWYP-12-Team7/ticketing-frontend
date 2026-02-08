@@ -61,8 +61,8 @@ function MapViewContent({
   };
 
   return (
-    <section aria-label="지도 뷰" className="mapViewPage__section">
-      <div className="mapViewPage__container relative h-[650px] rounded-xl overflow-hidden">
+    <section aria-label="지도 뷰" className="mapViewPage__section w-full min-w-0">
+      <div className="mapViewPage__container relative h-[650px] w-full min-w-0 flex-shrink-0 rounded-xl overflow-hidden">
         <KakaoMap
           center={{ lat: 37.5665, lng: 126.978 }}
           level={8}
