@@ -293,23 +293,19 @@ export async function getCalendarEventsByDate(
   }
 
   /**
-   * 카테고리 파라미터 변환
-   * - FE: ["exhibition", "popup"] → BE: "EXHIBITION,POPUP"
+   * ⚠️ 백엔드 API의 category 파라미터 버그
+   * - category 파라미터를 보내면 항상 0개 반환
+   * - 해결책: 전체 데이터를 조회하고 프론트엔드에서 필터링
    */
-  const categoryParam = categories?.length
-    ? categories
-        .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
-        .join(",")
-    : undefined;
 
-  // API 요청
+  // API 요청 (category 파라미터 제외)
   const response = await axiosInstance.get<BackendCalendarListResponse>(
     "/curations/calendar/list",
     {
       params: {
         date, // ISO Date: "2026-02-08"
         region: regionId || undefined, // Optional
-        category: categoryParam, // Optional: "EXHIBITION,POPUP"
+        // category 파라미터 제외 (백엔드 버그)
       },
     }
   );
@@ -324,7 +320,7 @@ export async function getCalendarEventsByDate(
   /**
    * 백엔드 응답 → 프론트엔드 Event 타입 변환
    */
-  const events: Event[] = response.data.items.map((item) => ({
+  let events: Event[] = response.data.items.map((item) => ({
     // ID: number → string 변환
     id: item.id.toString(),
 
@@ -350,6 +346,17 @@ export async function getCalendarEventsByDate(
     // 좋아요 여부: 기본값 false (향후 찜하기 API 연동 필요)
     isLiked: false,
   }));
+
+  /**
+   * 프론트엔드에서 카테고리 필터링
+   * - 백엔드 API 버그로 인해 전체 데이터 조회 후 필터링
+   */
+  if (categories?.length) {
+    events = events.filter((event) => {
+      const eventCategory = event.category === "전시" ? "exhibition" : "popup";
+      return categories.includes(eventCategory);
+    });
+  }
 
   return {
     events,
