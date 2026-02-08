@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { UserProfile, NotificationSettings } from "@/types/user";
-import { updateUserProfile, deleteUser } from "@/services/api/user";
+import { updateUserProfile, deleteUser, getUserProfile } from "@/services/api/user";
 import { useAuthStore } from "@/store/auth";
 import { AxiosError } from "axios";
 
@@ -22,6 +22,10 @@ interface UserSettingsState {
   isLoading: boolean;
   error: string | null;
   isSaved: boolean;
+  isInitialized: boolean;
+
+  // 프로필 로드 (BE에서 가져오기)
+  loadProfile: () => Promise<void>;
 
   // 저장 (currentProfile → savedProfile + 백엔드 전송)
   saveProfile: () => Promise<void>;
@@ -84,6 +88,39 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       isLoading: false,
       error: null,
       isSaved: false,
+      isInitialized: false,
+
+      /**
+       * 프로필 로드 (BE에서 가져오기)
+       * 
+       * @description
+       * - GET /users/me 호출하여 최신 프로필 로드
+       * - currentProfile, savedProfile 모두 업데이트
+       * - 초기 로딩 시 한 번만 호출
+       * 
+       * @throws {Error} API 호출 실패 시
+       */
+      loadProfile: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const profile = await getUserProfile();
+          set({
+            currentProfile: profile,
+            savedProfile: profile,
+            isLoading: false,
+            isInitialized: true,
+          });
+        } catch (error) {
+          console.error("프로필 로드 실패:", error);
+          set({
+            isLoading: false,
+            error: error instanceof Error 
+              ? error.message 
+              : "프로필을 불러오는데 실패했습니다",
+          });
+          throw error;
+        }
+      },
 
       // 저장: currentProfile → savedProfile + 백엔드 전송
       saveProfile: async () => {

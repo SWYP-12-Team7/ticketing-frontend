@@ -1,4 +1,4 @@
-import { SettingsSidebar } from "@/components/settings";
+import { SettingsSidebar, SettingsInitializer } from "@/components/settings";
 import type { Metadata } from "next";
 import Script from "next/script";
 
@@ -25,6 +25,9 @@ export default function SettingsLayout({
         src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services`}
         strategy="beforeInteractive"
       />
+
+      {/* 프로필 자동 로드 */}
+      <SettingsInitializer />
 
       <div className="min-h-screen bg-white">
         <div className="mx-auto flex max-w-[1440px] gap-12 px-20 py-20">

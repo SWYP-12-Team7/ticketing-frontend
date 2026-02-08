@@ -3,7 +3,11 @@ import type {
   UserProfile, 
   BackendUserResponse,
   UpdateAddressRequest,
-  CreateProfileRequest 
+  CreateProfileRequest,
+  UserTasteResponse,
+  AddFavoriteRequest,
+  EventType,
+  UpdateFolderNameParams
 } from "@/types/user";
 
 // ========== 헬퍼 함수 ==========
@@ -366,6 +370,91 @@ export const searchAddress = (): Promise<{
     }).open();
   });
 };
+
+/**
+ * 6. 나의 취향 조회
+ * 
+ * @description
+ * - API: GET /users/me/taste
+ * - Response: { favorites, recentViews, recommendations }
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @returns 사용자 취향 데이터 (찜한 행사, 최근 열람, 추천)
+ * 
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * const taste = await getUserTaste();
+ * console.log(taste.favorites); // TasteEvent[]
+ */
+export async function getUserTaste(): Promise<UserTasteResponse> {
+  const response = await axiosInstance.get<UserTasteResponse>("/users/me/taste");
+  return response.data;
+}
+
+/**
+ * 7. 찜하기 추가
+ * 
+ * @description
+ * - API: POST /curations/favorites
+ * - Request Body: { curationId, curationType }
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @param curationId - 행사 ID (number)
+ * @param curationType - 행사 타입 ("EXHIBITION" | "POPUP" | "FAIR")
+ * @returns void (200 OK)
+ * 
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * await addFavorite(123, "EXHIBITION");
+ */
+export async function addFavorite(
+  curationId: number,
+  curationType: EventType
+): Promise<void> {
+  await axiosInstance.post<void>("/curations/favorites", {
+    curationId,
+    curationType,
+  } as AddFavoriteRequest);
+}
+
+/**
+ * 8. 폴더 이름 수정
+ * 
+ * @description
+ * - API: PUT /users/me/folders/{folderId}
+ * - Request Body: 단순 문자열 (JSON 객체 아님!)
+ * - 닉네임 수정 API와 동일한 패턴
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @param folderId - 폴더 ID
+ * @param folderName - 새 폴더명
+ * @returns void (200 OK)
+ * 
+ * @throws {Error} 403 Forbidden - 인증 실패
+ * @throws {Error} 404 Not Found - 폴더가 존재하지 않음
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * await updateFolderName(23, "내가 좋아하는 전시");
+ */
+export async function updateFolderName(
+  folderId: number,
+  folderName: string
+): Promise<void> {
+  // ⚠️ 중요: Request Body가 단순 문자열이므로 JSON.stringify 사용
+  // { folderName: "..." } 형태가 아님! (닉네임 수정과 동일 패턴)
+  await axiosInstance.put(
+    `/users/me/folders/${folderId}`,
+    JSON.stringify(folderName),
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+}
 
 // ========== 타입 정의 ==========
 

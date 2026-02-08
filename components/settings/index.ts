@@ -1,6 +1,7 @@
 export { SettingsSidebar } from "./SettingsSidebar";
 export { UserProfileCard } from "./UserProfileCard";
 export { SettingsNavigation } from "./SettingsNavigation";
+export { SettingsInitializer } from "./SettingsInitializer";
 export { MemberInfoSection } from "./MemberInfoSection";
 export { NotificationSettings } from "./NotificationSettings";
 export { ToggleSwitch } from "./ToggleSwitch";
