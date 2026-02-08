@@ -1,12 +1,18 @@
 "use client";
 
 import { RequireGuest } from "@/components/auth";
+import { useEffect } from "react";
 import Image from "next/image";
 
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "")}&response_type=code`;
 
 export default function LoginPage() {
+  useEffect(() => {
+    console.log("[KAKAO] redirect_uri (mount):", process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "");
+  }, []);
+
   const handleKakaoLogin = () => {
+    console.log("[KAKAO] redirect_uri:", process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "");
     window.location.href = KAKAO_AUTH_URL;
   };
 
