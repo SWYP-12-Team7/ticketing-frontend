@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, ComponentType } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import {
   Layers,
   Shirt,
@@ -15,9 +15,9 @@ import {
   Camera,
   Pencil,
   Box,
-  Tv,
-  Hammer,
-  Building2,
+  PenTool,
+  Paintbrush,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -61,49 +61,49 @@ const MENU_DATA: MenuCategory[] = [
       {
         id: "popup-all",
         label: "전체보기",
-        href: "/popup-store",
+        href: "/search?category=popup&subcategory=all",
         icon: Layers,
       },
       {
         id: "popup-fashion",
         label: "패션",
-        href: "/popup-store/fashion",
+        href: "/search?category=popup&subcategory=fashion",
         icon: Shirt,
       },
       {
         id: "popup-beauty",
         label: "뷰티",
-        href: "/popup-store/beauty",
+        href: "/search?category=popup&subcategory=beauty",
         icon: Sparkles,
       },
       {
         id: "popup-fnb",
         label: "F&B",
-        href: "/popup-store/fnb",
+        href: "/search?category=popup&subcategory=fnb",
         icon: Coffee,
       },
       {
         id: "popup-character",
         label: "캐릭터",
-        href: "/popup-store/character",
+        href: "/search?category=popup&subcategory=character",
         icon: Smile,
       },
       {
         id: "popup-tech",
         label: "테크",
-        href: "/popup-store/tech",
+        href: "/search?category=popup&subcategory=tech",
         icon: Laptop,
       },
       {
         id: "popup-lifestyle",
         label: "라이프스타일",
-        href: "/popup-store/lifestyle",
+        href: "/search?category=popup&subcategory=lifestyle",
         icon: Heart,
       },
       {
         id: "popup-furniture",
         label: "기구 & 인테리어",
-        href: "/popup-store/furniture",
+        href: "/search?category=popup&subcategory=furniture",
         icon: Sofa,
       },
     ],
@@ -115,50 +115,50 @@ const MENU_DATA: MenuCategory[] = [
       {
         id: "exhibition-all",
         label: "전체보기",
-        href: "/exhibition",
+        href: "/search?category=exhibition&subcategory=all",
         icon: Layers,
       },
       {
         id: "exhibition-art",
         label: "현대미술",
-        href: "/exhibition/art",
+        href: "/search?category=exhibition&subcategory=art",
         icon: Palette,
       },
       {
         id: "exhibition-photo",
         label: "사진",
-        href: "/exhibition/photo",
+        href: "/search?category=exhibition&subcategory=photo",
         icon: Camera,
       },
       {
         id: "exhibition-design",
         label: "디자인",
-        href: "/exhibition/design",
+        href: "/search?category=exhibition&subcategory=design",
         icon: Pencil,
+      },
+      {
+        id: "exhibition-illustration",
+        label: "일러스트",
+        href: "/search?category=exhibition&subcategory=illustration",
+        icon: PenTool,
+      },
+      {
+        id: "exhibition-painting",
+        label: "회화",
+        href: "/search?category=exhibition&subcategory=painting",
+        icon: Paintbrush,
       },
       {
         id: "exhibition-sculpture",
         label: "조각",
-        href: "/exhibition/sculpture",
+        href: "/search?category=exhibition&subcategory=sculpture",
         icon: Box,
       },
       {
-        id: "exhibition-media",
-        label: "미디어아트",
-        href: "/exhibition/media",
-        icon: Tv,
-      },
-      {
-        id: "exhibition-craft",
-        label: "공예",
-        href: "/exhibition/craft",
-        icon: Hammer,
-      },
-      {
-        id: "exhibition-history",
-        label: "역사전시",
-        href: "/exhibition/history",
-        icon: Building2,
+        id: "exhibition-installation",
+        label: "설치미술",
+        href: "/search?category=exhibition&subcategory=installation",
+        icon: LayoutGrid,
       },
     ],
   },
@@ -190,18 +190,39 @@ const ANIMATION_DURATION = 900;
  * HeaderSideBar
  *
  * 전역 네비게이션 Sidebar 컴포넌트
- * - 2depth 아코디언 메뉴 구조
+ * - 2depth 아코디언 메뉴 구조 (팝업스토어, 전시)
  * - 호버/클릭으로 카테고리 펼침/접기
  * - 현재 페이지 자동 감지 및 하이라이트
  * - dimmed overlay + slide-in 애니메이션
  * - body scroll lock
  * - 키보드 네비게이션 지원 (ESC, Tab)
  *
- * [SWYP-108] Sidebar 고도화 (2026-02-01)
- * - Header 아래에서 시작 (top-14)
- * - Sidebar 내부 헤더 제거
- * - Footer 간소화
- * - Figma 디자인 스펙 적용 (382px, 내부 패딩 80px/16px)
+ * [SWYP-108] Sidebar 고도화 - Figma 스펙 완전 반영 (2026-02-05)
+ *
+ * Figma 스펙:
+ * - 크기: 382px × calc(100vh - 56px)
+ * - 위치: fixed top-14 left-0 (Header 아래에서 시작)
+ * - padding: 0 16px 0 80px (pl-20 pr-4)
+ * - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
+ *
+ * 1depth 카테고리:
+ * - 비활성: 52px, 20px/600/128%, #202937, arrow 숨김
+ * - 활성: 58px, 20px/600/128%, #F36012, border-l 4px, arrow 표시
+ *
+ * 2depth 서브카테고리:
+ * - 높이: 48px, padding: 4px 8px 4px 32px, gap: 12px
+ * - 비활성: 18px/400/180%, #6C7180
+ * - 활성: 18px/600/180%, #F36012, bg #F3F4F6
+ * - 컨테이너 padding: 12px 0
+ *
+ * 메뉴 구성:
+ * - 팝업스토어: 전체보기, 패션, 뷰티, F&B, 캐릭터, 테크, 라이프스타일, 기구&인테리어
+ * - 전시: 전체보기, 현대미술, 사진, 디자인, 일러스트, 회화, 조각, 설치미술
+ *
+ * 레이어 구조:
+ * - z-75: Header (최상위)
+ * - z-70: Sidebar (선명하게 보임)
+ * - z-60: Overlay (dimmed, Header 아래만 적용)
  */
 export function HeaderSideBar({
   isOpen,
@@ -282,10 +303,11 @@ export function HeaderSideBar({
   }, [isOpen, onClose]);
 
   // 현재 페이지에 해당하는 카테고리를 자동으로 펼침
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isOpen && activeCategoryId && !expandedCategoryId) {
-      setExpandedCategoryId(activeCategoryId);
+      queueMicrotask(() => {
+        setExpandedCategoryId(activeCategoryId);
+      });
     }
   }, [isOpen, activeCategoryId, expandedCategoryId]);
 
@@ -321,7 +343,7 @@ export function HeaderSideBar({
         <div
           id={`submenu-${category.id}`}
           className={cn(
-            "sidebar__submenuContainer overflow-hidden transition-all",
+            "sidebar__submenuContainer overflow-hidden transition-all py-3",
             isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           )}
           style={{ transitionDuration: `${ANIMATION_DURATION}ms` }}
@@ -338,12 +360,12 @@ export function HeaderSideBar({
                   <Link
                     href={subcategory.href}
                     className={cn(
-                      "sidebar__submenuLink flex h-[43px] w-full items-center",
+                      "sidebar__submenuLink flex h-[48px] w-full items-center",
                       "gap-3 px-2 py-1 pl-8 transition-all duration-200",
-                      "text-body-large rounded-[4px]",
+                      "rounded-[4px]",
                       isActive
-                        ? "bg-[#F3F4F6] font-semibold text-[#F36012]"
-                        : "text-[#6C7180] hover:bg-[#F3F4F6]"
+                        ? "bg-[#F3F4F6] text-sidebar-subcategory-active text-[#F36012]"
+                        : "text-sidebar-subcategory text-[#6C7180] hover:bg-[#F3F4F6]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -378,7 +400,7 @@ export function HeaderSideBar({
       <div
         ref={overlayRef}
         className={cn(
-          "sidebar__overlay fixed inset-0 bg-black/50 transition-opacity",
+          "sidebar__overlay fixed top-25 left-0 right-0 bottom-0 bg-black/50 transition-opacity",
           "z-60",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
@@ -388,37 +410,35 @@ export function HeaderSideBar({
       />
 
       {/* ============================================
-          [SWYP-108] Sidebar Container - Figma 스펙 적용
-          작성일: 2026-02-01
-          변경 이유: Figma 디자인 스펙에 맞춰 크기 및 위치 조정
-          
-          이전 코드:
-          className={cn(
-            "sidebar fixed left-0 top-0 flex h-full flex-col bg-white shadow-2xl",
-            "transition-transform ease-in-out",
-            isOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-          style={{ width: 250 }}
+          [SWYP-108] Sidebar Container - Figma 스펙 최종 반영
+          작성일: 2026-02-05
           
           Figma 스펙:
+          - position: absolute, left: 0, bottom: 0
           - width: 382px
           - padding: 0px 16px 0px 80px (내부 콘텐츠 패딩)
-          - 위치: 화면 왼쪽에 붙음 (left-0)
           - shadow: 0px 0px 2px rgba(0,0,0,0.2), 0px 8px 16px rgba(0,0,0,0.2)
           
-          변경 후:
-          - width: 250px → 382px
-          - left: 화면 왼쪽 (left-0)
-          - 내부 패딩: pl-20 (80px), pr-4 (16px) 추가
-          - top: 56px (top-14, Header 아래)
-          - h-full → h-[calc(100vh-3.5rem)]
-          - 애니메이션: left 동적 변경
+          구현 (검증 완료):
+          - position: fixed top-25 (Header 아래에서 시작)
+          - height: calc(100vh - 100px) (Header 제외한 전체 높이)
+          - left: 0 → -382px (슬라이드 애니메이션)
+          
+          레이어 구조 (z-index):
+          - z-75: Header (최상위, 항상 보임, h-25 = 100px)
+          - z-70: Sidebar (선명하게 보임, 클릭 가능)
+          - z-60: Overlay (Header 아래만 dimmed, top-25부터 시작)
+          
+          검증:
+          ✅ Header와 겹치지 않음 (Sidebar top-25 시작)
+          ✅ Sidebar가 dimmed 처리되지 않음 (z-70 > z-60)
+          ✅ Overlay가 Header를 가리지 않음 (top-25 시작)
       ============================================ */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "sidebar fixed top-14 flex flex-col bg-white",
-          "h-[calc(100vh-3.5rem)]",
+          "sidebar fixed top-25 flex flex-col bg-white",
+          "h-[calc(100vh-6.25rem)]",
           "pl-20 pr-4",
           "shadow-[0px_0px_2px_rgba(0,0,0,0.2),0px_8px_16px_rgba(0,0,0,0.2)]",
           "transition-all ease-in-out",
@@ -456,7 +476,7 @@ export function HeaderSideBar({
         ============================================ */}
 
         {/* Menu Content - Header 없이 바로 시작 */}
-        <nav className="sidebar__nav flex-1 overflow-y-auto">
+        <nav className="sidebar__nav flex-1 overflow-y-auto pt-6">
           <ul className="sidebar__menuList" role="list">
             {MENU_DATA.map((category) => {
               const isExpanded = expandedCategoryId === category.id;
@@ -470,26 +490,28 @@ export function HeaderSideBar({
                     onClick={() => handleCategoryToggle(category.id)}
                     onMouseEnter={() => handleCategoryHover(category.id)}
                     className={cn(
-                      "group sidebar__categoryButton flex h-[62px] w-full items-center justify-between",
-                      "pl-3 pr-2 py-2 text-body-medium-bold transition-all duration-200",
+                      "group sidebar__categoryButton relative flex w-full items-center justify-between",
+                      "py-2 px-2 pl-3 text-sidebar-category transition-all duration-200 rounded",
                       isExpanded
-                        ? "border-l-4 border-[#F36012] font-bold text-[#F36012]"
-                        : "border-l-4 border-transparent text-foreground hover:text-muted-foreground"
+                        ? "h-[58px] text-[#F36012]"
+                        : "h-[52px] text-foreground hover:text-muted-foreground"
                     )}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${category.id}`}
                   >
+                    {isExpanded && (
+                      <span
+                        className="absolute left-0 w-1 h-10 bg-[#F36012]"
+                        style={{ top: '11px' }}
+                        aria-hidden="true"
+                      />
+                    )}
                     <span className="sidebar__categoryText">
                       {category.label}
                     </span>
-                    {isExpanded ? (
+                    {isExpanded && (
                       <ChevronUp
-                        className="sidebar__categoryIcon size-5 shrink-0 transition-opacity"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <ChevronDown
-                        className="sidebar__categoryIcon size-5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="sidebar__categoryIcon size-6 shrink-0 transition-opacity"
                         aria-hidden="true"
                       />
                     )}

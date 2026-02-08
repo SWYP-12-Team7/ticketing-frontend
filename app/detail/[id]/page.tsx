@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useCurationDetail } from "@/queries/detail/useCurationDetail";
+import { useNearbyCurations } from "@/queries/detail/useNearbyCurations";
 import {
   HeroSection,
   TabNavigation,
@@ -10,12 +13,36 @@ import {
   NearbyPlaces,
   PriceSection,
   OfficialChannel,
-  RelatedPopups,
 } from "@/components/detail";
+import { ShowPick } from "@/components/home";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
 
-// 임시 목데이터
-const mockDetailData = {
+interface DetailData {
+  images: string[];
+  category: string;
+  title: string;
+  description: string;
+  tags: string[];
+  period: string;
+  address: string;
+  age: string;
+  viewCount: number;
+  likeCount: number;
+  introText: string;
+  introImageUrl: string;
+  operatingHours: { day: string; time: string }[];
+  closedDays: string;
+  contactNumber: string;
+  noticeText: string;
+  noticeImageUrl?: string;
+  prices: { name: string; price?: number }[];
+  channels: { name: string; url: string }[];
+  latitude?: number;
+  longitude?: number;
+}
+
+// 임시 목데이터 (일부 필드 fallback)
+const mockDetailData: DetailData = {
   images: ["/images/detailMock.png"],
   category: "전시 > 체험",
   title:
@@ -61,25 +88,80 @@ Beatae qui a aut. Placeat id officia itaque assumenda amet cumque. Minima atque 
 Amet amet vitae vulputate et phasellus. Viverra tempus est elementum ultrices dignissim sit fames quis est. Lacisnia aliquet ac porisitor imperdiet. Pellentesque egestas mauris fringula tincidunt pharetra gravida malesuada. Vitae et egestas leo ornare vitae. Sit lorem velit commodo sapien.`,
   noticeImageUrl: "https://picsum.photos/seed/notice/800/600",
 
-  // 가격
-  prices: [
-    { name: "대인(만 19세 미만) 입장권", price: 60000 },
-    { name: "소인(만 19세 미만) 입장권", price: 60000 },
-  ],
+  // 가격 (API 없음: 빈 배열로 처리)
+  prices: [],
 
   // 공식채널
-  channels: [
-    { name: "공식 사이트 바로가기", url: "https://example.com" },
-    { name: "SNS 바로가기", url: "https://instagram.com" },
-  ],
+  channels: [{ name: "공식 사이트 바로가기", url: "https://example.com" }],
 };
 
-const TAB_IDS = ["intro", "info", "notice", "location", "price", "channel"];
-
 export default function DetailPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const id = String(params.id);
+  const type = (searchParams.get("type") || "EXHIBITION") as
+    | "EXHIBITION"
+    | "POPUP";
+  const { data, isLoading } = useCurationDetail(id, type);
+  const { data: nearbyEvents = [] } = useNearbyCurations(id, 10);
+
   const [activeTab, setActiveTab] = useState("intro");
   const [isLiked, setIsLiked] = useState(false);
   const isClickScrolling = useRef(false);
+
+  const detailData = useMemo(() => {
+    if (!data) {
+      return {
+        ...mockDetailData,
+        channels: mockDetailData.channels.slice(0, 1),
+      };
+    }
+    const period = data.startDate && data.endDate
+      ? `${data.startDate} ~ ${data.endDate}`
+      : mockDetailData.period;
+    const categoryLabel = type === "POPUP" ? "팝업" : "전시";
+    return {
+      ...mockDetailData,
+      images: [data.thumbnail || data.image || mockDetailData.images[0]],
+      category: `${categoryLabel}`,
+      title: data.title || mockDetailData.title,
+      description: data.subTitle || mockDetailData.description,
+      tags: data.tags?.length ? data.tags : mockDetailData.tags,
+      period,
+      address: data.address || mockDetailData.address,
+      latitude: data.latitude ?? data.lat,
+      longitude: data.longitude ?? data.lng,
+      viewCount: data.viewCount ?? mockDetailData.viewCount,
+      likeCount: data.likeCount ?? mockDetailData.likeCount,
+      introText: data.description || mockDetailData.introText,
+      introImageUrl: data.image || data.thumbnail || mockDetailData.introImageUrl,
+      noticeText: data.noticeText || "",
+      noticeImageUrl: data.noticeImageUrl,
+      channels: data.url
+        ? [{ name: "공식 사이트 바로가기", url: data.url }]
+        : mockDetailData.channels.slice(0, 1),
+    };
+  }, [data, type]);
+
+  const tabs = useMemo(() => {
+    const list = [
+      { id: "intro", label: "소개" },
+      { id: "info", label: "이용안내" },
+    ];
+    if (detailData.noticeText || detailData.noticeImageUrl) {
+      list.push({ id: "notice", label: "공지사항" });
+    }
+    list.push({ id: "location", label: "장소" });
+    list.push({ id: "price", label: "가격" });
+    if (detailData.channels?.length) {
+      list.push({ id: "channel", label: "공식채널" });
+    }
+    return list;
+  }, [detailData.noticeText, detailData.noticeImageUrl, detailData.channels]);
+
+  const resolvedActiveTab = tabs.find((tab) => tab.id === activeTab)
+    ? activeTab
+    : tabs[0]?.id ?? "intro";
 
   // 스크롤에 따라 탭 변경
   useEffect(() => {
@@ -90,7 +172,7 @@ export default function DetailPage() {
     const handleScroll = () => {
       if (isClickScrolling.current) return;
 
-      for (const id of TAB_IDS) {
+      for (const { id } of tabs) {
         const element = document.getElementById(id);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -104,7 +186,7 @@ export default function DetailPage() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [tabs]);
 
   const handleTabChange = (tab: string) => {
     isClickScrolling.current = true;
@@ -133,68 +215,94 @@ export default function DetailPage() {
     window.history.back();
   };
 
+  if (isLoading && !data) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* 히어로 섹션 */}
       <HeroSection
-        images={mockDetailData.images}
-        category={mockDetailData.category}
-        title={mockDetailData.title}
-        description={mockDetailData.description}
-        tags={mockDetailData.tags}
-        period={mockDetailData.period}
-        address={mockDetailData.address}
-        age={mockDetailData.age}
-        viewCount={mockDetailData.viewCount}
-        likeCount={mockDetailData.likeCount}
+        images={detailData.images}
+        category={detailData.category}
+        title={detailData.title}
+        description={detailData.description}
+        tags={detailData.tags}
+        period={detailData.period}
+        address={detailData.address}
+        age={detailData.age}
+        viewCount={detailData.viewCount}
+        likeCount={detailData.likeCount}
         isLiked={isLiked}
         onBackClick={handleBackClick}
         onLikeClick={handleLikeClick}
       />
 
       {/* 탭 네비게이션 */}
-      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <TabNavigation
+        activeTab={resolvedActiveTab}
+        onTabChange={handleTabChange}
+        tabs={tabs}
+      />
 
       {/* 소개 섹션 */}
       <ContentSection
         id="intro"
         title="소개"
-        text={mockDetailData.introText}
-        imageUrl={mockDetailData.introImageUrl}
+        text={detailData.introText}
+        imageUrl={detailData.introImageUrl}
       />
 
       {/* 이용안내 섹션 */}
       <InfoSection
         id="info"
-        period={mockDetailData.period}
-        operatingHours={mockDetailData.operatingHours}
-        closedDays={mockDetailData.closedDays}
-        contact={mockDetailData.contactNumber}
+        period={detailData.period}
+        operatingHours={detailData.operatingHours}
+        closedDays={detailData.closedDays}
+        contact={detailData.contactNumber}
       />
 
       {/* 공지사항 섹션 */}
-      <ContentSection
-        id="notice"
-        title="공지사항"
-        text={mockDetailData.noticeText}
-        imageUrl={mockDetailData.noticeImageUrl}
-        maxHeight={280}
-      />
+      {(detailData.noticeText || detailData.noticeImageUrl) && (
+        <ContentSection
+          id="notice"
+          title="공지사항"
+          text={detailData.noticeText}
+          imageUrl={detailData.noticeImageUrl}
+          maxHeight={280}
+        />
+      )}
 
       {/* 장소 섹션 */}
-      <LocationSection id="location" address={mockDetailData.address} />
+      <LocationSection
+        id="location"
+        address={detailData.address}
+        lat={detailData.latitude}
+        lng={detailData.longitude}
+      />
 
-      {/* 주변 인기 카페·식당 */}
-      <NearbyPlaces />
+      {/* 주변 인기 카페·식당  */} {/* 현재 API 부재 */}
+      {/* <NearbyPlaces /> */} 
 
       {/* 가격 섹션 */}
-      <PriceSection id="price" prices={mockDetailData.prices} />
+      <PriceSection id="price" prices={data ? [] : mockDetailData.prices} />
 
       {/* 공식채널 섹션 */}
-      <OfficialChannel id="channel" channels={mockDetailData.channels} />
+      <OfficialChannel id="channel" channels={detailData.channels} />
 
       {/* 가까운 팝업스토어 */}
-      <RelatedPopups />
+      <ShowPick
+        className="py-6"
+        title="가까운 팝업스토어"
+        subtitle="해당 행사와 가까운 지역의 행사를 모았어요"
+        events={nearbyEvents}
+      />
 
       {/* 맨 위로 버튼 */}
       <ScrollToTop />

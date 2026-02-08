@@ -93,7 +93,21 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {/* 검색 Input */}
-      <div className="flex h-9 items-center gap-2 rounded-full border border-border px-4">
+      <div
+        className={cn(
+          "flex items-center w-md h-[57px] rounded-full border px-6 py-4 gap-2 transition-colors",
+          keyword
+            ? "border-[#F36012] bg-white"
+            : "border-[#D3D5DC] bg-white hover:bg-[#F9FAFB]"
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => handleSearch(keyword)}
+          aria-label="검색"
+        >
+          <Search className="size-6 text-[#6C7180]" />
+        </button>
         <input
           ref={inputRef}
           type="text"
@@ -102,20 +116,23 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="검색어를 입력해주세요"
-          className="w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          className="flex-1 bg-transparent text-sm leading-[180%] outline-none text-basic placeholder:text-[#A6ABB7] placeholder:leading-[180%]"
         />
-        <button
-          type="button"
-          onClick={() => handleSearch(keyword)}
-          aria-label="검색"
-        >
-          <Search className="size-4 text-muted-foreground" />
-        </button>
+        {keyword && (
+          <button
+            type="button"
+            onClick={() => setKeyword("")}
+            aria-label="검색어 지우기"
+            className="shrink-0"
+          >
+            <X className="size-6 text-[#6C7180]" />
+          </button>
+        )}
       </div>
 
       {/* 최근 검색어 드롭다운 */}
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[400px] rounded-lg border border-border bg-background shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg border border-border bg-background shadow-lg">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-5 py-4">
             <span className="text-base font-semibold text-foreground">
@@ -155,7 +172,7 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
                     <button
                       type="button"
                       onClick={() => handleDeleteOne(search)}
-                      className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground"
+                      className="ml-2 shrink-0 text-muted-foreground hover:text-foreground"
                       aria-label={`${search} 삭제`}
                     >
                       <X className="size-4" />

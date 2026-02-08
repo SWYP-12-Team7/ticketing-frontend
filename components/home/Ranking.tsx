@@ -1,93 +1,166 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronRight, Info } from "lucide-react";
+import { EmptyState } from "@/components/common";
+import { usePopular } from "@/queries/main";
+import type {
+  PopularItem,
+  PopularPeriod,
+} from "@/types/popular";
+import { getNowStampText } from "@/lib/time";
 
-interface RankingEvent {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  imageUrl: string;
-  isBookmarked?: boolean;
-}
+type TabKey = "realtime" | "weekly" | "monthly";
+type CategoryKey = "popup" | "exhibition";
+
+const TAB_TO_PERIOD: Record<TabKey, PopularPeriod> = {
+  realtime: "daily",
+  weekly: "weekly",
+  monthly: "monthly",
+};
 
 interface RankingProps {
   className?: string;
-  events?: RankingEvent[];
 }
 
-export function Ranking({ className, events }: RankingProps) {
-  // 더미 데이터
-  const defaultEvents: RankingEvent[] = [
-    {
-      id: "1",
-      title: "BanG Dream! 10주년의 궤적展",
-      location: "Space Gallery 서울 용산",
-      date: "2025.12.04 - 2026.02.01",
-      imageUrl: "/images/mockImg.png",
-      isBookmarked: true,
-    },
-    {
-      id: "2",
-      title: "나 혼자만 레벨업 展",
-      location: "익스DUCE스",
-      date: "2025.12.13 - 2026.03.01",
-      imageUrl: "/images/mockImg.png",
-      isBookmarked: false,
-    },
-    {
-      id: "3",
-      title: "[할 천만 20%할인] 월레와 친구...",
-      location: "서울숲 갤러리아포레",
-      date: "2026.01.02 - 2026.02.28",
-      imageUrl: "/images/mockImg.png",
-      isBookmarked: false,
-    },
-  ];
+export function Ranking({ className }: RankingProps) {
+  const [activeTab, setActiveTab] =
+    useState<TabKey>("realtime");
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryKey>("popup");
 
-  const displayEvents = events || defaultEvents;
+  const { data } = usePopular();
+   const nowTime = useMemo(() => getNowStampText(), []);
+
+  const period = TAB_TO_PERIOD[activeTab];
+  const items: PopularItem[] =
+    data?.data?.[activeCategory]?.[period] ?? [];
 
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#FA7228] bg-white px-10 py-3",
+        "flex h-[642px] flex-col justify-between rounded-xl border border-[#FA7228] bg-white px-[20px] py-[20px]",
         className
       )}
     >
-      <div className="flex h-full flex-col justify-center"> 
-        {displayEvents.map((event, index) => (
-          <Link
-            key={event.id}
-            href={`/event/${event.id}`}
-            className={cn(
-              "flex items-start gap-4 py-4 ",
-              index !== displayEvents.length - 1 && "border-b border-[#E8E8E8]"
-            )}
-          >
-            <div className="flex w-6 flex-col items-center text-[#111111]">
-              <span className="text-3xl font-semibold">{index + 1}</span>
-              <span className="text-xl leading-none text-[#111111]/60">-</span>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="mb-5">
+          <h3 className="text-[18px] font-semibold text-[#111111]">
+            인기 행사
+          </h3>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {/* 랭킹 탭 */}
+          <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#F9FAFB] p-1">
+            {(
+              [
+                { key: "realtime", label: "실시간 급상승" },
+                { key: "weekly", label: "주간 베스트" },
+                { key: "monthly", label: "월간 베스트" },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "rounded-[8px] px-4 py-[6px] text-[14px] font-semibold leading-[180%] transition-colors",
+                  activeTab === tab.key
+                    ? "bg-white text-[#202937] shadow-[0_0_6px_0_rgba(0,0,0,0.10),0_1px_2px_0_rgba(0,0,0,0.10)]"
+                    : "text-[#6C7180]"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 카테고리 + 기준 시간 */}
+          <div className="flex items-center justify-between py-2.5">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setActiveCategory("popup")}
+                className={cn(
+                  "rounded-full border px-4.5 py-[6px] text-[14px] font-normal",
+                  activeCategory === "popup"
+                    ? "border-transparent bg-[#6C7180] text-white"
+                    : "border-[#D5D9E0] bg-white text-[#4B5462]"
+                )}
+              >
+                팝업
+              </button>
+              <button
+                onClick={() =>
+                  setActiveCategory("exhibition")
+                }
+                className={cn(
+                  "rounded-full border px-4.5 py-[6px] text-[14px] font-normal",
+                  activeCategory === "exhibition"
+                    ? "border-transparent bg-[#6C7180] text-white"
+                    : "border-[#D5D9E0] bg-white text-[#4B5462]"
+                )}
+              >
+                전시
+              </button>
             </div>
-            <div className="relative h-34 w-24 shrink-0 overflow-hidden rounded-sm bg-[#F2F2F2]">
-              <Image
-                src={event.imageUrl}
-                alt={event.title}
-                fill
-                className="object-cover"
-              />
+            <div className="flex items-center gap-1 text-[12px] text-[#6C7180] font-normal">
+              <span>{nowTime}</span>
+              
+              <Info className="size-3.5" />
             </div>
-            <div className="min-w-0 pt-4">
-              <h4 className="truncate text-base font-semibold text-[#111111]">
-                {event.title}
-              </h4>
-              <p className="mt-9 text-sm text-[#7A7A7A]">{event.date}</p>
-              <p className="text-[13px] text-[#7A7A7A]">{event.location}</p>
-            </div>
-          </Link>
-        ))}
+          </div>
+        </div>
+
+        <div className="py-2.5 flex flex-1 flex-col gap-2 overflow-hidden">
+          {items.length === 0 ? (
+            <EmptyState message="아직 인기 행사가 없어요" />
+          ) : (
+            items.map((item, index) => (
+              <Link
+                key={item.id}
+                href={`/detail/${item.id}`}
+                className={cn(
+                  "flex items-center gap-3 rounded-[8px] px-2 py-3 transition-colors hover:bg-[#F3F4F6]",
+                  index !== items.length - 1 &&
+                    "border-b border-[#E8E8E8]"
+                )}
+              >
+                <div className="w-6 text-center text-[16px] font-semibold text-[#5B5F66]">
+                  {item.rank}
+                </div>
+                <div className="relative h-[84px] w-[60px] p-2.5 shrink-0 overflow-hidden rounded-[4px] bg-[#EAEAEA]">
+                  <Image
+                    src={item.thumbnail}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="truncate text-[15px] font-semibold text-[#111111]">
+                    {item.title}
+                  </h4>
+                  <p className="mt-1 text-[12px] text-[#7A7A7A]">
+                    {item.address}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-[12px] text-[#7A7A7A]">
+                    <span>{item.period}</span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
       </div>
+
+      {/* 하단 버튼 */}
+      <button className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-orange px-[12px] py-[12px] text-[16px] font-medium leading-[140%] text-white">
+        랭킹 전체 보기
+        <ChevronRight className="size-[24px]" />
+      </button>
     </div>
   );
 }

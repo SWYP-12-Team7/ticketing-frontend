@@ -6,21 +6,14 @@ interface TabNavigationProps {
   className?: string;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  tabs: { id: string; label: string }[];
 }
-
-const tabs = [
-  { id: "intro", label: "소개" },
-  { id: "info", label: "이용안내" },
-  { id: "notice", label: "공지사항" },
-  { id: "location", label: "장소" },
-  { id: "price", label: "가격" },
-  { id: "channel", label: "공식채널" },
-];
 
 export function TabNavigation({
   className,
   activeTab,
   onTabChange,
+  tabs,
 }: TabNavigationProps) {
   return (
     <nav

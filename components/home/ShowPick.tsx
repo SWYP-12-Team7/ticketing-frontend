@@ -1,40 +1,23 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { formatDdayStart } from "@/lib/date";
-import {
-  Heart,
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Calendar,
-  Eye,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import { cn, getNickname } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { type ReactNode, useMemo, useRef } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperType } from "swiper";
+import { OverlayEventCard } from "@/components/common";
+import { EmptyState } from "@/components/common/404/EmptyState";
+import type { Event } from "@/types/event";
 
-interface Event {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  imageUrl: string;
-  likeCount: number;
-  viewCount: number;
-  tags: string[];
-  openDate?: Date;
-  // HotDeal 전용
-  originalPrice?: number;
-  discountRate?: number;
-  discountPrice?: number;
-}
+import "swiper/css";
 
 interface ShowPickProps {
   className?: string;
-  title: string;
+  title: ReactNode;
+  subtitle?: string;
+  subtitleType?: "orange" | "gray";
+  useNickname?: boolean;
   events?: Event[];
-  variant?: "normal" | "countdown" | "hotdeal";
 }
 
 // 임시 목데이터
@@ -42,9 +25,10 @@ const mockEvents: Event[] = [
   {
     id: "1",
     title: "현대미술 컬렉션: 새로운 시선",
+    category: "마이아트뮤지엄",
     location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
-    imageUrl: "/images/mockImg.png",
+    period: "2024.01.20 - 2024.03.20",
+    imageUrl: "https://picsum.photos/400/300?random=11",
     likeCount: 18353,
     viewCount: 2444,
     tags: ["전시", "현대미술"],
@@ -55,288 +39,252 @@ const mockEvents: Event[] = [
   },
   {
     id: "2",
-    title: "현대미술 컬렉션: 새로운 시선",
-    location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
-    imageUrl: "/images/mockImg.png",
-    likeCount: 18353,
-    viewCount: 2444,
-    tags: ["전시", "현대미술"],
+    title: "빛의 축제: 미디어아트전",
+    category: "아트센터나비",
+    location: "서울 강남구",
+    period: "2024.02.01 - 2024.04.15",
+    imageUrl: "https://picsum.photos/400/300?random=12",
+    likeCount: 15200,
+    viewCount: 1980,
+    tags: ["전시", "미디어아트"],
     openDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    originalPrice: 65000,
-    discountRate: 20,
-    discountPrice: 58000,
+    originalPrice: 50000,
+    discountRate: 15,
+    discountPrice: 42500,
   },
   {
     id: "3",
-    title: "현대미술 컬렉션: 새로운 시선",
-    location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
-    imageUrl: "/images/mockImg.png",
-    likeCount: 18353,
-    viewCount: 2444,
-    tags: ["전시", "현대미술"],
+    title: "서울 재즈 페스티벌 2024",
+    category: "문화행사",
+    location: "올림픽공원",
+    period: "2024.03.10 - 2024.03.12",
+    imageUrl: "https://picsum.photos/400/300?random=13",
+    likeCount: 22100,
+    viewCount: 3120,
+    tags: ["공연", "재즈"],
     openDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    originalPrice: 65000,
-    discountRate: 20,
-    discountPrice: 58000,
+    originalPrice: 80000,
+    discountRate: 10,
+    discountPrice: 72000,
   },
   {
     id: "4",
-    title: "현대미술 컬렉션: 새로운 시선",
-    location: "서울 코엑스",
-    date: "2024.01.20 - 2024.03.20",
-    imageUrl: "/images/mockImg.png",
-    likeCount: 18353,
-    viewCount: 2444,
-    tags: ["전시", "현대미술"],
+    title: "모네에서 앤디워홀까지",
+    category: "국립현대미술관",
+    location: "서울 종로구",
+    period: "2024.01.15 - 2024.05.30",
+    imageUrl: "https://picsum.photos/400/300?random=14",
+    likeCount: 31400,
+    viewCount: 4250,
+    tags: ["전시", "인상파"],
     openDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
-    originalPrice: 65000,
+    originalPrice: 70000,
+    discountRate: 25,
+    discountPrice: 52500,
+  },
+  {
+    id: "5",
+    title: "디지털 아트 서울 2024",
+    category: "DDP",
+    location: "동대문디자인플라자",
+    period: "2024.02.20 - 2024.03.31",
+    imageUrl: "https://picsum.photos/400/300?random=15",
+    likeCount: 19800,
+    viewCount: 2650,
+    tags: ["전시", "디지털아트"],
+    openDate: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000),
+    originalPrice: 55000,
+    discountRate: 30,
+    discountPrice: 38500,
+  },
+  {
+    id: "6",
+    title: "한국 전통공예 특별전",
+    category: "국립중앙박물관",
+    location: "서울 용산구",
+    period: "2024.03.01 - 2024.06.30",
+    imageUrl: "https://picsum.photos/400/300?random=16",
+    likeCount: 13500,
+    viewCount: 1820,
+    tags: ["전시", "전통공예"],
+    openDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000),
+    originalPrice: 45000,
+    discountRate: 0,
+    discountPrice: 45000,
+  },
+  {
+    id: "7",
+    title: "팝업스토어: 디올 2024",
+    category: "팝업",
+    location: "성수동",
+    period: "2024.02.10 - 2024.02.28",
+    imageUrl: "https://picsum.photos/400/300?random=17",
+    likeCount: 28900,
+    viewCount: 3890,
+    tags: ["팝업", "패션"],
+    openDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+    originalPrice: 0,
+    discountRate: 0,
+    discountPrice: 0,
+  },
+  {
+    id: "8",
+    title: "사진전: 시간의 기록",
+    category: "갤러리",
+    location: "서울 마포구",
+    period: "2024.01.25 - 2024.04.20",
+    imageUrl: "https://picsum.photos/400/300?random=18",
+    likeCount: 11200,
+    viewCount: 1450,
+    tags: ["전시", "사진"],
+    openDate: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000),
+    originalPrice: 40000,
     discountRate: 20,
-    discountPrice: 58000,
+    discountPrice: 32000,
+  },
+  {
+    id: "9",
+    title: "반 고흐 몰입형 전시",
+    category: "아트센터",
+    location: "서울 강남구",
+    period: "2024.02.15 - 2024.05.15",
+    imageUrl: "https://picsum.photos/400/300?random=19",
+    likeCount: 35600,
+    viewCount: 5120,
+    tags: ["전시", "몰입형"],
+    openDate: new Date(Date.now() + 19 * 24 * 60 * 60 * 1000),
+    originalPrice: 75000,
+    discountRate: 15,
+    discountPrice: 63750,
+  },
+  {
+    id: "10",
+    title: "클래식 음악회: 베토벤 교향곡",
+    category: "공연",
+    location: "예술의전당",
+    period: "2024.03.05 - 2024.03.05",
+    imageUrl: "https://picsum.photos/400/300?random=20",
+    likeCount: 17800,
+    viewCount: 2340,
+    tags: ["공연", "클래식"],
+    openDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+    originalPrice: 90000,
+    discountRate: 10,
+    discountPrice: 81000,
   },
 ];
 
 export function ShowPick({
   className,
   title,
+  subtitle,
+  subtitleType = "gray",
+  useNickname = false,
   events,
-  variant = "normal",
 }: ShowPickProps) {
-  const [startIndex, setStartIndex] = useState(0);
+  const swiperRef = useRef<SwiperType | null>(null);
+  const nickname = useMemo(
+    () => (useNickname ? getNickname() : null),
+    [useNickname]
+  );
+
+  const displayTitle =
+    useNickname && nickname ? (
+      <>
+        {nickname}
+        {title}
+      </>
+    ) : (
+      title
+    );
 
   const displayEvents = events || mockEvents;
-  const visibleCount = 4;
-  const maxIndex = Math.max(0, displayEvents.length - visibleCount);
 
-  const handlePrev = () => setStartIndex((prev) => Math.max(0, prev - 1));
-  const handleNext = () => setStartIndex((prev) => Math.min(maxIndex, prev + 1));
+  const handlePrev = () => {
+    swiperRef.current?.slidePrev();
+  };
 
-  const visibleEvents = displayEvents.slice(startIndex, startIndex + visibleCount);
+  const handleNext = () => {
+    swiperRef.current?.slideNext();
+  };
 
-  // HotDeal 카드 렌더링
-  const renderHotDealCard = (event: Event) => (
-    <Link
-      key={event.id}
-      href={`/event/${event.id}`}
-      className="group flex gap-4 rounded-xl border border-border bg-card p-3"
-    >
-      {/* 이미지 */}
-      <div className="relative aspect-square w-30 shrink-0 overflow-hidden rounded-lg bg-muted">
-        <Image
-          src={event.imageUrl}
-          alt={event.title}
-          fill
-          className="object-cover"
-        />
-      </div>
-
-      {/* 컨텐츠 */}
-      <div className="flex flex-1 flex-col justify-between py-1">
-        <div>
-          {/* 태그 */}
-          <div className="mb-2 flex gap-1">
-            {event.tags.map((tag, index) => (
-              <span
-                key={index}
-                className={
-                  index === 0
-                    ? "rounded-md bg-[#6A8DFF] px-2 py-0.5 text-xs text-white"
-                    : "rounded-md bg-[#FA7228] px-2 py-0.5 text-xs text-white"
-                }
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          {/* 제목 */}
-          <h3 className="mb-2 text-sm font-semibold text-foreground group-hover:underline">
-            {event.title}
-          </h3>
-
-          {/* 위치 */}
-          <div className="mb-1 flex items-center gap-1 text-[12px] font-normal text-[#111111]">
-            <MapPin className="size-3 text-[#111111]" />
-            <span>{event.location}</span>
-          </div>
-
-          {/* 날짜 */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="size-3" />
-            <span>{event.date}</span>
-          </div>
-        </div>
-
-        {/* 가격 */}
-        <div className="mt-2">
-          {event.originalPrice && (
-            <span className="text-xs text-muted-foreground line-through">
-              {event.originalPrice.toLocaleString()}원
-            </span>
+  if (!displayEvents || displayEvents.length === 0) {
+    return (
+      <section className={cn("", className)}>
+        <div className="mb-[24px]">
+          {subtitle && (
+            <p className={cn(
+              "mb-1 text-[14px] font-normal leading-[180%]",
+              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
+            )}>
+              {subtitle}
+            </p>
           )}
-          <div className="flex items-center gap-2">
-            {event.discountRate && (
-              <span className="text-sm font-bold text-[#FA7228]">
-                {event.discountRate}%
-              </span>
-            )}
-            {event.discountPrice && (
-              <span className="text-sm font-bold text-foreground">
-                {event.discountPrice.toLocaleString()}원
-              </span>
-            )}
-          </div>
+          <h2 className="text-heading-large">{displayTitle}</h2>
         </div>
-
-        {/* 조회수 + 좋아요 */}
-        <div className="mt-2 flex items-center gap-3 text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Eye className="size-3" />
-            <span className="text-xs">{event.viewCount.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Heart className="size-3" />
-            <span className="text-xs">{event.likeCount.toLocaleString()}</span>
-          </div>
+        <div className="h-[404px] rounded-xl border border-orange">
+          <EmptyState message="등록된 행사가 없습니다" className="h-full" />
         </div>
-      </div>
-
-      {/* 하트 버튼 */}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-        }}
-        className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full border border-border bg-white transition-colors hover:bg-muted"
-      >
-        <Heart className="size-4 text-muted-foreground" strokeWidth={1.5} />
-      </button>
-    </Link>
-  );
-
-  // Normal/Countdown 카드 렌더링
-  const renderNormalCard = (event: Event) => (
-    <Link
-      key={event.id}
-      href={`/event/${event.id}`}
-      className="group relative aspect-3/4 overflow-hidden rounded-xl"
-    >
-      {/* 배경 이미지 */}
-      <div
-        className="absolute inset-0 bg-muted bg-contain bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
-      />
-
-      {/* 우측 상단: 하트 버튼 */}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-        }}
-        className="absolute right-5.5 top-4 flex size-8 items-center justify-center rounded-full bg-[#BBBBBB]/73 transition-colors hover:bg-[#BBBBBB]/90"
-      >
-        <Heart className="size-5 text-black" strokeWidth={1.5} />
-      </button>
-
-      {/* 하단 그라데이션 + 텍스트 */}
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 via-black/70 to-transparent p-4 pt-20">
-        {/* 태그 */}
-        <div className="mb-2 flex gap-1">
-          {event.tags.map((tag, index) => (
-            <span
-              key={index}
-              className={
-                index === 0
-                  ? "rounded-md bg-[#6A8DFF] px-2 py-0.5 text-xs text-white"
-                  : "rounded-md border-[1.5px] border-[#6A8DFF] bg-white px-2 py-0.5 text-xs text-[#6A8DFF]"
-              }
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* 제목 */}
-        <h3 className="mb-2 text-sm font-medium text-white">
-          {event.title}
-        </h3>
-
-        {/* 위치 */}
-        <div className="mb-1 flex items-center gap-1 text-xs text-white/80">
-          <MapPin className="size-3" />
-          <span>{event.location}</span>
-        </div>
-
-        {/* 날짜: variant에 따라 D-day 또는 날짜 표시 */}
-        <div className="mb-2 flex items-center gap-1 text-xs">
-          <Calendar className="size-3 text-white/80" />
-          {variant === "countdown" && event.openDate ? (
-            <span className="font-medium text-[#FF0000]">
-              {formatDdayStart(event.openDate)}
-            </span>
-          ) : (
-            <span className="text-white/80">{event.date}</span>
-          )}
-        </div>
-
-        {/* 경계선 */}
-        <div className="mb-2 border-t border-white/30" />
-
-        {/* 조회수 + 좋아요 */}
-        <div className="flex items-center gap-3 text-white/80">
-          <div className="flex items-center gap-1">
-            <Eye className="size-3" />
-            <span className="text-xs">
-              {event.viewCount.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Heart className="size-3" />
-            <span className="text-xs">
-              {event.likeCount.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
+      </section>
+    );
+  }
 
   return (
     <section className={cn("", className)}>
       {/* 헤더 */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold">{title}</h2>
+      <div className="mb-[24px] flex items-center justify-between">
+        <div>
+          {subtitle && (
+            <p className={cn(
+              "mb-1 text-[14px] font-normal leading-[180%]",
+              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
+            )}>
+              {subtitle}
+            </p>
+          )}
+          <h2 className="text-heading-large">{displayTitle}</h2>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
-            disabled={startIndex === 0}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110 disabled:opacity-50"
+            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
           >
             <ChevronLeft className="size-4" />
           </button>
           <button
             onClick={handleNext}
-            disabled={startIndex >= maxIndex}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110 disabled:opacity-50"
+            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
           >
             <ChevronRight className="size-4" />
           </button>
         </div>
       </div>
 
-      {/* 카드 그리드 */}
-      {variant === "hotdeal" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {visibleEvents.map((event) => (
-            <div key={event.id} className="relative">
-              {renderHotDealCard(event)}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {visibleEvents.map((event) => renderNormalCard(event))}
-        </div>
-      )}
+      {/* Swiper */}
+      <Swiper
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+        }}
+        slidesPerView="auto"
+        slidesPerGroup={4}
+        spaceBetween={24}
+        loop
+        speed={500}
+        breakpoints={{
+          0: {
+            slidesPerGroup: 2,
+          },
+          1024: {
+            slidesPerGroup: 4,
+          },
+        }}
+      >
+        {displayEvents.map((event) => (
+          <SwiperSlide key={event.id} style={{ width: "302px" }}>
+            <OverlayEventCard event={event} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </section>
   );
 }

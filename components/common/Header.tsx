@@ -1,17 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-// ============================================
-// [SWYP-108] Sidebar 고도화 - X 아이콘 추가
-// 작성일: 2026-02-01
-// 변경 이유: Sidebar 열림 상태에서 닫기 버튼 표시
-// 이전 코드: import { Menu, Bell, Heart, User, Map, Calendar } from "lucide-react";
-// ============================================
-import { Menu, Bell, Heart, User, Map, Calendar, X } from "lucide-react";
+import { X } from "lucide-react";
+import Image from "next/image";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 interface HeaderProps {
@@ -20,136 +15,227 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const isViewPage = pathname === "/view";
   const currentMode = searchParams.get("mode");
 
+  // TODO: 실제 알림 API 연동 시 교체
+  const notificationCount = 0; // 0: 배지 없음, 1-99: 숫자 표시, 100+: "99+" 표시
+
   return (
     <>
       {/* ============================================
-          [SWYP-108] Header z-index 상향 조정
-          작성일: 2026-02-01
-          변경 이유: Sidebar Overlay가 Header를 가리지 않도록
-          이전 코드: sticky top-0 z-50
-          변경 후: sticky top-0 z-75
+          [SWYP-108] Header - Figma 스펙 완전 반영
+          작성일: 2026-02-05
+          
+          Figma 스펙:
+          - 크기: 1440×100px
+          - padding: 0 80px
+          - border-bottom: 1px solid #6C7180
+          - z-75 (최상위)
+          
+          구성:
+          - 햄버거 메뉴: 48×48px (p-2)
+          - BI 로고: 145×56px (이미지)
+          - 지도뷰: 76×40px (16px/400/180%)
+          - 캘린더뷰: 90×40px (16px/400/180%)
+          - 검색창: 448×57px
+          - 아이콘: 알림/좋아요/프로필 (48×48px, p-2)
+          
+          인터랙션:
+          - 메뉴 활성: #F36012, 600, border-b-2
+          - 메뉴 비활성: #A6ABB7, 400, hover #F36012
+          - 아이콘 hover: stroke #A6ABB7
+          - 알림 배지: 28×13px, #D93E39, 99+
       ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-75 flex h-14 items-center justify-between border-b border-border bg-background px-4",
+          "sticky top-0 z-75 h-25 flex items-center justify-between border-b border-border bg-background px-[80px]",
           className
         )}
       >
         {/* 왼쪽 영역 */}
-        <div className="flex items-center gap-4">
-          {/* ============================================
-              [SWYP-108] Menu/X 토글 버튼 구현
-              작성일: 2026-02-01
-              변경 이유: Sidebar 열림 상태를 Header에 명확히 표시
-              
-              이전 코드:
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className="flex size-9 items-center justify-center"
-                aria-label="메뉴"
-              >
-                <Menu className="size-6" />
-              </button>
-          ============================================ */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="flex size-9 items-center justify-center transition-transform duration-200 hover:bg-gray-100 rounded-md"
+            className="flex size-12 items-center justify-center p-2 transition-transform duration-200 hover:bg-gray-100 rounded-md"
             aria-label={isSidebarOpen ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={isSidebarOpen}
           >
             {isSidebarOpen ? (
               <X className="size-6" aria-hidden="true" />
             ) : (
-              <Menu className="size-6" aria-hidden="true" />
+              <Image src="/images/header/menu.svg" alt="" width={24} height={24} aria-hidden="true" />
             )}
           </button>
 
           <Link
             href="/"
-            className="flex h-8 items-center justify-center bg-primary px-4 text-sm font-bold text-primary-foreground"
+            className="flex items-center justify-center ml-5 mr-2"
           >
-            BI
+            <Image
+              src="/images/logo.png"
+              alt="와르르 로고"
+              width={145}
+              height={56}
+              priority
+            />
           </Link>
 
-          <nav className="flex items-center gap-4">
+          {/* 뷰 네비게이션 */}
+          <nav className="flex items-center gap-1">
             <Link
-              href="/map"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
+              href="/view?mode=map"
+              className={cn(
+                "flex items-center justify-center gap-0.5 w-[76px] h-10 p-1 transition-colors",
+                "text-base leading-[180%]",
+                isViewPage && currentMode === "map"
+                  ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
+                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
+              )}
             >
-              지도
+              지도뷰
+              <Image
+                src={isViewPage && currentMode === "map"
+                  ? "/images/header/map-pinned2.svg"
+                  : "/images/header/map-pinned.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
             <Link
-              href="/calendar"
-              className="text-sm font-medium text-foreground hover:text-foreground/80"
+              href="/calendarview"
+              className={cn(
+                "flex items-center justify-center gap-0.5 w-[90px] h-10 p-1 transition-colors",
+                "text-base leading-[180%]",
+                pathname === "/calendarview"
+                  ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
+                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
+              )}
             >
-              캘린더
+              캘린더뷰
+              <Image
+                src={pathname === "/calendarview"
+                  ? "/images/header/calendar-search2.svg"
+                  : "/images/header/calendar-search.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
             </Link>
           </nav>
         </div>
 
         {/* 오른쪽 영역 */}
-        <div className="flex items-center gap-3">
-          {/* 뷰 토글 */}
-          <div className="flex h-9 items-center gap-0.5 rounded-full border border-border p-1">
-            <Link
-              href="/view?mode=map"
-              className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-                isViewPage && currentMode === "map"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              지도뷰
-              <Map className="size-4" />
-            </Link>
-            <Link
-              href="/view?mode=calendar"
-              className={cn(
-                "flex h-7 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-                isViewPage && currentMode === "calendar"
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              캘린더뷰
-              <Calendar className="size-4" />
-            </Link>
+        <div className="flex items-center gap-4">
+          {/* 검색창 섹션 */}
+          <div className="flex items-center">
+            <SearchDropdown
+              onSearch={(keyword) => {
+                const params = new URLSearchParams();
+                params.set("keyword", keyword);
+                router.push(`/search?${params.toString()}`);
+              }}
+            />
           </div>
 
-          <SearchDropdown />
+          {/* 아이콘 섹션 */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              className="group relative flex size-12 items-center justify-center p-2 transition-colors"
+              aria-label="알림"
+            >
+              <Image
+                src="/images/header/bell-default.svg"
+                alt=""
+                width={24}
+                height={24}
+                className="group-hover:hidden"
+              />
+              <Image
+                src="/images/header/bell-hover.svg"
+                alt=""
+                width={24}
+                height={24}
+                className="hidden group-hover:block"
+              />
+              {notificationCount > 0 && (
+                <span
+                  className="absolute flex items-center justify-center px-1 bg-[#D93E39] rounded-full text-white font-semibold text-[10px] leading-[180%]"
+                  style={{
+                    minWidth: '28px',
+                    height: '13px',
+                    left: 'calc(50% - 28px/2 + 10px)',
+                    top: 'calc(50% - 13px/2 - 9.5px)',
+                  }}
+                  aria-label={`${notificationCount}개의 알림`}
+                >
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </span>
+              )}
+            </button>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="알림"
-          >
-            <Bell className="size-5" />
-          </button>
+            <button
+              type="button"
+              className="group flex size-12 items-center justify-center p-2 transition-colors"
+              aria-label="좋아요"
+            >
+              <Image
+                src="/images/header/icon-like.svg"
+                alt=""
+                width={24}
+                height={24}
+                className="group-hover:hidden"
+              />
+              <Image
+                src="/images/header/icon-like-hover.svg"
+                alt=""
+                width={24}
+                height={24}
+                className="hidden group-hover:block"
+              />
+            </button>
 
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="좋아요"
-          >
-            <Heart className="size-5" />
-          </button>
-
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center"
-            aria-label="프로필"
-          >
-            <User className="size-5" />
-          </button>
+            <Link
+              href="/settings/profile"
+              className="group flex size-12 items-center justify-center p-2 transition-colors"
+              aria-label="프로필 설정"
+            >
+              {pathname.startsWith("/settings") ? (
+                <Image
+                  src="/images/header/icon-user2.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                />
+              ) : (
+                <>
+                  <Image
+                    src="/images/header/icon-user.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="group-hover:hidden"
+                  />
+                  <Image
+                    src="/images/header/icon-user-hover.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="hidden group-hover:block"
+                  />
+                </>
+              )}
+            </Link>
+          </div>
         </div>
       </header>
 

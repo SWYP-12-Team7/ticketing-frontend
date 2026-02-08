@@ -10,6 +10,7 @@ interface EventCardProps {
   event: Event;
   onLikeClick?: (id: string) => void;
   className?: string;
+  showMeta?: boolean;
   /**
    * 이미지 aspect ratio 커스터마이징
    * @default "aspect-[3/4]" (세로형 카드)
@@ -37,17 +38,28 @@ export function EventCard({
   onLikeClick,
   className,
   imageAspectRatio = "aspect-[3/4]",
+  showMeta = true,
 }: EventCardProps) {
   const {
     id,
     title,
     category,
+    type,
     period,
     imageUrl,
     viewCount,
     likeCount,
     isLiked = false,
+    tags,
+    subcategory,
   } = event;
+  const typeLabel = category;
+  const tagLabel = tags?.[0] ?? subcategory ?? "";
+  const typeParam =
+    type ??
+    (category === "전시" ? "EXHIBITION" : category === "팝업" ? "POPUP" : "");
+  const detailHref = typeParam ? `/detail/${id}?type=${typeParam}` : `/detail/${id}`;
+  const fallbackImage = "/images/404/emptyImg2.png";
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -56,21 +68,28 @@ export function EventCard({
   };
 
   return (
-    <article className={cn("eventCard group", className)}>
+    <article className={cn("eventCard group w-[193px]", className)}>
       {/* 이미지 섹션 */}
-      <Link href={`/detail/${id}`} className="eventCard__imageLink">
+      <Link href={detailHref} className="eventCard__imageLink">
         <div
           className={cn(
-            "eventCard__imageContainer relative mb-3 overflow-hidden rounded-xl bg-muted",
+            "eventCard__imageContainer border-1 relative mb-3 h-[258px] w-full overflow-hidden rounded-xl",
             imageAspectRatio
           )}
         >
           <Image
-            src={imageUrl}
+            src={imageUrl || fallbackImage}
             alt={title}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
             className="eventCard__image object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (target.src !== fallbackImage) {
+                target.src = fallbackImage;
+                target.srcset = "";
+              }
+            }}
           />
 
           {/* 좋아요 버튼 */}
@@ -93,14 +112,20 @@ export function EventCard({
       </Link>
 
       {/* 정보 섹션 */}
-      <Link href={`/detail/${id}`} className="eventCard__infoLink block">
-        {/* 카테고리 */}
+      <Link href={detailHref} className="eventCard__infoLink block">
+        {/* 타입 | 태그 */}
         <p className="eventCard__category mb-1 text-caption-medium text-muted-foreground">
-          {category}
+          <span className="text-orange">{typeLabel}</span>
+          {tagLabel && (
+            <>
+              <span className="mx-2 text-muted-foreground">|</span>
+              <span className="text-muted-foreground">{tagLabel}</span>
+            </>
+          )}
         </p>
 
         {/* 제목 */}
-        <h3 className="eventCard__title mb-1 truncate text-body-medium-bold text-foreground transition-colors group-hover:underline">
+        <h3 className="eventCard__title mb-1 line-clamp-2 text-body-medium-bold text-foreground transition-colors group-hover:underline">
           {title}
         </h3>
 
@@ -110,16 +135,18 @@ export function EventCard({
         </p>
 
         {/* 조회수 / 좋아요 */}
-        <div className="eventCard__metaRow flex items-center gap-3 text-caption-medium text-muted-foreground">
-          <div className="eventCard__viewCount flex items-center gap-1">
-            <Eye className="size-3" aria-hidden="true" />
-            <span>{viewCount.toLocaleString()}+</span>
+        {showMeta && (
+          <div className="eventCard__metaRow flex items-center gap-3 text-caption-medium text-muted-foreground">
+            <div className="eventCard__viewCount flex items-center gap-1">
+              <Eye className="size-3" aria-hidden="true" />
+              <span>{viewCount.toLocaleString()}+</span>
+            </div>
+            <div className="eventCard__likeCount flex items-center gap-1">
+              <Heart className="size-3" aria-hidden="true" />
+              <span>{likeCount.toLocaleString()}+</span>
+            </div>
           </div>
-          <div className="eventCard__likeCount flex items-center gap-1">
-            <Heart className="size-3" aria-hidden="true" />
-            <span>{likeCount.toLocaleString()}+</span>
-          </div>
-        </div>
+        )}
       </Link>
     </article>
   );
