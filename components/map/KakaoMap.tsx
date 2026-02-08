@@ -24,6 +24,7 @@ interface KakaoMapProps {
   level?: number;
   maxLevel?: number;
   locations?: Location[];
+  lockView?: boolean;
   onMarkerClick?: (location: Location) => void;
   onMarkerHover?: (location: Location | null) => void;
   onClusterClick?: (locationIds: string[]) => void;
@@ -38,6 +39,7 @@ export function KakaoMap({
   level: initialLevel = 5,
   maxLevel = 12,
   locations = [],
+  lockView = false,
   onMarkerClick,
   onMarkerHover,
   onClusterClick,
@@ -268,8 +270,14 @@ export function KakaoMap({
         maxLevel={maxLevel}
         className="h-full w-full"
         ref={mapRef}
-        onCenterChanged={(map) => setCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() })}
-        onZoomChanged={(map) => setLevel(map.getLevel())}
+        onCenterChanged={(map) => {
+          if (lockView) return;
+          setCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
+        }}
+        onZoomChanged={(map) => {
+          if (lockView) return;
+          setLevel(map.getLevel());
+        }}
         onIdle={emitVisibleLocationIds}
       >
         <MarkerClusterer

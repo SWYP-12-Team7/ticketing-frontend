@@ -129,7 +129,7 @@ export function EventSchedule({ className }: EventScheduleProps) {
           title="찜한 행사가 없어요"
           subtitle="관심있는 행사를 찜해보세요"
           buttonText="행사 둘러보기"
-          onButtonClick={() => router.push("/list")}
+          onButtonClick={() => router.push("/search")}
         />
       </div>
     );

@@ -17,8 +17,32 @@ import {
 import { ShowPick } from "@/components/home";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
 
+interface DetailData {
+  images: string[];
+  category: string;
+  title: string;
+  description: string;
+  tags: string[];
+  period: string;
+  address: string;
+  age: string;
+  viewCount: number;
+  likeCount: number;
+  introText: string;
+  introImageUrl: string;
+  operatingHours: { day: string; time: string }[];
+  closedDays: string;
+  contactNumber: string;
+  noticeText: string;
+  noticeImageUrl?: string;
+  prices: { name: string; price?: number }[];
+  channels: { name: string; url: string }[];
+  latitude?: number;
+  longitude?: number;
+}
+
 // 임시 목데이터 (일부 필드 fallback)
-const mockDetailData = {
+const mockDetailData: DetailData = {
   images: ["/images/detailMock.png"],
   category: "전시 > 체험",
   title:
@@ -105,6 +129,8 @@ export default function DetailPage() {
       tags: data.tags?.length ? data.tags : mockDetailData.tags,
       period,
       address: data.address || mockDetailData.address,
+      latitude: data.latitude ?? data.lat,
+      longitude: data.longitude ?? data.lng,
       viewCount: data.viewCount ?? mockDetailData.viewCount,
       likeCount: data.likeCount ?? mockDetailData.likeCount,
       introText: data.description || mockDetailData.introText,
@@ -133,11 +159,9 @@ export default function DetailPage() {
     return list;
   }, [detailData.noticeText, detailData.noticeImageUrl, detailData.channels]);
 
-  useEffect(() => {
-    if (!tabs.find((tab) => tab.id === activeTab)) {
-      setActiveTab(tabs[0]?.id ?? "intro");
-    }
-  }, [tabs, activeTab]);
+  const resolvedActiveTab = tabs.find((tab) => tab.id === activeTab)
+    ? activeTab
+    : tabs[0]?.id ?? "intro";
 
   // 스크롤에 따라 탭 변경
   useEffect(() => {
@@ -222,7 +246,7 @@ export default function DetailPage() {
 
       {/* 탭 네비게이션 */}
       <TabNavigation
-        activeTab={activeTab}
+        activeTab={resolvedActiveTab}
         onTabChange={handleTabChange}
         tabs={tabs}
       />
@@ -256,7 +280,12 @@ export default function DetailPage() {
       )}
 
       {/* 장소 섹션 */}
-      <LocationSection id="location" address={detailData.address} />
+      <LocationSection
+        id="location"
+        address={detailData.address}
+        lat={detailData.latitude}
+        lng={detailData.longitude}
+      />
 
       {/* 주변 인기 카페·식당  */} {/* 현재 API 부재 */}
       {/* <NearbyPlaces /> */} 

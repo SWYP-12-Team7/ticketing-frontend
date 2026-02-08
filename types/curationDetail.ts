@@ -9,6 +9,10 @@ export interface CurationDetailResponse {
   region: string;
   place: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
+  lat?: number;
+  lng?: number;
   startDate: string;
   endDate: string;
   startTime: string;
