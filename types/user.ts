@@ -28,3 +28,59 @@ export interface UserMeta {
   name: string;
   email: string;
 }
+
+// ========== 백엔드 API 응답 타입 ==========
+
+/**
+ * 백엔드 User 객체 (GET /users/me 응답)
+ */
+export interface BackendUserResponse {
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  id: number;
+  email: string;
+  nickname: string;
+  profileImage: string;
+  socialAccounts: BackendSocialAccount[];
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  onboardingCompleted: boolean;
+  onboardingStep: number;
+  deleted: boolean;
+}
+
+/**
+ * 백엔드 소셜 계정 정보
+ */
+export interface BackendSocialAccount {
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  id: number;
+  user: string;
+  provider: "KAKAO";
+  providerId: string;
+  deleted: boolean;
+}
+
+/**
+ * 주소 변경 요청 (PATCH /users/address)
+ */
+export interface UpdateAddressRequest {
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * 프로필 초기 저장 요청 (POST /users/profile)
+ */
+export interface CreateProfileRequest {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserSettingsStore } from "@/store/user-settings";
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -23,6 +24,10 @@ const SPECIAL_CHAR_REGEX = /[^가-힣a-zA-Z0-9\s]/;
 
 export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
   const router = useRouter();
+  
+  // Store에서 withdrawUser 가져오기
+  const { withdrawUser, isLoading } = useUserSettingsStore();
+  
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [otherReason, setOtherReason] = useState<string>("");
   const [hasValidationError, setHasValidationError] = useState<boolean>(false);
@@ -59,21 +64,27 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
       otherReason.length <= 100 &&
       !hasValidationError);
 
-  // 탈퇴 확인
+  /**
+   * 탈퇴 확인
+   */
   const handleWithdrawal = async () => {
-    if (!isButtonEnabled) return;
+    if (!isButtonEnabled || isLoading) return;
 
     try {
       const reason = selectedReason === "기타" ? otherReason : selectedReason;
 
-      // TODO: 실제 회원탈퇴 API 호출
-      console.log("✅ [Mock] 탈퇴 사유:", reason);
-      // await withdrawUser({ reason });
+      // 탈퇴 사유 로깅 (백엔드에서 받지 않으므로 프론트엔드 로그만)
+      console.log("📊 [Analytics] 탈퇴 사유:", reason);
 
-      // 메인페이지로 이동
+      // 실제 회원탈퇴 API 호출
+      await withdrawUser();
+
+      // 탈퇴 성공 시 메인페이지로 이동
       router.push("/");
     } catch (error) {
       console.error("회원탈퇴 실패:", error);
+      
+      // 에러 메시지 표시
       alert("회원탈퇴에 실패했습니다. 다시 시도해주세요.");
     }
   };
@@ -314,15 +325,15 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
           <button
             type="button"
             onClick={handleWithdrawal}
-            disabled={!isButtonEnabled}
+            disabled={!isButtonEnabled || isLoading}
             className={cn(
               "flex h-10 w-[109px] items-center justify-center whitespace-nowrap rounded border px-6 text-sm font-normal leading-[140%] transition-colors",
-              !isButtonEnabled
+              (!isButtonEnabled || isLoading)
                 ? "cursor-not-allowed border-[#D3D5DC] bg-[#F9FAFB] text-[#D3D5DC]"
                 : "border-[#D3D5DC] bg-white text-basic hover:bg-muted"
             )}
           >
-            탈퇴할래요
+            {isLoading ? "탈퇴 중..." : "탈퇴할래요"}
           </button>
 
           {/* 다음에 할게요 - 125px × 40px */}

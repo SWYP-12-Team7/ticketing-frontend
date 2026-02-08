@@ -40,13 +40,23 @@ function onTokenRefreshFailed(error: unknown) {
   pendingRequests = [];
 }
 
-// 응답 인터셉터: 401 시 토큰 갱신 후 재시도
+// 응답 인터셉터: 401 시 토큰 갱신 후 재시도, 403 시 로그아웃
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    // 403 Forbidden: 권한 없음 → 로그아웃 후 로그인 페이지로 리다이렉트
+    if (error.response?.status === 403) {
+      useAuthStore.getState().logout();
+      if (typeof window !== "undefined") {
+        alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+        window.location.href = "/auth/login";
+      }
+      return Promise.reject(error);
+    }
 
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
