@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { UserProfile, NotificationSettings } from "@/types/user";
-import { updateUserProfile } from "@/services/api/user";
+import { updateUserProfile, deleteUser } from "@/services/api/user";
+import { useAuthStore } from "@/store/auth";
 
 interface UserSettingsState {
   // 현재 편집 중인 프로필 (임시 저장)
@@ -23,6 +24,9 @@ interface UserSettingsState {
 
   // 저장 (currentProfile → savedProfile + 백엔드 전송)
   saveProfile: () => Promise<void>;
+
+  // 회원 탈퇴
+  withdrawUser: () => Promise<void>;
 
   // 초기화
   resetProfile: () => void;
@@ -103,6 +107,48 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             isLoading: false,
             error: error instanceof Error ? error.message : "저장 실패",
           });
+        }
+      },
+
+      /**
+       * 회원 탈퇴
+       * 
+       * @description
+       * 1. 백엔드 API 호출 (DELETE /users/me)
+       * 2. Auth Store에서 로그아웃
+       * 3. 로컬 데이터 초기화
+       * 4. 메인 페이지 리다이렉트는 컴포넌트에서 처리
+       * 
+       * @throws {Error} API 호출 실패 시
+       */
+      withdrawUser: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+          // 1. 백엔드 API 호출
+          await deleteUser();
+
+          // 2. Auth Store에서 로그아웃
+          useAuthStore.getState().logout();
+
+          // 3. 로컬 데이터 초기화
+          set({
+            currentProfile: initialProfile,
+            savedProfile: initialProfile,
+            isLoading: false,
+            error: null,
+          });
+
+          // 4. 메인 페이지 리다이렉트는 컴포넌트에서 처리
+          // router.push('/')는 WithdrawalModal에서 호출
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: error instanceof Error 
+              ? error.message 
+              : "회원 탈퇴에 실패했습니다",
+          });
+          throw error; // 컴포넌트에서 에러 핸들링
         }
       },
 
