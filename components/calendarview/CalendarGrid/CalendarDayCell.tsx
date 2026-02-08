@@ -42,9 +42,9 @@ function CalendarDayCellComponent({
 
   // Pill 선택 상태 확인 (선택된 날짜이면서 해당 카테고리가 선택됨)
   const isExhibitionPillSelected =
-    isDateSelected && selectedPillCategories?.has("exhibition");
+    isDateSelected && (selectedPillCategories?.has("exhibition") ?? false);
   const isPopupPillSelected =
-    isDateSelected && selectedPillCategories?.has("popup");
+    isDateSelected && (selectedPillCategories?.has("popup") ?? false);
 
   // 표시할 pill 개수 계산
   const visiblePills = [
