@@ -157,10 +157,10 @@ export function Ranking({ className }: RankingProps) {
       </div>
 
       {/* 하단 버튼 */}
-      <button className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-orange px-[12px] py-[12px] text-[16px] font-medium leading-[140%] text-white">
+      {/* <button className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-orange px-[12px] py-[12px] text-[16px] font-medium leading-[140%] text-white">
         랭킹 전체 보기
         <ChevronRight className="size-[24px]" />
-      </button>
+      </button> */}
     </div>
   );
 }
