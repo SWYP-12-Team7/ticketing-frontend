@@ -305,7 +305,7 @@ export function CalendarViewPresentation({
             activeCategories={activeCategories}
             countsByDate={countsByDate}
             selectedDate={selectedDate}
-            selectedEvent={null}
+            selectedPillCategories={selectedPillCategories}
             onDateClick={(date) => {
               // 날짜 변경 시 pill 선택 초기화
               if (date !== selectedDate) {

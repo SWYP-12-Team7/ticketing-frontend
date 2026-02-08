@@ -19,7 +19,7 @@ function CalendarWeekRowComponent({
   activeCategories,
   countsByDate,
   selectedDate,
-  selectedEvent,
+  selectedPillCategories,
   onDateClick,
   onPillClick,
 }: CalendarWeekRowProps) {
@@ -40,7 +40,7 @@ function CalendarWeekRowComponent({
             activeCategories={activeCategories}
             counts={counts}
             selectedDate={selectedDate}
-            selectedEvent={selectedEvent}
+            selectedPillCategories={selectedPillCategories}
             onDateClick={onDateClick}
             onPillClick={onPillClick}
           />

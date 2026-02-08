@@ -36,19 +36,19 @@ export const CALENDAR_DESIGN_TOKENS = {
     pill: {
       exhibition: {
         /** 테두리 색상 */
-        border: "#75A8FF",
+        border: "#5093FF",
         /** 선택 시 배경 (동그라미 채우기) */
         background: "#75A8FF",
         /** 레이블 텍스트 */
-        text: "#1D4DA7",
+        text: "#194488",
         /** 개수 텍스트 */
-        textCount: "#424A57",
+        textCount: "#4B5462",
       },
       popup: {
-        border: "#FF9F53",
+        border: "#FF8F44",
         background: "#FF9F53",
-        text: "#A33C0F",
-        textCount: "#424A57",
+        text: "#86350A",
+        textCount: "#4B5462",
       },
     },
     /** 텍스트 색상 */

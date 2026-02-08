@@ -24,7 +24,7 @@ export function CalendarGrid({
   activeCategories,
   countsByDate,
   selectedDate,
-  selectedEvent,
+  selectedPillCategories,
   onDateClick,
   onPillClick,
 }: CalendarGridProps) {
@@ -107,7 +107,7 @@ export function CalendarGrid({
                     activeCategories={activeCategories}
                     countsByDate={countsByDate}
                     selectedDate={selectedDate}
-                    selectedEvent={selectedEvent}
+                    selectedPillCategories={selectedPillCategories}
                     onDateClick={onDateClick}
                     onPillClick={onPillClick}
                   />

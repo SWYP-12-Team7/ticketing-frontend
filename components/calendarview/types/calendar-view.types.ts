@@ -53,8 +53,8 @@ export interface CalendarDayCellProps {
   };
   /** 선택된 날짜 (IsoDate 형식) */
   selectedDate?: IsoDate | null;
-  /** 선택된 이벤트 pill (날짜+카테고리) */
-  selectedEvent?: SelectedCalendarEvent;
+  /** 선택된 pill 카테고리들 (다중 선택 지원) */
+  selectedPillCategories?: Set<CalendarCategory>;
   /** 날짜 클릭 핸들러 */
   onDateClick?: DateClickHandler;
   /** Pill 클릭 핸들러 */
@@ -75,8 +75,8 @@ export interface CalendarWeekRowProps {
   countsByDate: ReadonlyMap<IsoDate, { exhibition: number; popup: number }>;
   /** 선택된 날짜 */
   selectedDate?: IsoDate | null;
-  /** 선택된 이벤트 pill */
-  selectedEvent?: SelectedCalendarEvent;
+  /** 선택된 pill 카테고리들 (다중 선택 지원) */
+  selectedPillCategories?: Set<CalendarCategory>;
   /** 날짜 클릭 핸들러 */
   onDateClick?: DateClickHandler;
   /** Pill 클릭 핸들러 */
@@ -97,8 +97,8 @@ export interface CalendarGridProps {
   countsByDate: ReadonlyMap<IsoDate, { exhibition: number; popup: number }>;
   /** 선택된 날짜 */
   selectedDate?: IsoDate | null;
-  /** 선택된 이벤트 pill */
-  selectedEvent?: SelectedCalendarEvent;
+  /** 선택된 pill 카테고리들 (다중 선택 지원) */
+  selectedPillCategories?: Set<CalendarCategory>;
   /** 날짜 클릭 핸들러 */
   onDateClick?: DateClickHandler;
   /** Pill 클릭 핸들러 */
