@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteFolder, updateFolderName, getFolders } from "@/services/api/user";
+import { deleteFolder, updateFolderName, getFolders, createFolder } from "@/services/api/user";
 
 /**
  * 폴더 삭제 Mutation
@@ -112,5 +112,48 @@ export function useFolders() {
     queryFn: getFolders,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,   // 10분 (구 cacheTime)
+  });
+}
+
+/**
+ * 폴더 생성 Mutation
+ * 
+ * @description
+ * - POST /users/me/folders
+ * - 성공 시 관련 쿼리 무효화 (폴더 목록)
+ * - 생성된 폴더 정보 반환
+ * 
+ * @returns Mutation result with { mutate, isPending, error, data }
+ * 
+ * @example
+ * ```tsx
+ * const { mutate: createNewFolder, isPending, data } = useCreateFolder();
+ * 
+ * const handleCreate = () => {
+ *   const folderName = prompt("폴더 이름을 입력하세요");
+ *   if (folderName) {
+ *     createNewFolder(folderName, {
+ *       onSuccess: (folder) => {
+ *         console.log("생성된 폴더 ID:", folder.id);
+ *         console.log("생성된 폴더 이름:", folder.name);
+ *       }
+ *     });
+ *   }
+ * };
+ * ```
+ */
+export function useCreateFolder() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (folderName: string) => createFolder(folderName),
+    onSuccess: () => {
+      // 폴더 목록 리프레시
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+    },
+    onError: (error) => {
+      console.error("폴더 생성 실패:", error);
+    },
   });
 }
