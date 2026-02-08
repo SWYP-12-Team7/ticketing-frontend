@@ -42,6 +42,7 @@ export function HeroSection({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const currentImage = images[currentImageIndex] || "";
+  const fallbackImage = "/images/404/emptyImg2.png";
 
   return (
     <section className={cn("", className)}>
@@ -55,6 +56,13 @@ export function HeroSection({
               alt=""
               fill
               className="scale-105 object-cover blur-xl"
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                if (target.src !== fallbackImage) {
+                  target.src = fallbackImage;
+                  target.srcset = "";
+                }
+              }}
             />
             <div className="absolute inset-0 bg-black/20" />
           </div>
@@ -69,6 +77,13 @@ export function HeroSection({
                 alt={title}
                 fill
                 className="object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  if (target.src !== fallbackImage) {
+                    target.src = fallbackImage;
+                    target.srcset = "";
+                  }
+                }}
               />
               {/* 이미지 인디케이터 */}
               {images.length > 1 && (
