@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCurationDetail } from "@/queries/detail/useCurationDetail";
+import { useNearbyCurations } from "@/queries/detail/useNearbyCurations";
 import {
   HeroSection,
   TabNavigation,
@@ -12,8 +13,8 @@ import {
   NearbyPlaces,
   PriceSection,
   OfficialChannel,
-  RelatedPopups,
 } from "@/components/detail";
+import { ShowPick } from "@/components/home";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
 
 // 임시 목데이터 (일부 필드 fallback)
@@ -78,6 +79,7 @@ export default function DetailPage() {
     | "EXHIBITION"
     | "POPUP";
   const { data, isLoading } = useCurationDetail(id, type);
+  const { data: nearbyEvents = [] } = useNearbyCurations(id, 10);
 
   const [activeTab, setActiveTab] = useState("intro");
   const [isLiked, setIsLiked] = useState(false);
@@ -266,7 +268,12 @@ export default function DetailPage() {
       <OfficialChannel id="channel" channels={detailData.channels} />
 
       {/* 가까운 팝업스토어 */}
-      <RelatedPopups />
+      <ShowPick
+        className="py-6"
+        title="가까운 팝업스토어"
+        subtitle="해당 행사와 가까운 지역의 행사를 모았어요"
+        events={nearbyEvents}
+      />
 
       {/* 맨 위로 버튼 */}
       <ScrollToTop />

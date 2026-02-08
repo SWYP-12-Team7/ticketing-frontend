@@ -10,6 +10,7 @@ interface EventCardProps {
   event: Event;
   onLikeClick?: (id: string) => void;
   className?: string;
+  showMeta?: boolean;
   /**
    * 이미지 aspect ratio 커스터마이징
    * @default "aspect-[3/4]" (세로형 카드)
@@ -37,6 +38,7 @@ export function EventCard({
   onLikeClick,
   className,
   imageAspectRatio = "aspect-[3/4]",
+  showMeta = true,
 }: EventCardProps) {
   const {
     id,
@@ -125,16 +127,18 @@ export function EventCard({
         </p>
 
         {/* 조회수 / 좋아요 */}
-        <div className="eventCard__metaRow flex items-center gap-3 text-caption-medium text-muted-foreground">
-          <div className="eventCard__viewCount flex items-center gap-1">
-            <Eye className="size-3" aria-hidden="true" />
-            <span>{viewCount.toLocaleString()}+</span>
+        {showMeta && (
+          <div className="eventCard__metaRow flex items-center gap-3 text-caption-medium text-muted-foreground">
+            <div className="eventCard__viewCount flex items-center gap-1">
+              <Eye className="size-3" aria-hidden="true" />
+              <span>{viewCount.toLocaleString()}+</span>
+            </div>
+            <div className="eventCard__likeCount flex items-center gap-1">
+              <Heart className="size-3" aria-hidden="true" />
+              <span>{likeCount.toLocaleString()}+</span>
+            </div>
           </div>
-          <div className="eventCard__likeCount flex items-center gap-1">
-            <Heart className="size-3" aria-hidden="true" />
-            <span>{likeCount.toLocaleString()}+</span>
-          </div>
-        </div>
+        )}
       </Link>
     </article>
   );
