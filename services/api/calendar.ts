@@ -110,15 +110,21 @@ export async function getCalendarMonthSummary(
   const year = parseInt(yearStr, 10);
   const monthNum = parseInt(monthStr, 10);
 
-  // 백엔드 API 응답 타입 정의
-  interface BackendCalendarDayResponse {
+  // 백엔드 API 응답 타입 정의 (실제 응답 구조 반영)
+  interface BackendCalendarDayItem {
     date: string; // "2026-02-04"
     exhibitionCount: number;
     popupCount: number;
   }
 
+  interface BackendCalendarResponse {
+    year: number;
+    month: number;
+    days: BackendCalendarDayItem[];
+  }
+
   // 실제 API 호출 (Swagger 기준)
-  const res = await axiosInstance.get<BackendCalendarDayResponse[]>(
+  const res = await axiosInstance.get<BackendCalendarResponse>(
     "/curations/calendar",
     {
       params: {
@@ -130,8 +136,15 @@ export async function getCalendarMonthSummary(
     }
   );
 
+  // 응답 데이터 검증
+  if (!res.data || !Array.isArray(res.data.days)) {
+    throw new Error(
+      `Invalid API response: expected { year, month, days: [] }, got ${JSON.stringify(res.data)}`
+    );
+  }
+
   // 백엔드 응답을 프론트엔드 타입으로 변환
-  const days: CalendarDaySummary[] = res.data.map((item) => ({
+  const days: CalendarDaySummary[] = res.data.days.map((item) => ({
     date: item.date as IsoDate,
     counts: {
       exhibition: item.exhibitionCount,
