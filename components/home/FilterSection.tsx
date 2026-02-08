@@ -58,13 +58,6 @@ function isToday(date: Date) {
   return isSameDay(date, today);
 }
 
-function formatDateParam(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 export function FilterSection({ className }: FilterSectionProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"map" | "calendar">(
@@ -115,12 +108,9 @@ export function FilterSection({ className }: FilterSectionProps) {
   const handleSearch = () => {
     if (activeTab === "calendar") {
       const params = new URLSearchParams();
-      if (startDate) {
-        params.set("startDate", formatDateParam(startDate));
-      }
-      if (endDate) {
-        params.set("endDate", formatDateParam(endDate));
-      }
+      const baseDate = startDate || endDate || new Date();
+      params.set("year", String(baseDate.getFullYear()));
+      params.set("month", String(baseDate.getMonth() + 1));
       const qs = params.toString();
       router.push(qs ? `/calendarview?${qs}` : "/calendarview");
     } else {
