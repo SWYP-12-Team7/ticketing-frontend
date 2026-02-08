@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { UserProfileCard } from "./UserProfileCard";
 import { SettingsNavigation } from "./SettingsNavigation";
 import { useUserSettingsStore } from "@/store/user-settings";
+import { useAuthStore } from "@/store/auth";
 
 /**
  * 설정 페이지 사이드바 (SNB)
@@ -19,6 +20,7 @@ export function SettingsSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const resetProfile = useUserSettingsStore((state) => state.resetProfile);
+  const resetAuth = useAuthStore((state) => state.resetAuth);
 
   const handleLogout = async () => {
     if (confirm("로그아웃 하시겠습니까?")) {
@@ -28,10 +30,11 @@ export function SettingsSidebar() {
 
         // 로컬 상태 초기화
         resetProfile();
-        localStorage.removeItem("auth");
+        resetAuth();
 
-        // 홈으로 이동
+        // 홈으로 이동 후 상태 갱신
         router.push("/");
+        router.refresh();
       } catch (error) {
         console.error("로그아웃 실패:", error);
         alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
