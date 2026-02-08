@@ -14,69 +14,81 @@
 
 "use client";
 
-import { memo, useState } from "react";
+import { memo } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CalendarEventCard } from "@/components/calendarview/HotEventSection/CalendarEventCard";
 import { InterestsEmptyState } from "./InterestsEmptyState";
-import {
-  MOCK_BOOKMARKED_EVENTS,
-  MOCK_VIEWED_EVENTS,
-} from "@/lib/mock-data/interests.mock";
+import { useUserTaste, useAddFavorite } from "@/queries/settings/useUserTaste";
+import { mapTasteEventsToEvents } from "@/lib/taste-helpers";
 import {
   INTERESTS_CAROUSEL_SECTIONS,
   INTERESTS_DESIGN_TOKENS as TOKENS,
 } from "./constants";
 import type { Event } from "@/types/event";
-
-interface InterestsCarouselSectionProps {
-  bookmarkedEvents?: Event[];
-  viewedEvents?: Event[];
-}
+import type { EventType } from "@/types/user";
 
 /**
- * 찜한/다시보기 캐러셀 섹션 (Figma 스펙)
+ * 찜한/다시보기 캐러셀 섹션 (API 연동)
  *
  * @description
  * - 2개 캐러셀: 찜한 팝업･전시 / 다시 보고 싶은 팝업･전시
  * - 각 844px, gap 24px
  * - 세로형 카드 4개 (193×404px) - CalendarEventCard 재사용
+ * - BE API 연동: GET /users/me/taste
  *
  * @example
  * ```tsx
- * <InterestsCarouselSection
- *   bookmarkedEvents={bookmarked}
- *   viewedEvents={viewed}
- * />
+ * <InterestsCarouselSection />
  * ```
  */
-export function InterestsCarouselSection({
-  bookmarkedEvents,
-  viewedEvents,
-}: InterestsCarouselSectionProps) {
-  // 찜한 팝업･전시 상태 관리 (좋아요 해제 시 목록에서 제거)
-  const [bookmarked, setBookmarked] = useState<Event[]>(
-    bookmarkedEvents ?? MOCK_BOOKMARKED_EVENTS
-  );
+export function InterestsCarouselSection() {
+  const { data, isLoading, error } = useUserTaste();
+  const { mutate: addToFavorites } = useAddFavorite();
 
-  // 다시 보고 싶은 팝업･전시 상태 관리 (좋아요 토글)
-  const [viewed, setViewed] = useState<Event[]>(
-    viewedEvents ?? MOCK_VIEWED_EVENTS
-  );
+  // BE 데이터 → FE Event 타입 변환
+  const bookmarked = data ? mapTasteEventsToEvents(data.favorites) : [];
+  const viewed = data ? mapTasteEventsToEvents(data.recentViews) : [];
 
-  // 찜한 팝업･전시 - 좋아요 해제 시 목록에서 제거
+  /**
+   * 찜한 팝업･전시 - 좋아요 해제 핸들러
+   * 
+   * @description
+   * TODO: DELETE API 구현 후 추가
+   * 현재는 콘솔 경고만 출력
+   */
   const handleBookmarkedLike = (id: string) => {
-    setBookmarked((prev) => prev.filter((event) => event.id !== id));
+    console.warn("찜하기 해제 API 미구현:", id);
+    // TODO: 찜하기 해제 API 연동
   };
 
-  // 다시 보고 싶은 팝업･전시 - 좋아요 토글
+  /**
+   * 다시 보고 싶은 팝업･전시 - 찜하기 추가 핸들러
+   * 
+   * @description
+   * - POST /curations/favorites 호출
+   * - 성공 시 자동으로 userTaste 쿼리 무효화 (리프레시)
+   */
   const handleViewedLike = (id: string) => {
-    setViewed((prev) =>
-      prev.map((event) =>
-        event.id === id ? { ...event, isLiked: !event.isLiked } : event
-      )
-    );
+    const event = viewed.find((e) => e.id === id);
+    if (event && event.type) {
+      addToFavorites({
+        curationId: Number(id),
+        curationType: event.type as EventType,
+      });
+    }
   };
+
+  // 에러 처리
+  if (error) {
+    return (
+      <div className="flex h-[404px] w-[930px] items-center justify-center rounded-xl border border-red-200 bg-red-50">
+        <p className="text-sm text-red-600">
+          취향 데이터를 불러오는데 실패했습니다
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -92,6 +104,7 @@ export function InterestsCarouselSection({
         href="/wishlist"
         onLikeClick={handleBookmarkedLike}
         emptyMessage="내 취향 픽! 차곡차곡 쌓아봐요"
+        isLoading={isLoading}
       />
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.viewed}
@@ -99,6 +112,7 @@ export function InterestsCarouselSection({
         href="/history"
         onLikeClick={handleViewedLike}
         emptyMessage="스쳐본 행사, 여기서 다시 볼 수 있어요"
+        isLoading={isLoading}
       />
     </div>
   );
@@ -118,12 +132,14 @@ const CarouselBlock = memo(function CarouselBlock({
   href,
   onLikeClick,
   emptyMessage,
+  isLoading,
 }: {
   title: string;
   events: Event[];
   href: string;
   onLikeClick: (id: string) => void;
   emptyMessage: string;
+  isLoading?: boolean;
 }) {
   const { sectionTitle, viewAllButton } = TOKENS.typography;
   const hasEvents = events.length > 0;
@@ -150,8 +166,24 @@ const CarouselBlock = memo(function CarouselBlock({
         {title}
       </h2>
 
-      {/* Empty State 또는 컨텐츠 */}
-      {!hasEvents ? (
+      {/* 로딩 상태 또는 Empty State 또는 컨텐츠 */}
+      {isLoading ? (
+        <div
+          className="flex animate-pulse"
+          style={{ 
+            gap: TOKENS.spacing.carouselCardGap,
+            width: TOKENS.sizing.carousel.width 
+          }}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-[404px] w-[193px] rounded-lg bg-gray-200"
+              aria-label="로딩 중"
+            />
+          ))}
+        </div>
+      ) : !hasEvents ? (
         <InterestsEmptyState
           message={emptyMessage}
           href="/search"
