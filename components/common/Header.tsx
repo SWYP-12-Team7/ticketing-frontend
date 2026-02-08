@@ -148,6 +148,7 @@ export function Header({ className }: HeaderProps) {
 
           {/* 아이콘 섹션 */}
           <div className="flex items-center">
+            {/*
             <button
               type="button"
               className="group relative flex size-12 items-center justify-center p-2 transition-colors"
@@ -171,17 +172,18 @@ export function Header({ className }: HeaderProps) {
                 <span
                   className="absolute flex items-center justify-center px-1 bg-[#D93E39] rounded-full text-white font-semibold text-[10px] leading-[180%]"
                   style={{
-                    minWidth: '28px',
-                    height: '13px',
-                    left: 'calc(50% - 28px/2 + 10px)',
-                    top: 'calc(50% - 13px/2 - 9.5px)',
+                    minWidth: "28px",
+                    height: "13px",
+                    left: "calc(50% - 28px/2 + 10px)",
+                    top: "calc(50% - 13px/2 - 9.5px)",
                   }}
                   aria-label={`${notificationCount}개의 알림`}
                 >
-                  {notificationCount > 99 ? '99+' : notificationCount}
+                  {notificationCount > 99 ? "99+" : notificationCount}
                 </span>
               )}
             </button>
+            */}
 
             <button
               type="button"
