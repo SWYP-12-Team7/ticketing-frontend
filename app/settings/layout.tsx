@@ -14,17 +14,16 @@ export default function SettingsLayout({
 }) {
   return (
     <>
+      {/* Daum Postcode API 로드 (주소 검색용) */}
+      <Script
+        src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+        strategy="beforeInteractive"
+      />
+
       {/* Kakao Maps SDK 로드 (주소 → 좌표 변환용) */}
       <Script
-        src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services&autoload=false`}
+        src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&libraries=services`}
         strategy="beforeInteractive"
-        onLoad={() => {
-          if (window.kakao?.maps) {
-            window.kakao.maps.load(() => {
-              console.log("✅ Kakao Maps SDK loaded in Settings");
-            });
-          }
-        }}
       />
 
       <div className="min-h-screen bg-white">

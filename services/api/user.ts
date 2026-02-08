@@ -210,7 +210,8 @@ export async function deleteUser(): Promise<void> {
  * 
  * @description
  * - API: POST /users/profile
- * - Request Body: { name: string, address: string }
+ * - Request Body: { name, address, latitude, longitude }
+ * - 카카오 Geocoder API로 주소 → 좌표 자동 변환
  * - 신규 회원 온보딩 시 사용
  * 
  * @param name - 사용자 이름
@@ -221,14 +222,21 @@ export async function deleteUser(): Promise<void> {
  * 
  * @example
  * await createProfile("스위프", "서울시 강남구");
+ * // → { name: "스위프", address: "서울시 강남구", latitude: 37.5011, longitude: 127.0397 }
  */
 export async function createProfile(
   name: string, 
   address: string
 ): Promise<void> {
+  // 1. 주소 → 좌표 변환
+  const { latitude, longitude } = await getCoordinatesFromAddress(address);
+
+  // 2. 백엔드 API 호출
   await axiosInstance.post<void>("/users/profile", {
     name,
     address,
+    latitude,
+    longitude,
   } as CreateProfileRequest);
 }
 

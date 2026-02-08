@@ -88,24 +88,61 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       saveProfile: async () => {
         set({ isLoading: true, error: null, isSaved: false });
         try {
-          const profile = get().currentProfile;
+          const { currentProfile, savedProfile } = get();
 
-          // 백엔드로 전송
-          await updateUserProfile(profile);
+          // 변경된 필드만 추출 (최적화)
+          const changedFields: Partial<UserProfile> = {};
+
+          // 닉네임 변경 확인
+          if (currentProfile.nickname !== savedProfile.nickname) {
+            changedFields.nickname = currentProfile.nickname;
+          }
+
+          // 주소 변경 확인
+          if (currentProfile.address !== savedProfile.address) {
+            changedFields.address = currentProfile.address;
+          }
+
+          // 변경사항이 있을 때만 백엔드로 전송
+          if (Object.keys(changedFields).length > 0) {
+            await updateUserProfile(changedFields);
+          }
 
           // 성공 시 savedProfile 업데이트 (SNB에 반영)
+          // detailAddress, notifications는 LocalStorage에만 저장
           set({
-            savedProfile: profile,
+            savedProfile: currentProfile,
             isLoading: false,
             isSaved: true,
           });
 
           // 3초 후 저장 완료 메시지 제거
           setTimeout(() => set({ isSaved: false }), 3000);
-        } catch (error) {
+        } catch (error: any) {
+          // 403 에러: 인증 문제
+          if (error?.response?.status === 403) {
+            set({
+              isLoading: false,
+              error: "로그인이 필요합니다",
+            });
+            return;
+          }
+
+          // 401 에러: 토큰 만료 (interceptor에서 처리하지만 혹시 모를 경우)
+          if (error?.response?.status === 401) {
+            set({
+              isLoading: false,
+              error: "인증이 만료되었습니다. 다시 로그인해주세요",
+            });
+            return;
+          }
+
+          // 그 외 에러
           set({
             isLoading: false,
-            error: error instanceof Error ? error.message : "저장 실패",
+            error: error instanceof Error 
+              ? error.message 
+              : "저장에 실패했습니다. 다시 시도해주세요",
           });
         }
       },

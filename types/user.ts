@@ -81,4 +81,6 @@ export interface UpdateAddressRequest {
 export interface CreateProfileRequest {
   name: string;
   address: string;
+  latitude: number;
+  longitude: number;
 }
