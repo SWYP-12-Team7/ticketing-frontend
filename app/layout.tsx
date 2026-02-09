@@ -5,6 +5,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
+import { SettingsInitializer } from "@/components/settings";
 import { Toaster } from "sonner";
 
 // ===== 폰트 설정 =====
@@ -54,6 +55,8 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-screen w-full flex-col font-pretendard">
         <Providers>
+          {/* 전역 프로필 로드 (로그인 후 새로고침 시에도 프로필 유지) */}
+          <SettingsInitializer />
           <Suspense fallback={null}>
             <Header />
           </Suspense>

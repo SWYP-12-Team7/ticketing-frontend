@@ -114,7 +114,7 @@ export function MemberInfoSection() {
       {/* 이름 - Figma 순서: 1, width: 866px */}
       <InputField
         label="이름"
-        value={isInitialized ? currentProfile.name : "로딩 중..."}
+        value={isInitialized ? (currentProfile.name ?? "") : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ name: value })}
         placeholder="입력해 주세요"
         disabled
@@ -125,7 +125,7 @@ export function MemberInfoSection() {
       {/* 이메일 - Figma 순서: 2, width: 866px */}
       <InputField
         label="이메일"
-        value={isInitialized ? currentProfile.email : "로딩 중..."}
+        value={isInitialized ? (currentProfile.email ?? "") : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ email: value })}
         placeholder="입력해 주세요"
         helperText="가까운 곳부터 추천해드려요"
@@ -137,7 +137,7 @@ export function MemberInfoSection() {
       {/* 닉네임 - Figma 순서: 3, width: 866px (full width) */}
       <InputField
         label="닉네임"
-        value={currentProfile.nickname}
+        value={currentProfile.nickname ?? ""}
         onChange={(value) => setCurrentProfile({ nickname: value })}
         placeholder="입력해 주세요"
         aria-label="닉네임"
@@ -149,7 +149,7 @@ export function MemberInfoSection() {
         <div className="flex gap-1">
           <InputField
             label="주소"
-            value={currentProfile.address}
+            value={currentProfile.address ?? ""}
             onChange={(value) => setCurrentProfile({ address: value })}
             placeholder="지역을 입력해 주세요"
             helperText="가까운 곳부터 추천해드려요"
@@ -166,7 +166,7 @@ export function MemberInfoSection() {
 
         {/* 상세 주소 - Figma 순서: 5, width: 866px (full width) */}
         <InputField
-          value={currentProfile.detailAddress}
+          value={currentProfile.detailAddress ?? ""}
           onChange={(value) => setCurrentProfile({ detailAddress: value })}
           placeholder="상세주소를 입력해 주세요"
           aria-label="상세주소"

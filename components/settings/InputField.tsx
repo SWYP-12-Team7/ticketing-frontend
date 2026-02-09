@@ -96,7 +96,7 @@ export function InputField({
       <input
         id={inputId}
         type="text"
-        value={value}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}

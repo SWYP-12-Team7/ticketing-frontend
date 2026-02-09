@@ -41,7 +41,7 @@ export function UserProfileCard() {
         {/* 프로필 이미지 */}
         <div className="flex h-28 w-[246px] items-center justify-center">
           <div className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-[#A6C4E0]">
-            {!imageError ? (
+            {savedProfile.kakaoProfileImage && !imageError ? (
               <Image
                 src={savedProfile.kakaoProfileImage}
                 alt="프로필 이미지"

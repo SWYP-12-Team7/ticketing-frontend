@@ -3,11 +3,13 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { kakaoLogin } from "@/services/api/auth";
 import { useAuthStore } from "@/store/auth";
+import { useUserSettingsStore } from "@/store/user-settings";
 import { toast } from "sonner";
 
 export function useKakaoLogin() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const loadProfile = useUserSettingsStore((state) => state.loadProfile);
 
   return useMutation({
     mutationFn: async (code: string) => {
@@ -22,6 +24,15 @@ export function useKakaoLogin() {
       });
       
       login(response.user, response.accessToken, response.refreshToken);
+      
+      // 🔥 로그인 성공 후 프로필 로드 (이름, 닉네임 등)
+      try {
+        await loadProfile();
+        console.log("[MUTATION] 프로필 로드 완료");
+      } catch (error) {
+        console.error("[MUTATION] 프로필 로드 실패 (로그인은 성공)", error);
+        // 프로필 로드 실패해도 로그인은 계속 진행
+      }
       
       console.log("[MUTATION] 로그인 완료");
       return response;
