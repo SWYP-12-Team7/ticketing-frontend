@@ -21,6 +21,7 @@ function getStoredSearches(): string[] {
 export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [isFocused, setIsFocused] = useState(false); // 포커스 상태
   const [recentSearches, setRecentSearches] = useState<string[]>(getStoredSearches);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +63,8 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
     saveSearch(trimmed);
     setKeyword(trimmed);
     setIsOpen(false);
+    setIsFocused(false); // 포커스 해제 (blur 효과)
+    inputRef.current?.blur(); // 실제로 blur 처리
     onSearch?.(trimmed);
   };
 
@@ -90,42 +93,79 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
     }
   };
 
+  // 검색어 변경 핸들러
+  const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeyword(e.target.value);
+  };
+
+  // 포커스 핸들러
+  const handleInputFocus = () => {
+    setIsOpen(true);
+    setIsFocused(true);
+  };
+
+  // 블러 핸들러
+  const handleInputBlur = () => {
+    setIsFocused(false);
+  };
+
+  // X 버튼 클릭 핸들러
+  const handleClear = () => {
+    setKeyword("");
+    setIsFocused(true);
+    inputRef.current?.focus(); // 포커스 유지
+  };
+
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      {/* 검색 Input */}
+      {/* 검색 Input (Figma 스펙: 448px × 56px) */}
       <div
         className={cn(
-          "flex items-center w-md h-[57px] rounded-full border px-6 py-4 gap-2 transition-colors",
-          keyword
-            ? "border-[#F36012] bg-white"
-            : "border-[#D3D5DC] bg-white hover:bg-[#F9FAFB]"
+          "flex items-center rounded-full border transition-colors",
+          // Figma 스펙: padding 16px 24px, gap 8px
+          "px-6 py-4 gap-2",
+          // Figma 스펙: width 448px, height 56px
+          "w-[448px] h-[56px]",
+          // 상태별 스타일
+          isFocused || (keyword && isOpen)
+            ? "border-[#F36012] bg-white" // 포커스 또는 입력 중: 오렌지 테두리
+            : keyword
+            ? "border-[#D3D5DC] bg-white" // 검색 완료 (포커스 해제): 회색 테두리
+            : "border-[#D3D5DC] bg-white hover:bg-[#F9FAFB]" // default
         )}
       >
+        {/* 검색 아이콘 */}
         <button
           type="button"
           onClick={() => handleSearch(keyword)}
           aria-label="검색"
+          className="shrink-0"
         >
-          <Search className="size-6 text-[#6C7180]" />
+          <Search className="size-6 text-[#6C7180]" strokeWidth={1.5} />
         </button>
+
+        {/* Input (항상 표시 - 검색 완료 후에도 바로 입력 가능) */}
         <input
           ref={inputRef}
           type="text"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onFocus={() => setIsOpen(true)}
+          onChange={handleKeywordChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           placeholder="검색어를 입력해주세요"
-          className="flex-1 bg-transparent text-sm leading-[180%] outline-none text-basic placeholder:text-[#A6ABB7] placeholder:leading-[180%]"
+          className="flex-1 bg-transparent text-sm leading-[180%] outline-none text-[#202937] placeholder:text-[#A6ABB7] placeholder:leading-[180%]"
         />
+
+        {/* X 버튼 (검색어 있을 때만 표시) */}
         {keyword && (
           <button
             type="button"
-            onClick={() => setKeyword("")}
+            onClick={handleClear}
             aria-label="검색어 지우기"
             className="shrink-0"
           >
-            <X className="size-6 text-[#6C7180]" />
+            <X className="size-6 text-[#6C7180]" strokeWidth={1.5} />
           </button>
         )}
       </div>

@@ -75,6 +75,16 @@ export const AMENITY_OPTIONS: readonly CheckboxOption[] = [
 ] as const;
 
 /**
+ * 행사 진행 상태 옵션 (4개)
+ */
+export const EVENT_STATUS_OPTIONS: readonly CheckboxOption[] = [
+  { id: "all", label: "전체" },
+  { id: "ongoing", label: "진행 중" },
+  { id: "upcoming", label: "진행 예정" },
+  { id: "ended", label: "진행 종료" },
+] as const;
+
+/**
  * 초기 필터 상태
  */
 export const INITIAL_FILTER_STATE: Readonly<{
@@ -83,6 +93,8 @@ export const INITIAL_FILTER_STATE: Readonly<{
   exhibitionCategories: string[];
   price: { free: boolean; paid: boolean };
   amenities: { parking: boolean; petFriendly: boolean };
+  dateRange: { startDate: string | null; endDate: string | null };
+  eventStatus: { all: boolean; ongoing: boolean; upcoming: boolean; ended: boolean };
 }> = {
   regions: ["all"],
   popupCategories: ["all"],
@@ -94,5 +106,15 @@ export const INITIAL_FILTER_STATE: Readonly<{
   amenities: {
     parking: false,
     petFriendly: false,
+  },
+  dateRange: {
+    startDate: null,
+    endDate: null,
+  },
+  eventStatus: {
+    all: false,
+    ongoing: false,
+    upcoming: false,
+    ended: false,
   },
 } as const;

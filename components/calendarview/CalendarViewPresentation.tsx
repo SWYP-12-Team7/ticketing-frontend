@@ -249,27 +249,19 @@ export function CalendarViewPresentation({
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
-      {/* 캘린더 + 필터바 래퍼 */}
+      {/* 캘린더 컨테이너 (필터와 독립적으로 고정) */}
       <div
-        className="flex items-start"
+        className="calendar-view-container flex flex-col"
         style={{
-          gap: "24px",
-          transition: "all 300ms ease-in-out",
+          width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
+          height: CALENDAR_DESIGN_TOKENS.sizing.container.height,
+          gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
+          padding: "0px",
+          zIndex: 10,
+          alignSelf: "flex-start",
+          flexShrink: 0,
         }}
       >
-        {/* 캘린더 컨테이너 */}
-        <div
-          className="calendar-view-container flex flex-col"
-          style={{
-            width: CALENDAR_DESIGN_TOKENS.sizing.container.width,
-            height: CALENDAR_DESIGN_TOKENS.sizing.container.height,
-            gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
-            padding: "0px",
-            zIndex: 10,
-            alignSelf: "flex-start",
-            flexShrink: 0,
-          }}
-        >
         {/* Order 0: 월 네비게이션 */}
         <CalendarMonthNav
           title={monthTitle}
@@ -279,14 +271,14 @@ export function CalendarViewPresentation({
 
         {/* Order 1: 필터바 */}
         <CalendarToolbar
-            selectedFilters={selectedFilterPills}
-            onRemoveFilter={handleRemoveFilter}
-            onOpenFilter={() => {
-              setIsFilterEntered(false);
-              setIsFilterOpen(true);
-            }}
-            onReset={handleResetFilters}
-          />
+          selectedFilters={selectedFilterPills}
+          onRemoveFilter={handleRemoveFilter}
+          onOpenFilter={() => {
+            setIsFilterEntered(false);
+            setIsFilterOpen(true);
+          }}
+          onReset={handleResetFilters}
+        />
 
         {/* Order 2: 캘린더 그리드 */}
         {(isError || isLoading) && (
@@ -334,7 +326,7 @@ export function CalendarViewPresentation({
         )}
       </div>
 
-      {/* 필터바 (조건부 렌더링) */}
+      {/* 필터바 오버레이 (조건부 렌더링) - 캘린더와 독립적으로 우측에 고정 */}
       {(isFilterOpen || isFilterClosing) && (
         <>
           {/* Dimmed 오버레이 - 배경 어둡게 처리 (헤더 포함) */}
@@ -347,16 +339,16 @@ export function CalendarViewPresentation({
             style={{ zIndex: 76 }}
             onClick={handleCloseFilter}
           />
+          {/* 필터 사이드바 - 우측에서 슬라이드 */}
           <div
-            className={`filter-sidebar-wrapper relative transition-all duration-300 ease-out ${
+            className={`filter-sidebar-wrapper fixed top-0 right-0 h-screen transition-transform duration-300 ease-out ${
               isFilterEntered && !isFilterClosing
-                ? "translate-x-0 opacity-100"
-                : "translate-x-4 opacity-0"
+                ? "translate-x-0"
+                : "translate-x-full"
             }`}
             style={{
-              width: "422px",
-              flexShrink: 0,
-              marginTop: CALENDAR_DESIGN_TOKENS.sizing.filterSidebar.topOffset,
+              width: "512px",
+              paddingTop: CALENDAR_DESIGN_TOKENS.sizing.filterSidebar.topOffset,
               zIndex: 77,
             }}
           >
@@ -365,12 +357,12 @@ export function CalendarViewPresentation({
               onClose={handleCloseFilter}
               filterState={locationFilterState}
               onApply={handleApplyFilters}
+              onReset={handleResetFilters}
               resultCount={calculateEventCount(locationFilterState)}
             />
           </div>
         </>
       )}
-      </div>
 
       {/* HOT EVENT 헤더: 제목 + 정렬 (Figma 간격: 캘린더 하단 + 80px = top: 1011px) */}
       <div

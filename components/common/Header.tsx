@@ -8,6 +8,7 @@ import { HeaderSideBar } from "./HeaderSideBar";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useAuthStore } from "@/store/auth";
 
 interface HeaderProps {
   className?: string;
@@ -19,11 +20,34 @@ export function Header({ className }: HeaderProps) {
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // 인증 상태
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
+
   const isViewPage = pathname === "/view";
   const currentMode = searchParams.get("mode");
 
   // TODO: 실제 알림 API 연동 시 교체
   const notificationCount = 0; // 0: 배지 없음, 1-99: 숫자 표시, 100+: "99+" 표시
+
+  /**
+   * 마이페이지 클릭 핸들러
+   * - 비로그인 상태: 로그인 페이지로 이동
+   * - 로그인 상태: /settings/profile로 이동 (Link 기본 동작)
+   */
+  const handleProfileClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // 하이드레이션 전이면 클릭 무시
+    if (!_hasHydrated) {
+      e.preventDefault();
+      return;
+    }
+
+    // 비로그인 상태면 로그인 페이지로 이동
+    if (!isAuthenticated) {
+      e.preventDefault();
+      router.push("/auth/login");
+    }
+    // 로그인 상태면 Link의 기본 동작으로 /settings/profile 이동
+  };
 
   return (
     <>
@@ -215,6 +239,7 @@ export function Header({ className }: HeaderProps) {
 
             <Link
               href="/settings/profile"
+              onClick={handleProfileClick}
               className="group flex size-12 items-center justify-center p-2 transition-colors"
               aria-label="프로필 설정"
             >
