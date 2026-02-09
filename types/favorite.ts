@@ -16,3 +16,14 @@ export interface FavoriteResponse {
   totalPages: number;
   totalElements: number;
 }
+
+/**
+ * 찜 항목 폴더 이동 요청
+ * 
+ * @description
+ * - POST /users/me/favorites/{favoriteId}/move
+ * - folderId가 null이면 미분류로 이동
+ */
+export interface MoveFavoriteRequest {
+  folderId: number | null;
+}

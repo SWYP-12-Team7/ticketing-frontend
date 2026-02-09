@@ -40,12 +40,19 @@ interface UserSettingsState {
   setHasHydrated: (state: boolean) => void;
 }
 
-// 초기 데이터 (실제로는 API에서 가져옴)
+/**
+ * 초기 프로필 데이터
+ * 
+ * @description
+ * - API 로딩 전까지 사용되는 빈 프로필
+ * - 실제 데이터는 loadProfile()을 통해 GET /users/me에서 가져옴
+ * - SettingsInitializer 컴포넌트가 자동으로 loadProfile() 호출
+ */
 const initialProfile: UserProfile = {
-  kakaoProfileImage: "/images/mockImg.png",
-  name: "스위프",
-  email: "Dusty65@kakao.com",
-  nickname: "소심한꿀주먹",
+  kakaoProfileImage: "",
+  name: "",
+  email: "",
+  nickname: "",
   address: "",
   detailAddress: "",
   notifications: {

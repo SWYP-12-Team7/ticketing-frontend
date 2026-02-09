@@ -9,7 +9,8 @@ import type {
   EventType,
   UpdateFolderNameParams,
   FoldersResponse,
-  Folder
+  Folder,
+  UserTimelineResponse
 } from "@/types/user";
 
 // ========== 헬퍼 함수 ==========
@@ -541,6 +542,31 @@ export async function createFolder(folderName: string): Promise<Folder> {
       },
     }
   );
+  return response.data;
+}
+
+/**
+ * 12. 타임라인 조회
+ * 
+ * @description
+ * - API: GET /users/me/timeline
+ * - Response: { upcoming, ongoing }
+ * - Authorization 헤더는 axiosInstance에서 자동 추가
+ * 
+ * @returns 타임라인 데이터 (오픈 예정, 진행 중인 행사)
+ * 
+ * @throws {Error} 403 Forbidden - 인증 실패
+ * @throws {Error} API 호출 실패 시
+ * 
+ * @example
+ * const timeline = await getUserTimeline();
+ * console.log(timeline.upcoming); // TimelineEvent[]
+ * console.log(timeline.ongoing);  // TimelineEvent[]
+ */
+export async function getUserTimeline(): Promise<UserTimelineResponse> {
+  // ⚠️ 주의: Query parameter 보내지 않음 (Swagger 버그)
+  // getUserProfile(), getUserTaste(), getFolders()와 동일한 패턴
+  const response = await axiosInstance.get<UserTimelineResponse>("/users/me/timeline");
   return response.data;
 }
 

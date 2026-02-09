@@ -12,7 +12,6 @@
 import { useState, useMemo } from "react";
 import type { Event } from "@/types/event";
 import { INTERESTS_CHIP_LABELS } from "@/components/interests/constants";
-import { MOCK_SPOT_EVENTS } from "@/lib/mock-data/interests.mock";
 
 /**
  * 취향 저격 신규 스팟 훅
@@ -28,20 +27,17 @@ import { MOCK_SPOT_EVENTS } from "@/lib/mock-data/interests.mock";
 export function useInterestsSpot(events?: Event[]) {
   const [selectedChipIndex, setSelectedChipIndex] = useState(0);
 
-  // 실제 데이터 or Mock 데이터
-  const sourceEvents = events ?? MOCK_SPOT_EVENTS;
+  // ✅ API 데이터 사용 (Mock 제거)
+  const sourceEvents = events ?? [];
 
   // 선택된 칩에 따른 필터링 (메모이제이션)
   const filteredEvents = useMemo(() => {
     const selectedLabel = INTERESTS_CHIP_LABELS[selectedChipIndex];
 
     // 전체 데이터에서 서브카테고리로 필터링
-    const filtered = sourceEvents.filter(
+    return sourceEvents.filter(
       (event) => event.subcategory === selectedLabel
     );
-
-    // 필터링 결과가 없으면 Mock 데이터 반환 (UX 개선)
-    return filtered.length > 0 ? filtered : MOCK_SPOT_EVENTS;
   }, [selectedChipIndex, sourceEvents]);
 
   /**
