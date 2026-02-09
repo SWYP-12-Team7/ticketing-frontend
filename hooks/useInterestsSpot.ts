@@ -27,18 +27,17 @@ import { INTERESTS_CHIP_LABELS } from "@/components/interests/constants";
 export function useInterestsSpot(events?: Event[]) {
   const [selectedChipIndex, setSelectedChipIndex] = useState(0);
 
-  // ✅ API 데이터 사용 (Mock 제거)
-  const sourceEvents = events ?? [];
-
   // 선택된 칩에 따른 필터링 (메모이제이션)
   const filteredEvents = useMemo(() => {
+    // ✅ API 데이터 사용 (Mock 제거)
+    const sourceEvents = events ?? [];
     const selectedLabel = INTERESTS_CHIP_LABELS[selectedChipIndex];
 
     // 전체 데이터에서 서브카테고리로 필터링
     return sourceEvents.filter(
       (event) => event.subcategory === selectedLabel
     );
-  }, [selectedChipIndex, sourceEvents]);
+  }, [selectedChipIndex, events]); // ✅ events를 직접 의존성으로 사용
 
   /**
    * 칩 클릭 핸들러

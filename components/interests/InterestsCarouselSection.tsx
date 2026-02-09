@@ -20,6 +20,7 @@ import { ChevronRight } from "lucide-react";
 import { CalendarEventCard } from "@/components/calendarview/HotEventSection/CalendarEventCard";
 import { InterestsEmptyState } from "./InterestsEmptyState";
 import { useUserTaste, useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useRemoveFavorite } from "@/queries/favorite";
 import { mapTasteEventsToEvents } from "@/lib/taste-helpers";
 import {
   INTERESTS_CAROUSEL_SECTIONS,
@@ -45,21 +46,32 @@ import type { EventType } from "@/types/user";
 export function InterestsCarouselSection() {
   const { data, isLoading, error } = useUserTaste();
   const { mutate: addToFavorites } = useAddFavorite();
+  const { mutate: removeFavoriteItem } = useRemoveFavorite();
 
   // BE 데이터 → FE Event 타입 변환
   const bookmarked = data ? mapTasteEventsToEvents(data.favorites) : [];
   const viewed = data ? mapTasteEventsToEvents(data.recentViews) : [];
 
   /**
-   * 찜한 팝업･전시 - 좋아요 해제 핸들러
+   * 찜한 팝업･전시 - 찜하기 해제 핸들러
    * 
    * @description
-   * TODO: DELETE API 구현 후 추가
-   * 현재는 콘솔 경고만 출력
+   * - DELETE /users/me/favorites/{favoriteId} 호출
+   * - 성공 시 자동으로 userTaste, userTimeline, folders 쿼리 무효화 (리프레시)
    */
   const handleBookmarkedLike = (id: string) => {
-    console.warn("찜하기 해제 API 미구현:", id);
-    // TODO: 찜하기 해제 API 연동
+    const favoriteItem = data?.favorites.find((f) => String(f.id) === id);
+    if (favoriteItem) {
+      removeFavoriteItem(favoriteItem.id, {
+        onSuccess: () => {
+          console.log("찜하기 해제 성공:", id);
+        },
+        onError: (error) => {
+          console.error("찜하기 해제 실패:", error);
+          alert("찜 삭제에 실패했습니다");
+        },
+      });
+    }
   };
 
   /**
