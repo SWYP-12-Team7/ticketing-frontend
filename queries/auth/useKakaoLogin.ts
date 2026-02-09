@@ -13,60 +13,47 @@ export function useKakaoLogin() {
 
   return useMutation({
     mutationFn: async (code: string) => {
-      console.log("[MUTATION] 카카오 로그인 Mutation 시작");
-      
       const response = await kakaoLogin(code);
-      
-      console.log("[MUTATION] API 응답 받음, 로그인 처리 중", {
-        user: response.user.email,
-        hasAccessToken: !!response.accessToken,
-        hasRefreshToken: !!response.refreshToken,
-      });
-      
       login(response.user, response.accessToken, response.refreshToken);
       
-      // 🔥 로그인 성공 후 프로필 로드 (이름, 닉네임 등)
+      // 로그인 성공 후 프로필 로드
       try {
         await loadProfile();
-        console.log("[MUTATION] 프로필 로드 완료");
       } catch (error) {
-        console.error("[MUTATION] 프로필 로드 실패 (로그인은 성공)", error);
         // 프로필 로드 실패해도 로그인은 계속 진행
+        if (process.env.NODE_ENV === "development") {
+          console.warn("프로필 로드 실패 (로그인은 성공)", error);
+        }
       }
       
-      console.log("[MUTATION] 로그인 완료");
       return response;
     },
     onSuccess: (data) => {
-      console.log("[MUTATION] onSuccess 호출", {
-        onboardingCompleted: data.user.onboardingCompleted,
+      toast.success("로그인 성공!", {
+        description: `환영합니다, ${data.user.nickname || data.user.email}님`,
+        duration: 2000,
       });
       
       if (data.user.onboardingCompleted) {
-        console.log("[MUTATION] 홈으로 이동");
         router.replace("/");
       } else {
-        console.log("[MUTATION] 온보딩으로 이동");
         router.replace("/onboarding/step1");
       }
     },
     onError: (error) => {
       const axiosError = error as AxiosError;
-      console.error("[MUTATION] onError 호출", {
-        status: axiosError.response?.status,
-        message: axiosError.message,
-        data: axiosError.response?.data,
-      });
       
-      // 400 에러에 대한 사용자 친화적 메시지
+      // 사용자 친화적인 toast 메시지
       if (axiosError.response?.status === 400) {
-        alert(
-          "카카오 로그인에 실패했습니다.\n" +
-          "인증 코드가 만료되었거나 이미 사용되었을 수 있습니다.\n" +
-          "다시 시도해주세요."
-        );
+        toast.error("로그인 실패", {
+          description: "인증 코드가 만료되었거나 이미 사용되었습니다.\n다시 시도해주세요.",
+          duration: 4000,
+        });
       } else {
-        alert("로그인에 실패했습니다. 다시 시도해주세요.");
+        toast.error("로그인 실패", {
+          description: "로그인 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.",
+          duration: 4000,
+        });
       }
       
       router.replace("/auth/login");
