@@ -5,6 +5,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
+import { SettingsInitializer } from "@/components/settings";
 
 // ===== 폰트 설정 =====
 
@@ -53,6 +54,8 @@ export default function RootLayout({
       </head>
       <body className="mx-auto flex min-h-screen flex-col  font-pretendard">
         <Providers>
+          {/* 전역 프로필 로드 (로그인 후 새로고침 시에도 프로필 유지) */}
+          <SettingsInitializer />
           <Suspense fallback={null}>
             <Header />
           </Suspense>
