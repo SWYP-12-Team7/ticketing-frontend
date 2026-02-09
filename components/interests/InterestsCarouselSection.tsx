@@ -91,17 +91,6 @@ export function InterestsCarouselSection() {
     }
   };
 
-  // 에러 처리
-  if (error) {
-    return (
-      <div className="flex h-[404px] w-[930px] items-center justify-center rounded-xl border border-red-200 bg-red-50">
-        <p className="text-sm text-red-600">
-          취향 데이터를 불러오는데 실패했습니다
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div
       className="interests-carousel flex flex-col"
@@ -117,6 +106,7 @@ export function InterestsCarouselSection() {
         onLikeClick={handleBookmarkedLike}
         emptyMessage="내 취향 픽! 차곡차곡 쌓아봐요"
         isLoading={isLoading}
+        isError={!!error}
       />
       <CarouselBlock
         title={INTERESTS_CAROUSEL_SECTIONS.viewed}
@@ -125,6 +115,7 @@ export function InterestsCarouselSection() {
         onLikeClick={handleViewedLike}
         emptyMessage="스쳐본 행사, 여기서 다시 볼 수 있어요"
         isLoading={isLoading}
+        isError={!!error}
       />
     </div>
   );
@@ -145,6 +136,7 @@ const CarouselBlock = memo(function CarouselBlock({
   onLikeClick,
   emptyMessage,
   isLoading,
+  isError,
 }: {
   title: string;
   events: Event[];
@@ -152,6 +144,7 @@ const CarouselBlock = memo(function CarouselBlock({
   onLikeClick: (id: string) => void;
   emptyMessage: string;
   isLoading?: boolean;
+  isError?: boolean;
 }) {
   const { sectionTitle, viewAllButton } = TOKENS.typography;
   const hasEvents = events.length > 0;
@@ -195,7 +188,7 @@ const CarouselBlock = memo(function CarouselBlock({
             />
           ))}
         </div>
-      ) : !hasEvents ? (
+      ) : isError || !hasEvents ? (
         <InterestsEmptyState
           message={emptyMessage}
           href="/search"
