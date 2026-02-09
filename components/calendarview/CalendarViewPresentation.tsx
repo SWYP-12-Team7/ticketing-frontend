@@ -32,6 +32,7 @@ import {
   removeFilterFromState,
 } from "@/components/common/LocationEventFilter/utils";
 import { calculateEventCount } from "@/utils/filterEventCounter";
+import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 
 /**
  * CalendarViewPresentation Props
@@ -153,9 +154,18 @@ export function CalendarViewPresentation({
    */
   const handleApplyFilters = (filters: LocationEventFilterState) => {
     setLocationFilterState(filters);
-    // TODO: 필터 상태를 URL 쿼리 파라미터로 변환하여 적용
-    console.log("Applied filters:", filters);
+    handleCloseFilter(); // 필터 적용 시 사이드바 닫기
   };
+
+  /**
+   * 필터 상태를 API 파라미터로 변환
+   * - useMemo로 성능 최적화
+   * - HotEventSection과 캘린더 그리드에서 사용
+   */
+  const apiFilterParams = useMemo(
+    () => convertLocationFilterToAPIParams(locationFilterState),
+    [locationFilterState]
+  );
 
   /**
    * HOT EVENT 이벤트 목록 계산 (제목 + 높이 계산용)
@@ -258,7 +268,6 @@ export function CalendarViewPresentation({
           gap: CALENDAR_DESIGN_TOKENS.spacing.container.gap,
           padding: "0px",
           zIndex: 10,
-          alignSelf: "flex-start",
           flexShrink: 0,
         }}
       >
@@ -404,6 +413,8 @@ export function CalendarViewPresentation({
           activeCategories={activeCategories}
           sortBy={sortBy}
           selectedCategories={selectedPillCategories}
+          apiFilterParams={apiFilterParams}
+          locationFilterState={locationFilterState}
         />
       </div>
     </section>

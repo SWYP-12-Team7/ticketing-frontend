@@ -158,14 +158,14 @@ const response = await axiosInstance.post<LoginResponse>(
 ```
 1. 브라우저에서 카카오 로그인 → 콜백 URL에서 code 복사
 2. Postman에서 직접 BE API 호출:
-   POST http://175.45.192.155:8080/api/auth/kakao/callback?code=복사한코드
+   POST https://swyp.giwon.dev/api/auth/kakao/callback?code=복사한코드
 3. 어떤 응답이 오는지 확인
 ```
 
 ### 옵션 B: curl로 테스트
 ```bash
 # code를 실제 카카오에서 받은 코드로 교체
-curl -X POST "http://175.45.192.155:8080/api/auth/kakao/callback?code=YOUR_CODE" \
+curl -X POST "https://swyp.giwon.dev/api/auth/kakao/callback?code=YOUR_CODE" \
   -H "Content-Type: application/json" \
   -v
 ```
