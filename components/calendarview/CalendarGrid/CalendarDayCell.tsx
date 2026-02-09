@@ -46,7 +46,7 @@ function CalendarDayCellComponent({
   const isPopupPillSelected =
     isDateSelected && (selectedPillCategories?.has("popup") ?? false);
 
-  // 표시할 pill 개수 계산
+  // 표시할 pill 개수 계산 (count가 0이어도 표시)
   const visiblePills = [
     showExhibition
       ? { category: "exhibition" as const, count: counts.exhibition }

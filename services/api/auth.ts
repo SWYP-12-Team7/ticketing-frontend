@@ -20,14 +20,8 @@ import type { LoginResponse } from "@/types/auth";
  * const result = await kakaoLogin("kakao_auth_code_123");
  */
 export async function kakaoLogin(code: string): Promise<LoginResponse> {
-  console.log("[API] 카카오 로그인 요청 시작", {
-    endpoint: "/auth/kakao/callback",
-    codeLength: code.length,
-    codePreview: code.substring(0, 20) + "...",
-  });
-
   try {
-    // 방식 1: Query Parameter (OAuth 표준)
+    // Query Parameter 방식 (OAuth 표준)
     const response = await axiosInstance.post<LoginResponse>(
       "/auth/kakao/callback",
       null,
@@ -36,30 +30,15 @@ export async function kakaoLogin(code: string): Promise<LoginResponse> {
       }
     );
 
-    console.log("[API] 카카오 로그인 성공", {
-      userId: response.data.user.id,
-      email: response.data.user.email,
-    });
-
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    console.error("[API] 카카오 로그인 실패", {
-      status: axiosError.response?.status,
-      statusText: axiosError.response?.statusText,
-      data: axiosError.response?.data,
-      message: axiosError.message,
-    });
-
-    // 400 에러 시 상세 정보 로깅
-    if (axiosError.response?.status === 400) {
-      console.error("[API] 400 에러 상세 정보", {
-        requestUrl: axiosError.config?.url,
-        requestMethod: axiosError.config?.method,
-        requestParams: axiosError.config?.params,
-        requestData: axiosError.config?.data,
-        requestHeaders: axiosError.config?.headers,
-        responseData: axiosError.response?.data,
+    
+    // 개발 환경에서만 상세 로그 출력
+    if (process.env.NODE_ENV === "development") {
+      console.error("[카카오 로그인 실패]", {
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
       });
     }
 
