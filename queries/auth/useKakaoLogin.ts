@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { kakaoLogin } from "@/services/api/auth";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 export function useKakaoLogin() {
   const router = useRouter();

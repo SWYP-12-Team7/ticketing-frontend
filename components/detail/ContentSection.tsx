@@ -24,6 +24,7 @@ export function ContentSection({
   imageUrl,
   maxHeight = DEFAULT_MAX_HEIGHT,
 }: ContentSectionProps) {
+  const fallbackImage = "/images/404/emptyImg2.png";
   const [isExpanded, setIsExpanded] = useState(false);
   const [needsExpand, setNeedsExpand] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -89,11 +90,18 @@ export function ContentSection({
             {imageUrl && (
               <div className={cn(text && "mt-6")}>
                 <Image
-                  src={imageUrl}
+                  src={imageUrl || fallbackImage}
                   alt={`${title} 이미지`}
                   width={1200}
                   height={800}
                   className="w-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    if (target.src !== fallbackImage) {
+                      target.src = fallbackImage;
+                      target.srcset = "";
+                    }
+                  }}
                 />
               </div>
             )}
