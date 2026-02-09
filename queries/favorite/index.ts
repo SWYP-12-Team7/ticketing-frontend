@@ -1,1 +1,8 @@
-export { useFavorites, useMoveFavoriteToFolder, favoriteKeys } from "./useFavorites";
+export { 
+  useFavorites, 
+  useRemoveFavorite,
+  useMoveFavoriteToFolder, 
+  favoriteKeys 
+} from "./useFavorites";
+
+export type { GetFavoritesParams } from "@/types/favorite";

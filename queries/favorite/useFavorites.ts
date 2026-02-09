@@ -1,18 +1,95 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getFavorites, moveFavoriteToFolder } from "@/services/api/favorite";
+import { getFavorites, removeFavorite, moveFavoriteToFolder } from "@/services/api/favorite";
+import type { GetFavoritesParams } from "@/types/favorite";
 
+/**
+ * Favorite Query Keys
+ * 
+ * @description
+ * - React Query 캐시 키 관리
+ * - 계층적 무효화 전략 지원
+ */
 export const favoriteKeys = {
   all: ["favorites"] as const,
-  list: (params?: { page?: number; size?: number }) =>
-    [...favoriteKeys.all, params] as const,
+  lists: () => [...favoriteKeys.all, "list"] as const,
+  list: (params?: GetFavoritesParams) => 
+    [...favoriteKeys.lists(), params ?? {}] as const,
 };
 
-export function useFavorites() {
+/**
+ * 찜 목록 조회 Query
+ * 
+ * @description
+ * - GET /users/me/favorites
+ * - 캐싱: 1분
+ * - 자동 리프레시: 포커스 시
+ * 
+ * @param params - 조회 파라미터 (페이지네이션, 필터)
+ * @returns Query result with { items, currentPage, totalPages, totalElements }
+ * 
+ * @example
+ * ```tsx
+ * // 기본 조회
+ * const { data, isLoading } = useFavorites();
+ * 
+ * // 특정 폴더의 찜 목록
+ * const { data } = useFavorites({ folderId: 22 });
+ * 
+ * // 페이지네이션 + 필터
+ * const { data } = useFavorites({ 
+ *   folderId: 22, 
+ *   region: "서울",
+ *   page: 0, 
+ *   size: 20 
+ * });
+ * ```
+ */
+export function useFavorites(params?: GetFavoritesParams) {
   return useQuery({
-    queryKey: favoriteKeys.list({ size: 10 }),
-    queryFn: () => getFavorites({ size: 10 }),
+    queryKey: favoriteKeys.list(params),
+    queryFn: () => getFavorites(params),
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 10,
+  });
+}
+
+/**
+ * 찜 항목 삭제 Mutation
+ * 
+ * @description
+ * - DELETE /users/me/favorites/{favoriteId}
+ * - 성공 시 관련 쿼리 무효화 (찜 목록, 취향 데이터, 타임라인, 폴더)
+ * 
+ * @returns Mutation result with { mutate, isPending, error }
+ * 
+ * @example
+ * ```tsx
+ * const { mutate: removeFav, isPending } = useRemoveFavorite();
+ * 
+ * const handleRemove = (favoriteId: number) => {
+ *   if (confirm("찜을 삭제하시겠습니까?")) {
+ *     removeFav(favoriteId, {
+ *       onSuccess: () => alert("삭제되었습니다"),
+ *     });
+ *   }
+ * };
+ * ```
+ */
+export function useRemoveFavorite() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (favoriteId: number) => removeFavorite(favoriteId),
+    onSuccess: () => {
+      // 찜 목록 & 취향 데이터 & 타임라인 & 폴더 리프레시
+      queryClient.invalidateQueries({ queryKey: favoriteKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["userTaste"] });
+      queryClient.invalidateQueries({ queryKey: ["userTimeline"] });
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+    },
+    onError: (error) => {
+      console.error("찜 삭제 실패:", error);
+    },
   });
 }
 
