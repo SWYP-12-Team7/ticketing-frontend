@@ -1,31 +1,27 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useFavorites } from "@/queries/favorite/useFavorites";
+import { useUserTimeline } from "@/queries/settings";
 import { useAuthStore } from "@/store/auth";
 import { EmptyText } from "@/components/common/404/EmptyText";
-import type { FavoriteItem } from "@/types/favorite";
+import type { TimelineEvent } from "@/types/user";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bookmark, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 function formatPeriod(start: string, end: string) {
   return `${start.replace(/-/g, ".")} ~ ${end.replace(/-/g, ".")}`;
 }
 
-function getCurationLabel(type: "EXHIBITION" | "POPUP") {
-  return type === "POPUP" ? "팝업" : "전시";
-}
-
 interface EventCardProps {
-  item: FavoriteItem;
+  item: TimelineEvent;
 }
 
 function EventCard({ item }: EventCardProps) {
   return (
     <Link
-      href={`/detail/${item.id}`}
+      href={`/detail/${item.curationId}`}
       className="flex gap-3 rounded-lg bg-white p-3 transition-opacity hover:opacity-80"
     >
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
@@ -45,7 +41,7 @@ function EventCard({ item }: EventCardProps) {
             {item.title}
           </h4>
         </div>
-        <p className="text-xs text-[#767676]">{item.region}</p>
+        <p className="text-xs text-[#767676]">{item.place}</p>
       </div>
     </Link>
   );
@@ -59,28 +55,14 @@ export function EventSchedule({ className }: EventScheduleProps) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { data, isLoading } = useFavorites();
+  const { data: timeline, isLoading } = useUserTimeline();
 
   const userName = user?.nickname ?? "";
-  const items = data?.items ?? [];
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const ongoingEvents = items.filter((item) => {
-    const start = new Date(item.startDate);
-    const end = new Date(item.endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    return start <= today && end >= today;
-  });
-
-  const upcomingEvents = items.filter((item) => {
-    const start = new Date(item.startDate);
-    start.setHours(0, 0, 0, 0);
-    return start > today;
-  });
-
+  
+  // ✅ BE에서 이미 분리되어 옴 (클라이언트 필터링 불필요)
+  const ongoingEvents = timeline?.ongoing ?? [];
+  const upcomingEvents = timeline?.upcoming ?? [];
+  
   const hasEvents = ongoingEvents.length > 0 || upcomingEvents.length > 0;
 
   const todayDate = new Date();

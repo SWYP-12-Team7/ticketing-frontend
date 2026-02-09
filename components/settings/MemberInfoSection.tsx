@@ -25,9 +25,15 @@ import { AlertCircle } from "lucide-react";
  * 카드 스타일은 상위 페이지(profile/page.tsx)에서 적용
  */
 export function MemberInfoSection() {
-  const { currentProfile, setCurrentProfile, saveProfile, isLoading, error } =
-    useUserSettingsStore();
-  
+  const { 
+    currentProfile, 
+    setCurrentProfile, 
+    saveProfile, 
+    isLoading, 
+    error,
+    isInitialized 
+  } = useUserSettingsStore();
+
   const { isAuthenticated } = useAuthStore();
 
   const {
@@ -61,7 +67,7 @@ export function MemberInfoSection() {
       window.location.href = "/auth/login";
       return;
     }
-    
+
     await saveProfile();
   };
 
@@ -69,10 +75,18 @@ export function MemberInfoSection() {
     <>
       {/* 인증 경고 메시지 - 로그인하지 않은 경우 */}
       {!isAuthenticated && (
-        <div className="flex w-[866px] items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 mb-4" role="alert">
-          <AlertCircle className="h-5 w-5 text-red-500 shrink-0" aria-hidden="true" />
+        <div
+          className="flex w-[866px] items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 mb-4"
+          role="alert"
+        >
+          <AlertCircle
+            className="h-5 w-5 text-red-500 shrink-0"
+            aria-hidden="true"
+          />
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-semibold text-red-800">로그인이 필요합니다</p>
+            <p className="text-sm font-semibold text-red-800">
+              로그인이 필요합니다
+            </p>
             <p className="text-sm text-red-600">
               회원정보를 수정하려면 로그인이 필요합니다.
             </p>
@@ -89,7 +103,7 @@ export function MemberInfoSection() {
         <button
           type="button"
           onClick={handleSaveProfile}
-          disabled={isLoading || !isAuthenticated}
+          disabled={isLoading || !isAuthenticated || !isInitialized}
           aria-label="프로필 수정"
           className="flex h-8 w-[49px] shrink-0 items-center justify-center rounded border border-[#D3D5DC] bg-white px-3 text-sm font-normal leading-[140%] text-basic whitespace-nowrap transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -100,7 +114,7 @@ export function MemberInfoSection() {
       {/* 이름 - Figma 순서: 1, width: 866px */}
       <InputField
         label="이름"
-        value={currentProfile.name}
+        value={isInitialized ? currentProfile.name : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ name: value })}
         placeholder="입력해 주세요"
         disabled
@@ -111,7 +125,7 @@ export function MemberInfoSection() {
       {/* 이메일 - Figma 순서: 2, width: 866px */}
       <InputField
         label="이메일"
-        value={currentProfile.email}
+        value={isInitialized ? currentProfile.email : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ email: value })}
         placeholder="입력해 주세요"
         helperText="가까운 곳부터 추천해드려요"
@@ -127,6 +141,7 @@ export function MemberInfoSection() {
         onChange={(value) => setCurrentProfile({ nickname: value })}
         placeholder="입력해 주세요"
         aria-label="닉네임"
+        disabled={!isInitialized}
       />
 
       {/* 주소 wrapper - Figma 순서: 4, width: 866px */}
@@ -141,10 +156,11 @@ export function MemberInfoSection() {
             readOnly
             aria-label="주소 (검색 버튼 사용)"
             className="w-[786px]"
+            disabled={!isInitialized}
           />
           <AddressSearchButton
             onClick={handleAddressSearch}
-            disabled={isSearchingAddress}
+            disabled={isSearchingAddress || !isInitialized}
           />
         </div>
 
@@ -154,6 +170,7 @@ export function MemberInfoSection() {
           onChange={(value) => setCurrentProfile({ detailAddress: value })}
           placeholder="상세주소를 입력해 주세요"
           aria-label="상세주소"
+          disabled={!isInitialized}
         />
 
         {/* 상세주소 안내 메시지 - Figma: 항상 표시 */}
@@ -183,7 +200,8 @@ export function MemberInfoSection() {
         <button
           type="button"
           onClick={() => setShowWithdrawalModal(true)}
-          className="flex h-8 w-[73px] items-center justify-center rounded px-3 text-sm font-normal leading-[140%] text-[#6C7180] transition-colors hover:bg-muted"
+          disabled={!isInitialized}
+          className="flex h-8 w-[73px] items-center justify-center rounded px-3 text-sm font-normal leading-[140%] text-[#6C7180] transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           회원탈퇴
         </button>
@@ -191,8 +209,14 @@ export function MemberInfoSection() {
 
       {/* 에러 메시지 - 눈에 띄게 표시 */}
       {error && (
-        <div className="flex w-[866px] items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4" role="alert">
-          <AlertCircle className="h-5 w-5 text-red-500 shrink-0" aria-hidden="true" />
+        <div
+          className="flex w-[866px] items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4"
+          role="alert"
+        >
+          <AlertCircle
+            className="h-5 w-5 text-red-500 shrink-0"
+            aria-hidden="true"
+          />
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold text-red-800">저장 실패</p>
             <p className="text-sm text-red-600">{error}</p>

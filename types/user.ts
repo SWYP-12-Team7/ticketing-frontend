@@ -172,3 +172,40 @@ export interface Folder {
  * - 배열 형태로 반환
  */
 export type FoldersResponse = Folder[];
+
+// ========== 타임라인 API 타입 ==========
+
+/**
+ * 타임라인 이벤트
+ * 
+ * @description
+ * - GET /users/me/timeline 응답의 개별 이벤트 타입
+ * - TasteEvent보다 상세한 정보 포함 (description, tags, viewCount, likeCount)
+ */
+export interface TimelineEvent {
+  curationId: number;
+  curationType: EventType;
+  thumbnail: string;
+  title: string;
+  description: string;
+  tags: string[];
+  place: string;
+  dateText: string;      // 표시용 날짜 텍스트
+  startDate: string;     // YYYY-MM-DD
+  endDate: string;       // YYYY-MM-DD
+  viewCount: number;
+  likeCount: number;
+}
+
+/**
+ * 사용자 타임라인 조회 응답
+ * 
+ * @description
+ * - GET /users/me/timeline
+ * - upcoming: 오픈 예정 행사
+ * - ongoing: 진행 중인 행사
+ */
+export interface UserTimelineResponse {
+  upcoming: TimelineEvent[];
+  ongoing: TimelineEvent[];
+}

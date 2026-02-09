@@ -22,6 +22,9 @@ import {
   INTERESTS_BANNERS,
   INTERESTS_DESIGN_TOKENS as TOKENS,
 } from "@/components/interests";
+import { useUserTaste } from "@/queries/settings";
+import { useAuthStore } from "@/store/auth";
+import { mapTasteEventsToEvents } from "@/lib/taste-helpers";
 
 /**
  * 나의 취향 설정 메인 페이지 (Figma 스펙)
@@ -33,9 +36,12 @@ import {
 export default function InterestsSettingsPage() {
   const { heroTitle } = TOKENS.typography;
   const { heroGap, bannerGap } = TOKENS.spacing;
-
-  // TODO: 실제 사용자 정보 API에서 닉네임 가져오기
-  const userNickname = "소심한꿀주먹이";
+  
+  const user = useAuthStore((s) => s.user);
+  const { data: tasteData } = useUserTaste();
+  
+  const userNickname = user?.nickname ?? "사용자";
+  const recommendations = tasteData?.recommendations ?? [];
 
   return (
     <article
@@ -88,7 +94,10 @@ export default function InterestsSettingsPage() {
       </section>
 
       {/* ========== 2. Spot Section - 취향 저격 신규 스팟 ========== */}
-      <InterestsSpotSection nickname={userNickname} />
+      <InterestsSpotSection 
+        nickname={userNickname}
+        events={mapTasteEventsToEvents(recommendations)}
+      />
 
       {/* ========== 3. Carousel Section - 찜한/다시보기 ========== */}
       <InterestsCarouselSection />
