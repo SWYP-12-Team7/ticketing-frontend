@@ -1,38 +1,48 @@
+
 "use client";
 
 import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { EventCard, type Event } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
-import dynamic from "next/dynamic";
-import Image from "next/image";
-import { searchCurations } from "@/services/api/search";
+import { getFavorites } from "@/services/api/favorite";
+import type { FavoriteItem } from "@/types/favorite";
+import { RequireAuth } from "@/components/auth";
+import { Console } from "console";
 
-const DEFAULT_PAGE_SIZE = 15;
+const DEFAULT_PAGE_SIZE = 10;
 const FilterSidebar = dynamic(
   () => import("@/components/search/FilterSidebar").then((m) => m.FilterSidebar),
   { ssr: false }
 );
 
-function SearchContent() {
-  const searchParams = useSearchParams();
+function formatPeriod(start: string, end: string) {
+  return `${start.replace(/-/g, ".")} ~ ${end.replace(/-/g, ".")}`;
+}
 
-  // URL에서 파라미터 추출
-  const keyword = searchParams.get("keyword") || "";
-  const type = searchParams.get("type") || "";
-  const category = searchParams.get("category") || "";
-  const subcategory = searchParams.get("subcategory") || "";
-  const sizeParamRaw = searchParams.get("size");
-  const size = Math.max(
-    1,
-    Number(sizeParamRaw || DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE
-  );
+function mapFavoriteToEvent(item: FavoriteItem): Event {
+  return {
+    id: String(item.curationId),
+    title: item.title,
+    category: item.curationType === "POPUP" ? "팝업" : "전시",
+    type: item.curationType,
+    location: item.region,
+    period: formatPeriod(item.startDate, item.endDate),
+    imageUrl: item.thumbnail,
+    viewCount: 0,
+    likeCount: 0,
+  };
+}
 
-  const [events, setEvents] = useState<Event[]>([]);
+function FavoriteContent() {
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -41,25 +51,16 @@ function SearchContent() {
     endDate: null,
   });
 
-  const [page, setPage] = useState(1);
-
   const hasClientFilters =
     appliedFilters.regions.length > 0 ||
+    appliedFilters.categories.length > 0 ||
+    !!appliedFilters.type ||
     !!appliedFilters.startDate ||
     !!appliedFilters.endDate;
 
-  // 필터 사이드바 상태
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setPage(1);
   }, [
-    keyword,
-    type,
-    category,
-    subcategory,
-    size,
     appliedFilters.type,
     appliedFilters.categories,
     appliedFilters.regions,
@@ -73,45 +74,26 @@ function SearchContent() {
     const run = async () => {
       setIsLoading(true);
       try {
-        const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
-        const typeParam = appliedFilters.type || type;
-        const { events: fetched, total, totalPages: pages } =
-          await searchCurations({
-            keyword: keyword || undefined,
-            type: typeParam || undefined,
-            category: selectedCategory || undefined,
-            page,
-            size,
-          });
+        const response = await getFavorites({
+          page: page - 1,
+          size: DEFAULT_PAGE_SIZE,
+        });
         if (controller.signal.aborted) return;
-        setEvents(fetched);
-        setTotalCount(total);
-        setTotalPages(pages);
+        setFavorites(response.items ?? []);
+        setTotalCount(response.totalElements ?? 0);
+        setTotalPages(response.totalPages ?? 1);
       } catch {
         if (controller.signal.aborted) return;
-        setEvents([]);
+        setFavorites([]);
         setTotalCount(0);
         setTotalPages(1);
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     };
     run();
     return () => controller.abort();
-  }, [
-    keyword,
-    type,
-    category,
-    subcategory,
-    page,
-    size,
-    appliedFilters.type,
-    appliedFilters.categories,
-    hasClientFilters,
-  ]);
+  }, [page, hasClientFilters]);
 
   useEffect(() => {
     if (!hasClientFilters) return;
@@ -119,68 +101,43 @@ function SearchContent() {
     const run = async () => {
       setIsLoading(true);
       try {
-        const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
-        const typeParam = appliedFilters.type || type;
-        const baseParams = {
-          keyword: keyword || undefined,
-          type: typeParam || undefined,
-          category: selectedCategory || undefined,
-          size,
-        };
-        const first = await searchCurations({
-          ...baseParams,
-          page: 1,
-        });
+        const first = await getFavorites({ page: 0, size: DEFAULT_PAGE_SIZE });
         if (controller.signal.aborted) return;
-        let allEvents = first.events;
-        const pages = first.totalPages;
+        let allItems = first.items ?? [];
+        const pages = first.totalPages ?? 1;
         if (pages > 1) {
           const rest = await Promise.all(
             Array.from({ length: pages - 1 }, (_, i) =>
-              searchCurations({ ...baseParams, page: i + 2 })
+              getFavorites({ page: i + 1, size: DEFAULT_PAGE_SIZE })
             )
           );
           if (controller.signal.aborted) return;
-          allEvents = allEvents.concat(
-            ...rest.flatMap((response) => response.events)
+          allItems = allItems.concat(
+            ...rest.flatMap((response) => response.items ?? [])
           );
         }
         if (controller.signal.aborted) return;
-        setEvents(allEvents);
-        setTotalCount(allEvents.length);
-        setTotalPages(Math.max(1, Math.ceil(allEvents.length / size)));
+        setFavorites(allItems);
+        setTotalCount(allItems.length);
+        setTotalPages(Math.max(1, Math.ceil(allItems.length / DEFAULT_PAGE_SIZE)));
       } catch {
         if (controller.signal.aborted) return;
-        setEvents([]);
+        setFavorites([]);
         setTotalCount(0);
         setTotalPages(1);
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     };
     run();
     return () => controller.abort();
-  }, [
-    keyword,
-    type,
-    category,
-    subcategory,
-    size,
-    appliedFilters.type,
-    appliedFilters.categories,
-    appliedFilters.regions,
-    appliedFilters.startDate,
-    appliedFilters.endDate,
-    hasClientFilters,
-  ]);
+  }, [hasClientFilters]);
+
+  const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
+
   const visibleEvents = useMemo(() => {
-    const { startDate, endDate, regions } = appliedFilters;
-    const hasRegionFilter = regions.length > 0;
-    const hasDateFilter = !!startDate || !!endDate;
-    if (!hasRegionFilter && !hasDateFilter) return events;
+    if (!hasClientFilters) return events;
+    const { startDate, endDate, regions, type } = appliedFilters;
 
     const toDate = (value: string) => {
       const d = new Date(value);
@@ -196,49 +153,52 @@ function SearchContent() {
     };
 
     return events.filter((event) => {
-      if (hasRegionFilter && event.location) {
-        if (!regions.includes(event.location)) return false;
-      } else if (hasRegionFilter) {
-        return false;
+      if (regions.length > 0) {
+        const match = regions.some((region) =>
+          event.location ? event.location.includes(region) : false
+        );
+        if (!match) return false;
       }
-      const { start, end } = parsePeriod(event.period);
-      if (!start || !end) return !hasDateFilter;
-      const filterStart = startDate ?? start;
-      const filterEnd = endDate ?? end;
-      return start <= filterEnd && end >= filterStart;
+
+      if (type && event.type !== type) return false;
+
+      if (startDate || endDate) {
+        const { start, end } = parsePeriod(event.period);
+        if (!start || !end) return false;
+        const filterStart = startDate ?? start;
+        const filterEnd = endDate ?? end;
+        if (!(start <= filterEnd && end >= filterStart)) return false;
+      }
+
+      return true;
     });
-  }, [events, appliedFilters]);
+  }, [events, appliedFilters, hasClientFilters]);
 
   const pagedEvents = useMemo(() => {
     if (!hasClientFilters) return visibleEvents;
-    const start = (page - 1) * size;
-    return visibleEvents.slice(start, start + size);
-  }, [visibleEvents, hasClientFilters, page, size]);
+    const start = (page - 1) * DEFAULT_PAGE_SIZE;
+    return visibleEvents.slice(start, start + DEFAULT_PAGE_SIZE);
+  }, [visibleEvents, hasClientFilters, page]);
 
-  const displayCount = hasClientFilters ? visibleEvents.length : totalCount;
   const displayTotalPages = hasClientFilters
-    ? Math.max(1, Math.ceil(visibleEvents.length / size))
+    ? Math.max(1, Math.ceil(visibleEvents.length / DEFAULT_PAGE_SIZE))
     : totalPages;
-
-    
 
   return (
     <main className="min-h-screen bg-background py-5">
       <div className="relative mx-auto max-w-7xl py-10">
-        {/* 헤더: 검색 결과 수 + 정렬/필터 */}
         <div className="mb-6 flex items-center w-[1280px] justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-medium text-orange">
-              {displayCount}
+              {hasClientFilters ? visibleEvents.length : totalCount}
             </span>
             <span className="text-2xl font-medium text-foreground mb-5">
-              개의 행사가 검색되었어요!
+              개의 찜한 행사가 있어요!
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* 정렬 드롭다운 */}
-            {/* <button
+            <button
               type="button"
               className="flex items-center gap-1 text-sm font-medium text-foreground"
             >
@@ -249,9 +209,8 @@ function SearchContent() {
                 width={20}
                 height={20}
               />
-            </button> */}
+            </button>
 
-            {/* 필터 버튼 */}
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
@@ -268,13 +227,9 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* 태그/필터 칩 제거 (사이드바 패널로만 조작) */}
-
-        {/* 카드 그리드 */}
-      
         {visibleEvents.length === 0 && !isLoading ? (
           <div className="min-h-[calc(100vh-100px-220px)] flex items-center justify-center">
-            <EmptyState message="일치하는 데이터가 없습니다" />
+            <EmptyState message="찜한 행사가 없습니다" />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -286,7 +241,6 @@ function SearchContent() {
           </div>
         )}
 
-        {/* 페이지네이션 */}
         {visibleEvents.length > 0 && (
           <div className="mt-8 flex items-center justify-center gap-2">
             <button
@@ -329,10 +283,8 @@ function SearchContent() {
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
         )}
-
       </div>
 
-      {/* 필터 사이드바 */}
       <FilterSidebar
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -342,7 +294,7 @@ function SearchContent() {
   );
 }
 
-export default function SearchPage() {
+export default function FavoritePage() {
   return (
     <Suspense
       fallback={
@@ -353,7 +305,9 @@ export default function SearchPage() {
         </main>
       }
     >
-      <SearchContent />
+      <RequireAuth>
+        <FavoriteContent />
+      </RequireAuth>
     </Suspense>
   );
 }

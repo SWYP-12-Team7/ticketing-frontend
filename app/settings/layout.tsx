@@ -1,3 +1,4 @@
+import { RequireAuth } from "@/components/auth";
 import { SettingsSidebar, SettingsInitializer } from "@/components/settings";
 import type { Metadata } from "next";
 import Script from "next/script";
@@ -13,7 +14,7 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <RequireAuth>
       {/* Daum Postcode API 로드 (주소 검색용) */}
       <Script
         src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
@@ -38,6 +39,6 @@ export default function SettingsLayout({
           <main className="max-w-[930px] flex-1">{children}</main>
         </div>
       </div>
-    </>
+    </RequireAuth>
   );
 }

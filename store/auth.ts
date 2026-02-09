@@ -11,6 +11,7 @@ interface AuthStore {
   setHasHydrated: (state: boolean) => void;
   login: (user: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  resetAuth: () => void;
   setAccessToken: (token: string) => void;
 }
 
@@ -37,6 +38,19 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken: null,
           isAuthenticated: false,
         }),
+      resetAuth: () => {
+        try {
+          localStorage.removeItem("auth");
+        } catch {
+          // Ignore storage errors (e.g., SSR or blocked storage)
+        }
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+        });
+      },
       setAccessToken: (token) => set({ accessToken: token }),
     }),
     {

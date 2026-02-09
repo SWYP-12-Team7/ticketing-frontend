@@ -106,6 +106,7 @@ const mockPlaces: Place[] = [
 
 export function NearbyPlaces({ className, places }: NearbyPlacesProps) {
   const [startIndex, setStartIndex] = useState(0);
+  const fallbackImage = "/images/404/emptyImg2.png";
   const displayPlaces = places || mockPlaces;
   const visibleCount = 5;
   const maxIndex = Math.max(0, displayPlaces.length - visibleCount);
@@ -155,10 +156,17 @@ export function NearbyPlaces({ className, places }: NearbyPlacesProps) {
               {/* 이미지 */}
               <div className="relative mb-3 h-64.5 w-48.25 overflow-hidden rounded-lg bg-muted">
                 <Image
-                  src={place.imageUrl}
+                  src={place.imageUrl || fallbackImage}
                   alt={place.name}
                   fill
                   className="object-cover transition-transform group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    if (target.src !== fallbackImage) {
+                      target.src = fallbackImage;
+                      target.srcset = "";
+                    }
+                  }}
                 />
               </div>
 

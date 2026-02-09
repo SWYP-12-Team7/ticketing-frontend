@@ -2,6 +2,7 @@
 
 import { RequireGuest } from "@/components/auth";
 import { useEffect } from "react";
+import Image from "next/image";
 
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "")}&response_type=code`;
 
@@ -19,8 +20,15 @@ export default function LoginPage() {
     <RequireGuest>
     <div className="flex justify-center pt-[139px] overflow-hidden">
       <div className="flex flex-col gap-51">
-        <div className="flex flex-col items-center gap-7">
-          <div className="w-[410px] h-[229px] bg-amber-200 leading-6">로고</div>
+        <div className="flex flex-col items-center mt-30 gap-7">
+          <Image
+            src="/images/login/login.svg"
+            alt="로그인 로고"
+            width={180}
+            height={60}
+            // className="h-[229px] w-[410px]"
+            priority
+          />
           <p className="font-bold text-xl">전시가 와르르, 축제가 와르르!</p>
         </div>
         <div className="flex flex-col items-end gap-2.5">

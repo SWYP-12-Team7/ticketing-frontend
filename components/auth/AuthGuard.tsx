@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -15,10 +16,15 @@ interface AuthGuardProps {
 export function RequireAuth({ children }: AuthGuardProps) {
   const router = useRouter();
   const { isAuthenticated, _hasHydrated } = useAuthStore();
+  const hasNotifiedRef = useRef(false);
 
   useEffect(() => {
     if (_hasHydrated && !isAuthenticated) {
-      router.replace("/auth/login");
+      if (!hasNotifiedRef.current) {
+        toast.error("로그인이 필요한 페이지 입니다.");
+        hasNotifiedRef.current = true;
+      }
+      router.replace("/");
     }
   }, [_hasHydrated, isAuthenticated, router]);
 

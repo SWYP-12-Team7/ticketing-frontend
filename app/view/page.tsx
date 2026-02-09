@@ -61,8 +61,8 @@ function MapViewContent({
   };
 
   return (
-    <section aria-label="지도 뷰" className="mapViewPage__section">
-      <div className="mapViewPage__container relative h-[650px] rounded-xl overflow-hidden">
+    <section aria-label="지도 뷰" className="mapViewPage__section w-full min-w-0">
+      <div className="mapViewPage__container relative h-[650px] w-full min-w-0 flex-shrink-0 rounded-xl overflow-hidden">
         <KakaoMap
           center={{ lat: 37.5665, lng: 126.978 }}
           level={8}
@@ -89,11 +89,19 @@ function MapViewContent({
 function ViewContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "calendar";
+  const regionParam = searchParams.get("region") || undefined;
+  const categoryParam = searchParams.get("category") || undefined;
+  const subCategoryParam = searchParams.get("subCategory") || undefined;
+  const periodParam = searchParams.get("period") || undefined;
   const [visibleIds, setVisibleIds] = useState<string[] | null>(null);
   const [clusterIds, setClusterIds] = useState<string[] | null>(null);
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const { data: mapCurations = [] } = useMapCurations({
     date: today,
+    region: regionParam,
+    category: categoryParam,
+    subCategory: subCategoryParam,
+    period: periodParam,
   });
 
   const mapLocations = useMemo<MapLocation[]>(

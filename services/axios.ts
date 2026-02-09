@@ -48,12 +48,14 @@ axiosInstance.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // 403 Forbidden: 권한 없음 → 로그아웃 후 로그인 페이지로 리다이렉트
+    // 403 Forbidden: 권한 없음 → 토큰이 있을 때만 로그아웃 처리
     if (error.response?.status === 403) {
-      useAuthStore.getState().logout();
-      if (typeof window !== "undefined") {
-        alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-        window.location.href = "/auth/login";
+      const { accessToken } = useAuthStore.getState();
+      if (accessToken) {
+        useAuthStore.getState().logout();
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
       }
       return Promise.reject(error);
     }
