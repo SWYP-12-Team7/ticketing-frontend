@@ -32,6 +32,26 @@ export interface LocationEventFilterState {
     /** 반려견 동반 가능 */
     petFriendly: boolean;
   };
+
+  /** 기간 필터 (날짜 범위 선택) */
+  dateRange: {
+    /** 시작 날짜 (YYYY-MM-DD) */
+    startDate: string | null;
+    /** 종료 날짜 (YYYY-MM-DD) */
+    endDate: string | null;
+  };
+
+  /** 행사 진행 상태 */
+  eventStatus: {
+    /** 전체 */
+    all: boolean;
+    /** 진행 중 */
+    ongoing: boolean;
+    /** 진행 예정 */
+    upcoming: boolean;
+    /** 진행 종료 */
+    ended: boolean;
+  };
 }
 
 /**

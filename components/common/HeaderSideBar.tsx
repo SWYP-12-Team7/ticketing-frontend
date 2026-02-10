@@ -3,25 +3,25 @@
 import { useState, useEffect, useRef, useCallback, ComponentType } from "react";
 import { ChevronUp } from "lucide-react";
 import {
-  Layers,
-  Shirt,
-  Sparkles,
-  Coffee,
-  Smile,
-  Laptop,
-  Heart,
-  Sofa,
-  Palette,
-  Camera,
-  Pencil,
-  Box,
-  PenTool,
-  Paintbrush,
-  LayoutGrid,
-} from "lucide-react";
+  AllIcon,
+  FashionIcon,
+  BeautyIcon,
+  FnBIcon,
+  CharacterIcon,
+  TechIcon,
+  LifestyleIcon,
+  FurnitureIcon,
+  ContemporaryArtIcon,
+  PhotoIcon,
+  DesignIcon,
+  IllustIcon,
+  PaintingIcon,
+  SculptureIcon,
+  InstallationIcon,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 // ========================================
 // Types
@@ -62,49 +62,49 @@ const MENU_DATA: MenuCategory[] = [
         id: "popup-all",
         label: "전체보기",
         href: "/search?category=popup&subcategory=all",
-        icon: Layers,
+        icon: AllIcon,
       },
       {
         id: "popup-fashion",
         label: "패션",
         href: "/search?category=popup&subcategory=fashion",
-        icon: Shirt,
+        icon: FashionIcon,
       },
       {
         id: "popup-beauty",
         label: "뷰티",
         href: "/search?category=popup&subcategory=beauty",
-        icon: Sparkles,
+        icon: BeautyIcon,
       },
       {
         id: "popup-fnb",
         label: "F&B",
         href: "/search?category=popup&subcategory=fnb",
-        icon: Coffee,
+        icon: FnBIcon,
       },
       {
         id: "popup-character",
         label: "캐릭터",
         href: "/search?category=popup&subcategory=character",
-        icon: Smile,
+        icon: CharacterIcon,
       },
       {
         id: "popup-tech",
         label: "테크",
         href: "/search?category=popup&subcategory=tech",
-        icon: Laptop,
+        icon: TechIcon,
       },
       {
         id: "popup-lifestyle",
         label: "라이프스타일",
         href: "/search?category=popup&subcategory=lifestyle",
-        icon: Heart,
+        icon: LifestyleIcon,
       },
       {
         id: "popup-furniture",
         label: "기구 & 인테리어",
         href: "/search?category=popup&subcategory=furniture",
-        icon: Sofa,
+        icon: FurnitureIcon,
       },
     ],
   },
@@ -116,49 +116,49 @@ const MENU_DATA: MenuCategory[] = [
         id: "exhibition-all",
         label: "전체보기",
         href: "/search?category=exhibition&subcategory=all",
-        icon: Layers,
+        icon: AllIcon,
       },
       {
         id: "exhibition-art",
         label: "현대미술",
         href: "/search?category=exhibition&subcategory=art",
-        icon: Palette,
+        icon: ContemporaryArtIcon,
       },
       {
         id: "exhibition-photo",
         label: "사진",
         href: "/search?category=exhibition&subcategory=photo",
-        icon: Camera,
+        icon: PhotoIcon,
       },
       {
         id: "exhibition-design",
         label: "디자인",
         href: "/search?category=exhibition&subcategory=design",
-        icon: Pencil,
+        icon: DesignIcon,
       },
       {
         id: "exhibition-illustration",
         label: "일러스트",
         href: "/search?category=exhibition&subcategory=illustration",
-        icon: PenTool,
+        icon: IllustIcon,
       },
       {
         id: "exhibition-painting",
         label: "회화",
         href: "/search?category=exhibition&subcategory=painting",
-        icon: Paintbrush,
+        icon: PaintingIcon,
       },
       {
         id: "exhibition-sculpture",
         label: "조각",
         href: "/search?category=exhibition&subcategory=sculpture",
-        icon: Box,
+        icon: SculptureIcon,
       },
       {
         id: "exhibition-installation",
         label: "설치미술",
         href: "/search?category=exhibition&subcategory=installation",
-        icon: LayoutGrid,
+        icon: InstallationIcon,
       },
     ],
   },
@@ -211,8 +211,9 @@ const ANIMATION_DURATION = 900;
  *
  * 2depth 서브카테고리:
  * - 높이: 48px, padding: 4px 8px 4px 32px, gap: 12px
- * - 비활성: 18px/400/180%, #6C7180
- * - 활성: 18px/600/180%, #F36012, bg #F3F4F6
+ * - default: 18px/400/180%, #6C7180, bg #FFFFFF
+ * - hover: 18px/400/180%, #6C7180, bg #F3F4F6
+ * - active: 18px/600/180%, #F36012, bg #FFFFFF
  * - 컨테이너 padding: 12px 0
  *
  * 메뉴 구성:
@@ -230,6 +231,7 @@ export function HeaderSideBar({
   className,
 }: HeaderSideBarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // 확장된 카테고리 ID (아코디언)
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(
@@ -242,12 +244,27 @@ export function HeaderSideBar({
 
   // ========================================
   // 현재 활성화된 서브카테고리 자동 감지
-  // Next.js pathname 기반으로 현재 페이지 감지
-  // 예: pathname "/popup-store/fashion" → subcategory "popup-fashion" 활성화
+  // URL의 pathname과 쿼리 파라미터를 기반으로 현재 페이지 감지
+  // 예: URL "/search?category=popup&subcategory=tech" → subcategory "popup-tech" 활성화
   // ========================================
+  const currentCategory = searchParams.get("category");
+  const currentSubcategory = searchParams.get("subcategory");
+
   const activeSubcategory = MENU_DATA.flatMap(
     (category) => category.subcategories
-  ).find((subcategory) => subcategory.href === pathname);
+  ).find((subcategory) => {
+    // subcategory.href에서 쿼리 파라미터 추출
+    const url = new URL(subcategory.href, "http://localhost");
+    const hrefCategory = url.searchParams.get("category");
+    const hrefSubcategory = url.searchParams.get("subcategory");
+
+    // pathname과 쿼리 파라미터 모두 일치 확인
+    return (
+      pathname === url.pathname &&
+      hrefCategory === currentCategory &&
+      hrefSubcategory === currentSubcategory
+    );
+  });
 
   // 활성화된 서브카테고리가 속한 카테고리 찾기
   const activeCategoryId = activeSubcategory
@@ -364,16 +381,13 @@ export function HeaderSideBar({
                       "gap-3 px-2 py-1 pl-8 transition-all duration-200",
                       "rounded-[4px]",
                       isActive
-                        ? "bg-[#F3F4F6] text-sidebar-subcategory-active text-[#F36012]"
-                        : "text-sidebar-subcategory text-[#6C7180] hover:bg-[#F3F4F6]"
+                        ? "bg-white text-[#F36012] font-semibold"
+                        : "bg-white text-[#6C7180] font-normal hover:bg-[#F3F4F6]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
                     <IconComponent
-                      className={cn(
-                        "sidebar__submenuIcon size-6 shrink-0 transition-colors",
-                        isActive ? "text-[#F36012]" : "text-[#6C7180]"
-                      )}
+                      className="sidebar__submenuIcon size-6 shrink-0 transition-colors"
                       aria-hidden={true}
                     />
                     <span className="sidebar__submenuText">
@@ -494,7 +508,7 @@ export function HeaderSideBar({
                       "py-2 px-2 pl-3 text-sidebar-category transition-all duration-200 rounded",
                       isExpanded
                         ? "h-[58px] text-[#F36012]"
-                        : "h-[52px] text-foreground hover:text-muted-foreground"
+                        : "h-[52px] text-[#202937] hover:text-[#6C7180]"
                     )}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${category.id}`}
@@ -511,7 +525,7 @@ export function HeaderSideBar({
                     </span>
                     {isExpanded && (
                       <ChevronUp
-                        className="sidebar__categoryIcon size-6 shrink-0 transition-opacity"
+                        className="sidebar__categoryIcon size-6 shrink-0 text-[#6C7180] transition-opacity"
                         aria-hidden="true"
                       />
                     )}

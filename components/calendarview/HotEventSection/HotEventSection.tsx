@@ -13,14 +13,20 @@ import React, { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
 import type { Event, EventSortOption } from "@/types/event";
-import type { IsoDate, CalendarCategory } from "@/types/calendar";
+import type {
+  IsoDate,
+  CalendarCategory,
+  CalendarEventFilterParams,
+} from "@/types/calendar";
 import type { CalendarCategoryActiveMap } from "../utils/calendar.query-state";
+import type { LocationEventFilterState } from "@/components/common/LocationEventFilter/types";
 import {
   useCalendarEventsByDate,
   useCalendarPopularEvents,
 } from "@/queries/calendar";
 import { formatDateKorean } from "../utils/calendar.formatters";
 import { EmptyState } from "./EmptyState";
+import { applyClientSideFilters } from "@/utils/eventFilters";
 
 /**
  * HotEventSection Props
@@ -38,6 +44,10 @@ interface HotEventSectionProps {
   events?: Event[];
   /** Pill 클릭으로 선택된 카테고리들 (다중 선택 지원) */
   selectedCategories?: Set<"exhibition" | "popup">;
+  /** API 필터 파라미터 (지역, 카테고리, 서브카테고리) */
+  apiFilterParams?: CalendarEventFilterParams;
+  /** 전체 필터 상태 (클라이언트 필터링용) */
+  locationFilterState?: LocationEventFilterState;
 }
 
 /**
@@ -58,6 +68,8 @@ export function HotEventSection({
   sortBy,
   events,
   selectedCategories = new Set(),
+  apiFilterParams,
+  locationFilterState,
 }: HotEventSectionProps) {
   /**
    * 좋아요 상태 관리 (로컬)
@@ -97,6 +109,7 @@ export function HotEventSection({
   /**
    * 날짜별 이벤트 API 조회
    * - 날짜 선택됐을 때만 호출 (enabled 옵션)
+   * - 필터 파라미터 통합 (지역, 카테고리, 서브카테고리)
    */
   const {
     data: dateEventsData,
@@ -106,6 +119,8 @@ export function HotEventSection({
       date: selectedDate!,
       categories: selectedCategoriesArray,
       sortBy,
+      // API 필터 파라미터 통합
+      ...apiFilterParams,
     },
     {
       enabled: !!selectedDate, // 날짜 선택됐을 때만 쿼리 실행
@@ -115,6 +130,7 @@ export function HotEventSection({
   /**
    * 인기 이벤트 API 조회
    * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
+   * - 필터 파라미터 통합 (지역, 카테고리, 서브카테고리)
    */
   const {
     data: popularEventsData,
@@ -124,6 +140,8 @@ export function HotEventSection({
       limit: 24,
       categories: selectedCategoriesArray,
       sortBy,
+      // API 필터 파라미터 통합
+      ...apiFilterParams,
     },
     {
       enabled: !selectedDate, // 날짜 선택 안 됐을 때만 쿼리 실행
@@ -140,6 +158,7 @@ export function HotEventSection({
    * 이벤트 데이터 결정 + 필터링
    * - API 데이터 우선 사용
    * - events prop은 폴백으로 유지 (테스트용)
+   * - 클라이언트 필터링 적용 (price, amenities, dateRange, eventStatus)
    */
   const displayEvents = useMemo(() => {
     // 카테고리 모두 체크 해제
@@ -185,6 +204,12 @@ export function HotEventSection({
       });
     }
 
+    // 클라이언트 추가 필터링 (API 미지원 필터)
+    // - price, amenities, dateRange, eventStatus
+    if (locationFilterState) {
+      allEvents = applyClientSideFilters(allEvents, locationFilterState);
+    }
+
     return allEvents;
   }, [
     selectedDate,
@@ -193,6 +218,7 @@ export function HotEventSection({
     events,
     activeCategories,
     selectedCategories,
+    locationFilterState,
   ]);
 
   /**
