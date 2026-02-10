@@ -19,12 +19,7 @@ import { CalendarGrid } from "./CalendarGrid";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { HotEventSection, EventSortSelector } from "./HotEventSection";
 import {
-  generateEventsByDate,
-  generatePopularEvents,
-} from "@/lib/calendar-dummy-events";
-import {
   LocationEventFilterSidebar,
-  INITIAL_FILTER_STATE,
   type LocationEventFilterState,
 } from "@/components/common/LocationEventFilter";
 import {
@@ -46,6 +41,10 @@ interface CalendarViewPresentationProps {
   selectedDate?: IsoDate | null;
   /** 날짜 클릭 핸들러 */
   onDateClick?: (date: IsoDate) => void;
+  /** 필터 상태 (컨테이너에서 관리) */
+  locationFilterState: LocationEventFilterState;
+  /** 필터 변경 핸들러 */
+  onFilterChange: (state: LocationEventFilterState) => void;
 }
 
 /**
@@ -61,6 +60,8 @@ export function CalendarViewPresentation({
   gridData,
   selectedDate,
   onDateClick,
+  locationFilterState,
+  onFilterChange,
 }: CalendarViewPresentationProps) {
   const {
     regionId: _regionId,
@@ -104,8 +105,6 @@ export function CalendarViewPresentation({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFilterClosing, setIsFilterClosing] = useState(false);
   const [isFilterEntered, setIsFilterEntered] = useState(false);
-  const [locationFilterState, setLocationFilterState] =
-    useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
 
   /** 필터 열림 시 enter 애니메이션 (다음 프레임에 visible 적용) */
   useEffect(() => {
@@ -139,21 +138,29 @@ export function CalendarViewPresentation({
    */
   const handleRemoveFilter = (filterId: string) => {
     const newState = removeFilterFromState(locationFilterState, filterId);
-    setLocationFilterState(newState);
+    onFilterChange(newState);
   };
 
   /**
    * 필터 리셋 핸들러
    */
   const handleResetFilters = () => {
-    setLocationFilterState(INITIAL_FILTER_STATE);
+    onFilterChange({
+      dateRange: { startDate: null, endDate: null },
+      regions: [],
+      popupCategories: [],
+      exhibitionCategories: [],
+      price: { free: false, paid: false },
+      amenities: { parking: false, petFriendly: false },
+      eventStatus: { all: false, ongoing: false, upcoming: false, ended: false },
+    });
   };
 
   /**
    * 필터 적용 핸들러
    */
   const handleApplyFilters = (filters: LocationEventFilterState) => {
-    setLocationFilterState(filters);
+    onFilterChange(filters);
     handleCloseFilter(); // 필터 적용 시 사이드바 닫기
   };
 
@@ -168,83 +175,11 @@ export function CalendarViewPresentation({
   );
 
   /**
-   * HOT EVENT 이벤트 목록 계산 (제목 + 높이 계산용)
+   * HOT EVENT 섹션 제목 계산
+   * - 날짜 선택 시: "탐색 결과"
+   * - 날짜 미선택 시: "HOT EVENT"
    */
-  const hotEventData = useMemo(() => {
-    // 카테고리 모두 체크 해제
-    if (!activeCategories.exhibition && !activeCategories.popup) {
-      return { events: [], title: "HOT EVENT" };
-    }
-
-    // 이벤트 목록 가져오기
-    const allEvents = selectedDate
-      ? generateEventsByDate(selectedDate)
-      : generatePopularEvents(24);
-
-    // 카테고리 필터링
-    const filteredEvents = allEvents.filter((event) => {
-      if (event.category === "전시" && !activeCategories.exhibition) {
-        return false;
-      }
-      if (event.category === "팝업" && !activeCategories.popup) {
-        return false;
-      }
-      return true;
-    });
-
-    // 제목 계산
-    let title = "HOT EVENT";
-    if (selectedDate) {
-      title = "탐색 결과";
-    }
-
-    return { events: filteredEvents, title };
-  }, [selectedDate, activeCategories]);
-
-  /**
-   * 페이지 최소 높이 동적 계산
-   * - 이벤트 개수에 따라 HOT EVENT 그리드 높이 자동 조정
-   * - Flexbox 레이아웃으로 변경되어 계산 로직 간소화
-   */
-  const pageMinHeight = useMemo(() => {
-    const PADDING_TOP = 64; // Header 아래 여백
-    const CALENDAR_HEIGHT = 772; // 캘린더 전체 높이
-    const HOT_EVENT_HEADER_MARGIN = 80; // 캘린더 → HOT EVENT 헤더 간격
-    const HOT_EVENT_HEADER_HEIGHT = 31;
-    const HOT_EVENT_GRID_MARGIN = 58; // 헤더 → 그리드 간격
-    const CARD_HEIGHT = 490;
-    const ROW_GAP = 26;
-    const COLUMNS = 6;
-    const BOTTOM_PADDING = 100;
-    const EMPTY_STATE_HEIGHT = 400;
-
-    const eventCount = hotEventData.events.length;
-
-    // 기본 높이 (캘린더 + 여백)
-    let totalHeight =
-      PADDING_TOP +
-      CALENDAR_HEIGHT +
-      HOT_EVENT_HEADER_MARGIN +
-      HOT_EVENT_HEADER_HEIGHT +
-      HOT_EVENT_GRID_MARGIN;
-
-    // 이벤트가 없을 때 (빈 상태)
-    if (eventCount === 0) {
-      totalHeight += EMPTY_STATE_HEIGHT + BOTTOM_PADDING;
-      return totalHeight;
-    }
-
-    // 행 개수 계산
-    const rows = Math.ceil(eventCount / COLUMNS);
-
-    // 그리드 총 높이: 카드 × 행 + 간격 × (행-1)
-    const gridHeight = rows * CARD_HEIGHT + (rows - 1) * ROW_GAP;
-
-    // 전체 높이
-    totalHeight += gridHeight + BOTTOM_PADDING;
-
-    return totalHeight;
-  }, [hotEventData.events.length]);
+  const hotEventTitle = selectedDate ? "탐색 결과" : "HOT EVENT";
 
   return (
     <section
@@ -252,10 +187,11 @@ export function CalendarViewPresentation({
       className="calendar-view-section flex flex-col items-center relative"
       style={{
         width: "100%",
-        minHeight: `${pageMinHeight}px`,
+        minHeight: "100vh",
         paddingTop: CALENDAR_DESIGN_TOKENS.spacing.page.topFromHeader,
         paddingLeft: CALENDAR_DESIGN_TOKENS.spacing.page.left,
         paddingRight: CALENDAR_DESIGN_TOKENS.spacing.page.left,
+        paddingBottom: "100px",
         background: CALENDAR_DESIGN_TOKENS.colors.page.background,
       }}
     >
@@ -394,7 +330,7 @@ export function CalendarViewPresentation({
             color: "#111928",
           }}
         >
-          {hotEventData.title}
+          {hotEventTitle}
         </h2>
 
         {/* 정렬 드롭다운 */}

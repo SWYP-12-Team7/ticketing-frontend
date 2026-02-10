@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { FilterSelect } from "./FilterSelect";
+import { DateRangeCalendar } from "@/components/common/LocationEventFilter/DateRangeCalendar";
 
 interface FilterSectionProps {
   className?: string;
@@ -27,49 +28,15 @@ const PARENT_CATEGORIES = Object.keys(CATEGORY_MAP);
 
 const PERIODS = ["오늘", "이번 주말", "일주일 내", "한달 내"] as const;
 
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfMonth(year: number, month: number) {
-  return new Date(year, month, 1).getDay();
-}
-
-function isSameDay(date1: Date | null, date2: Date | null) {
-  if (!date1 || !date2) return false;
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-function isInRange(
-  date: Date,
-  start: Date | null,
-  end: Date | null
-) {
-  if (!start || !end) return false;
-  return date > start && date < end;
-}
-
-function isToday(date: Date) {
-  const today = new Date();
-  return isSameDay(date, today);
-}
-
 export function FilterSection({ className }: FilterSectionProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"map" | "calendar">(
     "calendar"
   );
 
-  const now = new Date();
-  const [calYear, setCalYear] = useState(now.getFullYear());
-  const [calMonth, setCalMonth] = useState(now.getMonth());
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [selectingStart, setSelectingStart] = useState(true);
+  // 날짜 필터 상태 (YYYY-MM-DD 형식)
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   // 지도 탭 필터 상태
   const [region, setRegion] = useState("");
@@ -77,38 +44,26 @@ export function FilterSection({ className }: FilterSectionProps) {
   const [subCategory, setSubCategory] = useState("");
   const [period, setPeriod] = useState("");
 
-  const handlePrevMonth = () => {
-    const d = new Date(calYear, calMonth - 1, 1);
-    setCalYear(d.getFullYear());
-    setCalMonth(d.getMonth());
-  };
-
-  const handleNextMonth = () => {
-    const d = new Date(calYear, calMonth + 1, 1);
-    setCalYear(d.getFullYear());
-    setCalMonth(d.getMonth());
-  };
-
-  const handleSelectDate = (date: Date) => {
-    if (selectingStart) {
-      setStartDate(date);
-      setEndDate(null);
-      setSelectingStart(false);
-    } else {
-      if (startDate && date < startDate) {
-        setEndDate(startDate);
-        setStartDate(date);
-      } else {
-        setEndDate(date);
-      }
-      setSelectingStart(true);
-    }
+  // 날짜 범위 변경 핸들러
+  const handleDateRangeChange = (start: string | null, end: string | null) => {
+    setStartDate(start);
+    setEndDate(end);
   };
 
   const handleSearch = () => {
     if (activeTab === "calendar") {
       const params = new URLSearchParams();
-      const baseDate = startDate || endDate || new Date();
+      
+      // 날짜가 선택되었으면 해당 날짜 기준, 아니면 현재 날짜 기준
+      let baseDate = new Date();
+      if (startDate) {
+        const [year, month, day] = startDate.split("-").map(Number);
+        baseDate = new Date(year, month - 1, day);
+      } else if (endDate) {
+        const [year, month, day] = endDate.split("-").map(Number);
+        baseDate = new Date(year, month - 1, day);
+      }
+      
       params.set("year", String(baseDate.getFullYear()));
       params.set("month", String(baseDate.getMonth() + 1));
       const qs = params.toString();
@@ -123,39 +78,6 @@ export function FilterSection({ className }: FilterSectionProps) {
       router.push(`/view?${params.toString()}`);
     }
   };
-
-  // 달력 그리드 생성
-  const daysInMonth = getDaysInMonth(calYear, calMonth);
-  const firstDay = getFirstDayOfMonth(calYear, calMonth);
-  const prevMonthDays = getDaysInMonth(
-    calYear,
-    calMonth - 1
-  );
-
-  const days: { date: Date; isCurrentMonth: boolean }[] = [];
-
-  for (let i = firstDay - 1; i >= 0; i--) {
-    days.push({
-      date: new Date(calYear, calMonth - 1, prevMonthDays - i),
-      isCurrentMonth: false,
-    });
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push({
-      date: new Date(calYear, calMonth, i),
-      isCurrentMonth: true,
-    });
-  }
-  // 마지막 주를 채울 만큼만 다음 달 날짜 추가
-  const remainingInWeek = days.length % 7;
-  if (remainingInWeek > 0) {
-    for (let i = 1; i <= 7 - remainingInWeek; i++) {
-      days.push({
-        date: new Date(calYear, calMonth + 1, i),
-        isCurrentMonth: false,
-      });
-    }
-  }
 
   return (
     <div
@@ -218,116 +140,14 @@ export function FilterSection({ className }: FilterSectionProps) {
             다양한 행사를 확인해 보세요
           </p>
 
-          {/* 달력 */}
-          <div className="mt-12 p-4 h-[320px] border-1 border-[#D3D5DC] rounded-xl">
-            {/* 월 네비게이션 */}
-            <div className="mb-2 h-12 flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="p-0.5"
-              >
-                <ChevronLeft className="size-6 text-[#121212]" />
-              </button>
-              <span className="text-[18px] font-semibold text-[#121212]">
-                {calYear}.
-                {String(calMonth + 1).padStart(2, "0")}
-              </span>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="p-0.5"
-              >
-                <ChevronRight className="size-6 text-[#121212]" />
-              </button>
-            </div>
-
-            {/* 요일 헤더 */}
-            <div className=" grid grid-cols-7">
-              {DAYS.map((day, i) => (
-                <div
-                  key={day}
-                  className={cn(
-                    "flex h-[40px] w-[40px] items-center justify-center text-[14px] font-normal leading-[180%]",
-                    i === 0
-                      ? "text-orange"
-                      : "text-[#999]"
-                  )}
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* 날짜 그리드 */}
-            <div className="grid grid-cols-7">
-              {days.map(
-                ({ date, isCurrentMonth }, index) => {
-                  const isStart = isSameDay(
-                    date,
-                    startDate
-                  );
-                  const isEnd = isSameDay(date, endDate);
-                  const inRange = isInRange(
-                    date,
-                    startDate,
-                    endDate
-                  );
-                  const hasRange = startDate && endDate;
-                  const isSunday = date.getDay() === 0;
-                  const col = index % 7;
-
-                  return (
-                    <div
-                      key={index}
-                      className={cn(
-                        "relative flex h-[40px] items-center justify-center",
-                        inRange && "bg-[#F3F4F6]",
-                        inRange && col === 0 && "rounded-l-md",
-                        inRange && col === 6 && "rounded-r-md",
-                        isStart &&
-                          hasRange &&
-                          "rounded-l-md bg-gradient-to-r from-transparent from-50% to-[#F3F4F6] to-50%",
-                        isEnd &&
-                          hasRange &&
-                          "rounded-r-md bg-gradient-to-l from-transparent from-50% to-[#F3F4F6] to-50%"
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          isCurrentMonth &&
-                          handleSelectDate(date)
-                        }
-                        className={cn(
-                          "relative z-10 flex size-[40px] items-center justify-center rounded-full text-[16px] font-normal leading-[180%] transition-colors",
-                          !isCurrentMonth &&
-                            "text-gray-300",
-                          isCurrentMonth &&
-                            isSunday &&
-                            !isStart &&
-                            !isEnd &&
-                            "text-orange",
-                          isCurrentMonth &&
-                            !isSunday &&
-                            !isStart &&
-                            !isEnd &&
-                            "text-[#121212]",
-                          (isStart || isEnd) &&
-                            "bg-[#202937] text-white",
-                          isCurrentMonth &&
-                            !isStart &&
-                            !isEnd &&
-                            "hover:bg-orange/10"
-                        )}
-                      >
-                        {date.getDate()}
-                      </button>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+          {/* 날짜 범위 캘린더 (compact variant) */}
+          <div className="mt-12">
+            <DateRangeCalendar
+              variant="compact"
+              startDate={startDate}
+              endDate={endDate}
+              onChange={handleDateRangeChange}
+            />
           </div>
         </div>
       ) : (

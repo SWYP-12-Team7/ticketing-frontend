@@ -412,28 +412,65 @@ export const CALENDAR_DESIGN_TOKENS = {
   },
 
   /**
-   * 필터 Pill 디자인 토큰 (Figma 스펙 2026-02-04 완전 준수)
+   * 필터 Pill 디자인 토큰 (Figma 스펙 2026-02-10 완전 준수)
    */
   filterPill: {
-    /** 컨테이너 (외부 chip) */
+    /** 컨테이너 (외부 chip) - 공통 속성 */
     container: {
       padding: "0px 16px",
       gap: "4px",
       height: "32px",
       minWidth: "48px",
-      background: "#FFF2E6",
-      border: "1px solid #F36012",
       borderRadius: "100px",
+      
+      /** Inactive 상태 (기본) */
+      inactive: {
+        background: "#FFFFFF",
+        border: "1px solid #D3D5DC",
+        labelColor: "#4B5462",
+        iconColor: "#4B5462",
+      },
+      
+      /** Active 상태 (팝업/전시 서브카테고리 선택 시) */
+      active: {
+        background: "#6C7180",
+        border: "1px solid #4B5462",
+        labelColor: "#FFFFFF",
+        iconColor: "#FFFFFF",
+      },
     },
 
-    /** 레이블 영역 ("지역", "팝업" 등) - 외부 컨테이너와 동일 배경 */
+    /** 레이블 영역 ("지역", "팝업" 등) */
     label: {
-      /** 레이블 폰트 */
       fontFamily: "Pretendard Variable",
       fontWeight: 400,
       fontSize: "14px",
       lineHeight: "140%",
-      color: "#F36012",
+      // color는 동적으로 적용 (active 여부)
+    },
+    
+    /** Arrow 아이콘 (Figma: icon/16/arrow-down) */
+    arrow: {
+      size: "16px",
+      strokeWidth: "1px",
+    },
+
+    /** 초기화 버튼 (Figma 스펙 2026-02-10) */
+    reset: {
+      /** 비활성화 상태 (필터 없음) */
+      disabled: {
+        background: "#F9FAFB",
+        border: "1px solid #D3D5DC",
+        labelColor: "#D3D5DC",
+        iconColor: "#D3D5DC",
+      },
+      /** 활성화 상태 (필터 있음) */
+      enabled: {
+        background: "#FFFFFF",
+        border: "1px solid #D3D5DC",
+        labelColor: "#4B5462",
+        iconColor: "#4B5462",
+      },
     },
 
     /** 값 영역 ("부산", "뷰티" 등) - 내부 chip */

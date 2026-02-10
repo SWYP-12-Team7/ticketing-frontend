@@ -1,17 +1,17 @@
 /**
  * 선택된 필터 Pill 컴포넌트 (그룹화 지원)
  *
- * Figma 스펙 완전 준수 (2026-02-04):
- * - 외부 chip: padding 0px 16px, gap 4px, height 32px, border 1px solid #F36012, border-radius 100px
- * - 레이블: 텍스트만 표시, font-size 14px, color #F36012
- * - 값 (내부 chips): padding 0px 8px, height 24px, background #FFFFFF, border-radius 100px, font-size 12px, 값 chip별 X 버튼
- * - X 버튼: 16px, color #F36012
+ * Figma 스펙 완전 준수 (2026-02-10):
+ * - Active 상태: background #6C7180, border #4B5462, color #FFFFFF
+ * - Inactive 상태: background #FFFFFF, border #D3D5DC, color #4B5462
+ * - Arrow 아이콘: 16px, order 2
+ * - 칩 클릭: 필터바 열림
  */
 
 "use client";
 
 import React, { memo } from "react";
-import { X } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CALENDAR_DESIGN_TOKENS as TOKENS } from "../constants/calendar.design-tokens";
 import type { DisplayFilterValue } from "@/components/common/LocationEventFilter/utils";
@@ -31,6 +31,12 @@ interface FilterPillProps {
 
   /** 추가 CSS 클래스 */
   className?: string;
+
+  /** 활성화 상태 (기본: false) */
+  isActive?: boolean;
+
+  /** 칩 클릭 핸들러 (필터바 열기) */
+  onClick?: () => void;
 }
 
 /**
@@ -45,13 +51,21 @@ export const FilterPill = memo(function FilterPill({
   onRemove,
   showRemoveButton = true,
   className,
+  isActive = false,
+  onClick,
 }: FilterPillProps) {
   const tokens = TOKENS.filterPill;
+  
+  // 활성화 상태에 따른 스타일 선택
+  const containerStyle = isActive 
+    ? tokens.container.active 
+    : tokens.container.inactive;
 
   return (
     <div
       className={cn(
-        "calendar-filter-pill inline-flex items-center justify-center",
+        "calendar-filter-pill inline-flex items-center justify-center cursor-pointer",
+        "transition-opacity hover:opacity-80",
         className
       )}
       style={{
@@ -60,12 +74,13 @@ export const FilterPill = memo(function FilterPill({
         gap: tokens.container.gap,
         minWidth: tokens.container.minWidth,
         height: tokens.container.height,
-        background: tokens.container.background,
-        border: tokens.container.border,
+        background: containerStyle.background,
+        border: containerStyle.border,
         borderRadius: tokens.container.borderRadius,
-        flexShrink: 0, // 줄어들지 않음
+        flexShrink: 0,
       }}
       role="listitem"
+      onClick={onClick}
     >
       {/* 레이블 텍스트 (예: "지역", "팝업", "전체") */}
       <span
@@ -75,7 +90,7 @@ export const FilterPill = memo(function FilterPill({
           fontWeight: tokens.label.fontWeight,
           fontSize: tokens.label.fontSize,
           lineHeight: tokens.label.lineHeight,
-          color: tokens.label.color,
+          color: containerStyle.labelColor,
           whiteSpace: "nowrap",
         }}
       >
@@ -105,11 +120,27 @@ export const FilterPill = memo(function FilterPill({
         </div>
       ))}
 
+      {/* Arrow 아이콘 (Figma: icon/16/arrow-down, transform: matrix(1, 0, 0, -1, 0, 0)) */}
+      <ChevronDown
+        className="calendar-filter-pill__arrow shrink-0"
+        style={{
+          width: tokens.arrow.size,
+          height: tokens.arrow.size,
+          color: containerStyle.iconColor,
+          strokeWidth: tokens.arrow.strokeWidth,
+          transform: "scaleY(-1)", // Y축 반전 (Figma: matrix(1, 0, 0, -1, 0, 0))
+        }}
+        aria-hidden="true"
+      />
+
       {/* 그룹 전체 X 버튼 */}
       {showRemoveButton && onRemove && (
         <button
           type="button"
-          onClick={onRemove}
+          onClick={(e) => {
+            e.stopPropagation(); // 칩 클릭 이벤트 막기
+            onRemove();
+          }}
           className={cn(
             "calendar-filter-pill__remove",
             "flex items-center justify-center shrink-0",
@@ -119,7 +150,7 @@ export const FilterPill = memo(function FilterPill({
           style={{
             width: tokens.removeButton.size,
             height: tokens.removeButton.size,
-            color: tokens.removeButton.color,
+            color: containerStyle.iconColor,
           }}
           aria-label={`${displayLabel} ${values.map((v) => v.label).join(", ")} 필터 제거`}
         >

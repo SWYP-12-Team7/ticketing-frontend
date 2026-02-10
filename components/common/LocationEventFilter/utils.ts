@@ -45,6 +45,8 @@ export interface DisplayFilter {
   type: "region" | "popup" | "exhibition" | "price" | "amenity" | "all";
   /** 그룹 전체 X 버튼 표시 여부 */
   showRemoveButton?: boolean;
+  /** 활성화 상태 (Figma: 팝업/전시 서브카테고리 선택 시 활성화) */
+  isActive?: boolean;
 }
 
 /**
@@ -126,6 +128,7 @@ export function convertFiltersToDisplayPills(
       values: regionValues,
       type: "region",
       showRemoveButton: true,
+      isActive: false, // 지역은 항상 비활성화
     });
   }
 
@@ -141,10 +144,11 @@ export function convertFiltersToDisplayPills(
   if (popupValues.length > 0) {
     pills.push({
       id: "popup-group",
-      displayLabel: "팝업",
+      displayLabel: "팝업스토어",
       values: popupValues,
       type: "popup",
       showRemoveButton: true,
+      isActive: true, // 팝업 서브카테고리 선택 시 활성화
     });
   }
 
@@ -164,6 +168,7 @@ export function convertFiltersToDisplayPills(
       values: exhibitionValues,
       type: "exhibition",
       showRemoveButton: true,
+      isActive: true, // 전시 서브카테고리 선택 시 활성화
     });
   }
 
@@ -179,6 +184,7 @@ export function convertFiltersToDisplayPills(
       values: priceValues,
       type: "price",
       showRemoveButton: true,
+      isActive: false, // 가격은 비활성화
     });
   }
 
@@ -202,6 +208,7 @@ export function convertFiltersToDisplayPills(
       values: amenityValues,
       type: "amenity",
       showRemoveButton: true,
+      isActive: false, // 편의시설은 비활성화
     });
   }
 

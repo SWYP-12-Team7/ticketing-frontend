@@ -13,16 +13,21 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { CalendarViewProps } from "./types";
 import { useCalendarQueryState } from "./hooks/useCalendarQueryState";
 import { useCalendarGridData } from "./hooks/useCalendarGridData";
 import { CalendarViewPresentation } from "./CalendarViewPresentation";
+import {
+  INITIAL_FILTER_STATE,
+  type LocationEventFilterState,
+} from "@/components/common/LocationEventFilter";
 
 /**
  * CalendarView 컨테이너 컴포넌트
  *
  * - URL 쿼리 상태 관리
+ * - 필터 상태 관리 (locationFilterState)
  * - API 데이터 fetching
  * - Presentation 컴포넌트에 props 전달
  *
@@ -44,6 +49,10 @@ export function CalendarView({ selectedDate, onDateClick }: CalendarViewProps) {
   // URL 쿼리 상태 관리
   const queryState = useCalendarQueryState();
 
+  // 필터 상태 관리 (컨테이너에서 중앙 관리)
+  const [locationFilterState, setLocationFilterState] =
+    useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
+
   // 그리드 데이터 조회
   const gridData = useCalendarGridData({
     month: queryState.month,
@@ -58,6 +67,8 @@ export function CalendarView({ selectedDate, onDateClick }: CalendarViewProps) {
       gridData={gridData}
       selectedDate={selectedDate}
       onDateClick={onDateClick}
+      locationFilterState={locationFilterState}
+      onFilterChange={setLocationFilterState}
     />
   );
 }
