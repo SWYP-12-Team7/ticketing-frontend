@@ -118,14 +118,14 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      {/* 검색 Input (Figma 스펙: 448px × 56px) */}
+      {/* 검색 Input (Figma 스펙: 448px × 57px) */}
       <div
         className={cn(
           "flex items-center rounded-full border transition-colors",
           // Figma 스펙: padding 16px 24px, gap 8px
           "px-6 py-4 gap-2",
-          // Figma 스펙: width 448px, height 56px
-          "w-[448px] h-[56px]",
+          // Figma 스펙: width 448px, height 57px
+          "w-[448px] h-[57px]",
           // 상태별 스타일
           isFocused || (keyword && isOpen)
             ? "border-[#F36012] bg-white" // 포커스 또는 입력 중: 오렌지 테두리

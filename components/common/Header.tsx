@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import Image from "next/image";
 import { SearchDropdown } from "./SearchDropdown";
 import { HeaderSideBar } from "./HeaderSideBar";
+import { MapPinnedIcon, CalendarSearchIcon } from "@/components/icons";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -77,7 +78,7 @@ export function Header({ className }: HeaderProps) {
       ============================================ */}
       <header
         className={cn(
-          "sticky top-0 z-75 h-25 flex items-center justify-between border-b border-border bg-background px-[80px]",
+          "sticky top-0 z-75 h-25 flex items-center justify-between border-b border-[#E5E7EA] bg-background px-[80px]",
           className
         )}
       >
@@ -104,8 +105,8 @@ export function Header({ className }: HeaderProps) {
             <Image
               src="/images/logo.png"
               alt="와르르 로고"
-              width={145}
-              height={56}
+              width={140}
+              height={60}
               priority
             />
           </Link>
@@ -119,19 +120,11 @@ export function Header({ className }: HeaderProps) {
                 "text-base leading-[180%]",
                 isViewPage && currentMode === "map"
                   ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
-                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
+                  : "text-[#6C7180] font-normal rounded hover:text-[#A6ABB7]"
               )}
             >
               지도뷰
-              <Image
-                src={isViewPage && currentMode === "map"
-                  ? "/images/header/map-pinned2.svg"
-                  : "/images/header/map-pinned.svg"
-                }
-                alt=""
-                width={24}
-                height={24}
-              />
+              <MapPinnedIcon className="size-6" aria-hidden={true} />
             </Link>
             <Link
               href="/calendarview"
@@ -140,19 +133,11 @@ export function Header({ className }: HeaderProps) {
                 "text-base leading-[180%]",
                 pathname === "/calendarview"
                   ? "text-[#F36012] font-semibold border-b-2 border-[#F36012]"
-                  : "text-[#A6ABB7] font-normal hover:text-[#F36012]"
+                  : "text-[#6C7180] font-normal rounded hover:text-[#A6ABB7]"
               )}
             >
               캘린더뷰
-              <Image
-                src={pathname === "/calendarview"
-                  ? "/images/header/calendar-search2.svg"
-                  : "/images/header/calendar-search.svg"
-                }
-                alt=""
-                width={24}
-                height={24}
-              />
+              <CalendarSearchIcon className="size-6" aria-hidden={true} />
             </Link>
           </nav>
         </div>

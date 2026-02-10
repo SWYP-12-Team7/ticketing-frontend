@@ -46,3 +46,7 @@ export { IllustIcon } from "./IllustIcon";
 export { PaintingIcon } from "./PaintingIcon";
 export { SculptureIcon } from "./SculptureIcon";
 export { InstallationIcon } from "./InstallationIcon";
+
+// Header
+export { MapPinnedIcon } from "./MapPinnedIcon";
+export { CalendarSearchIcon } from "./CalendarSearchIcon";
