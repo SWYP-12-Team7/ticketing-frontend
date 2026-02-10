@@ -508,7 +508,7 @@ export function HeaderSideBar({
                       "py-2 px-2 pl-3 text-sidebar-category transition-all duration-200 rounded",
                       isExpanded
                         ? "h-[58px] text-[#F36012]"
-                        : "h-[52px] text-foreground hover:text-muted-foreground"
+                        : "h-[52px] text-[#202937] hover:text-[#6C7180]"
                     )}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${category.id}`}
@@ -525,7 +525,7 @@ export function HeaderSideBar({
                     </span>
                     {isExpanded && (
                       <ChevronUp
-                        className="sidebar__categoryIcon size-6 shrink-0 transition-opacity"
+                        className="sidebar__categoryIcon size-6 shrink-0 text-[#6C7180] transition-opacity"
                         aria-hidden="true"
                       />
                     )}
