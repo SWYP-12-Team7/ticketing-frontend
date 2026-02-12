@@ -95,16 +95,18 @@ export function HotEventSection({
   }, [activeCategories]);
 
   /**
-   * activeCategories를 CalendarCategory[] 배열로 변환
-   * - React Query 훅에 전달하기 위함
+   * API 요청에 사용할 카테고리 배열
+   * - Pill 상태(selectedCategories)를 기반으로 API 파라미터 생성
+   * - size > 0: 선택된 카테고리만 배열로 반환
+   * - size = 0: undefined 반환 (백엔드가 전체 카테고리로 해석)
    */
   const selectedCategoriesArray = useMemo(() => {
-    if (!activeCategories) return [];
-    const cats: CalendarCategory[] = [];
-    if (activeCategories.exhibition) cats.push("exhibition");
-    if (activeCategories.popup) cats.push("popup");
-    return cats;
-  }, [activeCategories]);
+    // Pill 상태 기반으로 API 요청 파라미터 생성
+    if (selectedCategories && selectedCategories.size > 0) {
+      return Array.from(selectedCategories) as CalendarCategory[];
+    }
+    return undefined;
+  }, [selectedCategories]);
 
   /**
    * 날짜별 이벤트 API 조회
@@ -161,15 +163,6 @@ export function HotEventSection({
    * - 클라이언트 필터링 적용 (price, amenities, dateRange, eventStatus)
    */
   const displayEvents = useMemo(() => {
-    // 카테고리 모두 체크 해제
-    if (
-      activeCategories &&
-      !activeCategories.exhibition &&
-      !activeCategories.popup
-    ) {
-      return [];
-    }
-
     let allEvents: Event[] = [];
 
     // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트 (API 또는 props)
@@ -179,20 +172,6 @@ export function HotEventSection({
     // 2️⃣ 날짜 선택됨 → 해당 날짜 이벤트 (API 또는 props)
     else {
       allEvents = dateEventsData?.events ?? events ?? [];
-    }
-
-    // API에서 이미 카테고리 필터링이 되었지만, 추가 필터링 적용
-    // (activeCategories는 이미 API 요청에 포함되어 있으므로 중복이지만 안전장치)
-    if (activeCategories) {
-      allEvents = allEvents.filter((event) => {
-        if (event.category === "전시" && !activeCategories.exhibition) {
-          return false;
-        }
-        if (event.category === "팝업" && !activeCategories.popup) {
-          return false;
-        }
-        return true;
-      });
     }
 
     // Pill 클릭으로 선택된 카테고리 필터링 (다중 선택 지원)
@@ -216,7 +195,6 @@ export function HotEventSection({
     popularEventsData,
     dateEventsData,
     events,
-    activeCategories,
     selectedCategories,
     locationFilterState,
   ]);
