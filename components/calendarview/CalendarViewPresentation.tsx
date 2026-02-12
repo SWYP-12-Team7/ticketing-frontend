@@ -26,7 +26,6 @@ import {
   convertFiltersToDisplayPills,
   removeFilterFromState,
 } from "@/components/common/LocationEventFilter/utils";
-import { calculateEventCount } from "@/utils/filterEventCounter";
 import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 
 /**
@@ -304,7 +303,6 @@ export function CalendarViewPresentation({
               filterState={locationFilterState}
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
-              resultCount={calculateEventCount(locationFilterState)}
             />
           </div>
         </>

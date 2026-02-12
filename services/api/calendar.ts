@@ -4,7 +4,6 @@
  * - 월별 이벤트 요약 데이터 조회
  * - 날짜별 이벤트 목록 조회
  * - 인기 이벤트 목록 조회
- * - 더미 데이터 생성 (개발 환경)
  * - any 타입 완전 제거
  */
 
@@ -21,58 +20,6 @@ import type {
   CalendarRegion,
 } from "@/types/calendar";
 import type { Event } from "@/types/event";
-import { toValidIsoDate } from "@/components/calendarview/utils/calendar.validation";
-
-/**
- * 개발용 더미 데이터 생성 함수
- *
- * - any 타입 사용 없이 안전하게 IsoDate/IsoMonth 생성
- * - 검증된 타입만 반환
- *
- * @param month - IsoMonth 형식 문자열
- * @returns 더미 캘린더 데이터
- */
-function generateDummyCalendarData(
-  month: IsoMonth
-): CalendarMonthSummaryResponse {
-  const [year, monthNum] = month.split("-").map(Number);
-  const daysInMonth = new Date(year, monthNum, 0).getDate();
-
-  const days: CalendarDaySummary[] = [];
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    // 안전하게 IsoDate 생성 (any 없음)
-    const isoDate = toValidIsoDate(year, monthNum, day);
-
-    // 검증 실패 시 스킵
-    if (!isoDate) continue;
-
-    // 날짜별로 랜덤한 개수 생성 (더 현실적으로)
-    const exhibitionCount = Math.floor(Math.random() * 20) + 5; // 5~24개
-    const popupCount = Math.floor(Math.random() * 15) + 3; // 3~17개
-
-    days.push({
-      date: isoDate,
-      counts: {
-        exhibition: exhibitionCount,
-        popup: popupCount,
-      },
-    });
-  }
-
-  return {
-    month,
-    days,
-    regions: [
-      { id: "all", label: "부산시 전체" },
-      { id: "haeundae", label: "해운대구" },
-      { id: "busanjin", label: "부산진구" },
-      { id: "dongnae", label: "동래구" },
-      { id: "suyeong", label: "수영구" },
-      { id: "saha", label: "사하구" },
-    ],
-  };
-}
 
 /**
  * 캘린더 월별 요약 데이터 조회
@@ -99,13 +46,6 @@ export async function getCalendarMonthSummary(
 ): Promise<CalendarMonthSummaryResponse> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { month, regionId, categories: _categories } = params;
-
-  const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
-
-  if (USE_DUMMY_DATA) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return generateDummyCalendarData(month);
-  }
 
   // ISO 문자열을 year, month로 분리
   const [yearStr, monthStr] = month.split("-");
@@ -235,42 +175,6 @@ export async function getCalendarEventsByDate(
   // - sortBy: 정렬 기준
   // - page, size: 페이지네이션
 
-  // ========== 더미 데이터 분기 ==========
-  const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
-
-  if (USE_DUMMY_DATA) {
-    const { generateEventsByDate } = await import(
-      "@/lib/calendar-dummy-events"
-    );
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    let events = generateEventsByDate(date);
-
-    // 카테고리 필터링
-    if (categories?.length) {
-      events = events.filter((event) => {
-        const eventCategory =
-          event.category === "전시" ? "exhibition" : "popup";
-        return categories.includes(eventCategory);
-      });
-    }
-
-    // 서브카테고리 필터링
-    if (params.subcategories?.length) {
-      events = events.filter(
-        (event) =>
-          event.subcategory && params.subcategories!.includes(event.subcategory)
-      );
-    }
-
-    return {
-      events,
-      total: events.length,
-      page: 1,
-      totalPages: 1,
-    };
-  }
-
   // ========== 실제 API 호출 ==========
 
   /**
@@ -358,6 +262,13 @@ export async function getCalendarEventsByDate(
     });
   }
 
+  // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
+  if (params.subcategories?.length) {
+    events = events.filter((event) =>
+      event.subcategory && params.subcategories!.includes(event.subcategory)
+    );
+  }
+
   return {
     events,
     total: events.length,
@@ -398,46 +309,6 @@ export async function getCalendarPopularEvents(
   // - subcategories: 세부 카테고리 필터링
   // - sortBy: 정렬 기준 (현재 daily만 사용)
   // - page, size: 페이지네이션
-
-  // ========== 더미 데이터 분기 ==========
-  const USE_DUMMY_DATA = process.env.NEXT_PUBLIC_USE_CALENDAR_DUMMY === "true";
-
-  if (USE_DUMMY_DATA) {
-    // 더미 데이터 로드 (동적 import)
-    const { generatePopularEvents } = await import(
-      "@/lib/calendar-dummy-events"
-    );
-
-    // API 호출 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    let events = generatePopularEvents(limit);
-
-    // 카테고리 필터링
-    if (categories?.length) {
-      events = events.filter((event) => {
-        const eventCategory =
-          event.category === "전시" ? "exhibition" : "popup";
-        return categories.includes(eventCategory);
-      });
-    }
-
-    // 서브카테고리 필터링
-    if (params.subcategories?.length) {
-      events = events.filter(
-        (event) =>
-          event.subcategory &&
-          params.subcategories!.includes(event.subcategory)
-      );
-    }
-
-    return {
-      events,
-      total: events.length,
-      page: 1,
-      totalPages: 1,
-    };
-  }
 
   // ========== 실제 API 호출 ==========
 
@@ -549,8 +420,16 @@ export async function getCalendarPopularEvents(
     allEvents.push(...popupEvents);
   }
 
+  // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
+  let filteredEvents = allEvents;
+  if (params.subcategories?.length) {
+    filteredEvents = allEvents.filter((event) =>
+      event.subcategory && params.subcategories!.includes(event.subcategory)
+    );
+  }
+
   // limit 적용 (상위 N개만)
-  const limitedEvents = allEvents.slice(0, limit);
+  const limitedEvents = filteredEvents.slice(0, limit);
 
   return {
     events: limitedEvents,
