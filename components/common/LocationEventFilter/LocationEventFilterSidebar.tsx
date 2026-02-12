@@ -15,13 +15,13 @@
  *
  * Figma 스펙 (2026-02-10):
  * - Width: 512px
- * - Height: 1492px (선택 시) / 1372px (기본)
- * - Padding: 24px 80px 32px 32px
- * - 내부 컨테이너: 378px × 1268px
+ * - Height: 1332px (기본)
+ * - Padding: 24px 20px 32px 32px
+ * - 내부 컨테이너: 460px × 1228px
  * - Border-radius: 12px 16px 16px 12px
  * - Box-shadow: -6px 0px 25px rgba(0, 0, 0, 0.1)
  * - Scrollbar: 6px width, #F7F7F7 track, #D3D5DC thumb
- * - 버튼: 초기화 (비활성 회색) + N개 행사 검색 (오렌지)
+ * - 버튼: 초기화 122px + 검색 330px, gap 8px, height 48px
  *
  * @example
  * ```tsx
@@ -296,8 +296,8 @@ export function LocationEventFilterSidebar({
         className="flex flex-col"
         style={{
           height: "100%",
-          padding: "24px 80px 32px 32px",
-          gap: "20px",
+          padding: "24px 20px 32px 32px",
+          gap: "24px",
         }}
       >
         {/* 헤더 */}
@@ -328,7 +328,7 @@ export function LocationEventFilterSidebar({
         <div
           className="flex-1 overflow-y-scroll"
           style={{
-            width: "378px",
+            width: "460px",
             maxHeight: "calc(100vh - 320px)",
             scrollbarWidth: "thin",
             scrollbarColor: "#D3D5DC #F7F7F7",
@@ -457,9 +457,9 @@ export function LocationEventFilterSidebar({
           <div
             className="flex flex-col"
             style={{
-              width: "378px",
-              padding: "16px 0px",
-              gap: "12px",
+              width: "460px",
+              padding: "12px 0px 20px",
+              gap: "20px",
             }}
           >
             <h3
@@ -489,8 +489,8 @@ export function LocationEventFilterSidebar({
         <footer
           className="flex items-center"
           style={{
-            width: "378px",
-            gap: "12px",
+            width: "460px",
+            gap: "8px",
           }}
         >
           {/* 초기화 버튼 */}
@@ -499,18 +499,18 @@ export function LocationEventFilterSidebar({
             onClick={handleResetClick}
             disabled={!isResetEnabled}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-full border transition-all",
+              "flex items-center justify-center gap-1.5 rounded border transition-all",
               isResetEnabled
-                ? "bg-white border-[#D3D5DC] text-[#4B5462] hover:border-[#6C7180]"
-                : "bg-[#F3F4F6] border-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
+                ? "bg-[#F9FAFB] border-[#D3D5DC] text-[#4B5462] hover:border-[#6C7180]"
+                : "bg-[#F9FAFB] border-[#D3D5DC] text-[#D3D5DC] cursor-not-allowed"
             )}
             style={{
-              width: "120px",
-              height: "52px",
+              width: "122px",
+              height: "48px",
               fontFamily: "Pretendard Variable",
               fontSize: "16px",
               fontWeight: 500,
-              lineHeight: "19px",
+              lineHeight: "140%",
             }}
           >
             <RotateCcw
@@ -524,13 +524,13 @@ export function LocationEventFilterSidebar({
           <button
             type="button"
             onClick={handleApply}
-            className="flex-1 flex items-center justify-center rounded-full bg-[#FA7228] text-white transition-colors hover:brightness-90"
+            className="flex-1 flex items-center justify-center rounded bg-[#F36012] text-white transition-colors hover:brightness-90"
             style={{
-              height: "52px",
+              height: "48px",
               fontFamily: "Pretendard Variable",
               fontSize: "16px",
-              fontWeight: 600,
-              lineHeight: "19px",
+              fontWeight: 500,
+              lineHeight: "140%",
             }}
           >
             <span className="flex items-center gap-0.5">

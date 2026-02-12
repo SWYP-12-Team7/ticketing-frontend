@@ -50,10 +50,16 @@ export function CalendarToolbar({
   onOpenFilter,
   onReset,
 }: CalendarToolbarProps) {
+  // 필터가 있는지 체크 (초기화 버튼 활성화 여부)
+  const hasFilters = selectedFilters.length > 0;
+  const resetStyle = hasFilters 
+    ? CALENDAR_DESIGN_TOKENS.filterPill.reset.enabled
+    : CALENDAR_DESIGN_TOKENS.filterPill.reset.disabled;
+
   return (
     <header
       className={cn(
-        "calendar-toolbar__container flex items-center rounded-[12px]"
+        "calendar-toolbar__container flex items-center"
       )}
       style={{
         width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.width,
@@ -73,34 +79,38 @@ export function CalendarToolbar({
         <SelectedFilterPills
           filters={selectedFilters}
           onRemove={onRemoveFilter}
+          onFilterClick={onOpenFilter}
         />
       </div>
 
-      {/* 리셋 버튼 (order: 1, 우측 고정) */}
+      {/* 리셋 버튼 (order: 1, 우측 고정) - Figma 스펙: 비활성화/활성화 상태 */}
       <button
         type="button"
         onClick={onReset}
+        disabled={!hasFilters}
         className={cn(
           "calendar-toolbar__reset-button",
           "flex items-center justify-center shrink-0",
-          "hover:opacity-80 active:scale-95",
           "transition-all",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+          hasFilters ? "hover:opacity-80 active:scale-95 cursor-pointer" : "cursor-not-allowed"
         )}
         style={{
           width: "40px",
           height: "40px",
           borderRadius: CALENDAR_DESIGN_TOKENS.borderRadius.reset,
+          background: resetStyle.background,
+          border: resetStyle.border,
         }}
         aria-label="필터 초기화"
-        title="필터 초기화"
+        title={hasFilters ? "필터 초기화" : "선택된 필터가 없습니다"}
       >
         <RotateCcw
           className="shrink-0"
           style={{
             width: "24px",
             height: "24px",
-            color: CALENDAR_DESIGN_TOKENS.colors.filter.icon,
+            color: resetStyle.iconColor,
             strokeWidth: CALENDAR_DESIGN_TOKENS.borders.arrow,
           }}
           aria-hidden="true"
