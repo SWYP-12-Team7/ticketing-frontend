@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { EventCard } from "@/components/common/EventCard";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event, EventSortOption } from "@/types/event";
 import type { EventType } from "@/types/user";
 
@@ -31,6 +32,7 @@ export function MapEventSection({
 }: MapEventSectionProps) {
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
 
   const sortedEvents = [...events].sort((a, b) => {
     switch (sortBy) {
@@ -91,7 +93,7 @@ export function MapEventSection({
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {sortedEvents.map((event) => (
             <li key={event.id}>
-              <EventCard event={event} onLikeClick={handleLikeClick} />
+              <EventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
             </li>
           ))}
         </ul>

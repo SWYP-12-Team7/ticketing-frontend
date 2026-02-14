@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { EventCard } from "@/components/common/EventCard";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event } from "@/types/event";
 import type { EventType } from "@/types/user";
 
@@ -65,6 +66,7 @@ const mockPopups: Event[] = [
 export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
   const [startIndex, setStartIndex] = useState(0);
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
   const displayPopups = popups || mockPopups;
   const visibleCount = 5;
   const maxIndex = Math.max(0, displayPopups.length - visibleCount);
@@ -126,7 +128,7 @@ export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
         <ul className="relatedPopups__grid grid grid-cols-5 gap-4">
           {visiblePopups.map((popup) => (
             <li key={popup.id}>
-              <EventCard event={popup} onLikeClick={handleLikeClick} />
+              <EventCard event={{ ...popup, isLiked: likedIds.has(popup.id) }} onLikeClick={handleLikeClick} />
             </li>
           ))}
         </ul>

@@ -8,6 +8,7 @@ import type { Swiper as SwiperType } from "swiper";
 import { OverlayEventCard } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event } from "@/types/event";
 import type { EventType } from "@/types/user";
 
@@ -202,6 +203,7 @@ export function ShowPick({
 
   const displayEvents = events || mockEvents;
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
 
   const handleLikeClick = (id: string) => {
     const event = displayEvents.find((e) => e.id === id);
@@ -291,7 +293,7 @@ export function ShowPick({
       >
         {displayEvents.map((event) => (
           <SwiperSlide key={event.id} style={{ width: "302px" }}>
-            <OverlayEventCard event={event} onLikeClick={handleLikeClick} />
+            <OverlayEventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
           </SwiperSlide>
         ))}
       </Swiper>

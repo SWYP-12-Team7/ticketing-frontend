@@ -13,6 +13,7 @@ import React, { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event, EventSortOption } from "@/types/event";
 import type { EventType } from "@/types/user";
 import type {
@@ -74,10 +75,10 @@ export function HotEventSection({
   locationFilterState,
 }: HotEventSectionProps) {
   const { mutate: addToFavorites } = useAddFavorite();
+  const serverLikedIds = useLikedIds();
 
   /**
-   * 좋아요 상태 관리 (로컬)
-   * - Set을 사용하여 좋아요한 이벤트 ID 추적
+   * 좋아요 상태 관리 (로컬 토글용)
    */
   const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
 
@@ -265,9 +266,9 @@ export function HotEventSection({
   const eventsWithLikeState = useMemo(() => {
     return sortedEvents.map((event) => ({
       ...event,
-      isLiked: likedEventIds.has(event.id),
+      isLiked: serverLikedIds.has(event.id) || likedEventIds.has(event.id),
     }));
-  }, [sortedEvents, likedEventIds]);
+  }, [sortedEvents, serverLikedIds, likedEventIds]);
 
   /**
    * 섹션 제목 결정

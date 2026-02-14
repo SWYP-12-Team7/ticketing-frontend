@@ -19,6 +19,7 @@ import { InterestsEmptyState } from "./InterestsEmptyState";
 import { EventListCard } from "@/components/common/EventListCard";
 import { useInterestsSpot } from "@/hooks";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import { INTERESTS_DESIGN_TOKENS as TOKENS } from "./constants";
 import type { Event } from "@/types/event";
 import type { EventType } from "@/types/user";
@@ -50,6 +51,7 @@ export function InterestsSpotSection({
   const { selectedChipIndex, filteredEvents, handleChipClick, chipLabels } =
     useInterestsSpot(events);
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
 
   const handleLikeClick = (id: string) => {
     const event = filteredEvents.find((e) => e.id === id);
@@ -128,7 +130,7 @@ export function InterestsSpotSection({
             {filteredEvents.map((event) => (
               <EventListCard
                 key={event.id}
-                event={event}
+                event={{ ...event, isLiked: likedIds.has(event.id) }}
                 type={event.category === "전시" ? "exhibition" : "popup"}
                 onLikeClick={handleLikeClick}
               />

@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
 import { getFavorites } from "@/services/api/favorite";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { FavoriteItem } from "@/types/favorite";
 import type { EventType } from "@/types/user";
 import { RequireAuth } from "@/components/auth";
@@ -138,6 +139,7 @@ function FavoriteContent() {
   }, [hasClientFilters]);
 
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
   const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
 
   const handleLikeClick = useCallback((id: string) => {
@@ -274,7 +276,7 @@ function FavoriteContent() {
               <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                 {pagedEvents.map((event) => (
                   <Fragment key={event.id}>
-                    <EventCard event={event} showMeta={false} onLikeClick={handleLikeClick} />
+                    <EventCard event={{ ...event, isLiked: likedIds.has(event.id) }} showMeta={false} onLikeClick={handleLikeClick} />
                   </Fragment>
                 ))}
               </div>

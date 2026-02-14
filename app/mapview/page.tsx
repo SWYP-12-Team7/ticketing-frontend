@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { KakaoMap } from "@/components/map";
 import { OverlayEventCard, type Event } from "@/components/common";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import { X } from "lucide-react";
 import type { EventType } from "@/types/user";
 
@@ -70,6 +71,7 @@ export default function MapViewPage() {
   };
 
   const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
 
   const handleLikeClick = (id: string) => {
     const loc = mockLocations.find((l) => l.id === id);
@@ -104,7 +106,7 @@ export default function MapViewPage() {
             >
               <X className="h-4 w-4" />
             </button>
-            <OverlayEventCard event={selectedLocation.event} onLikeClick={handleLikeClick} />
+            <OverlayEventCard event={{ ...selectedLocation.event, isLiked: likedIds.has(selectedLocation.event.id) }} onLikeClick={handleLikeClick} />
           </div>
         </div>
       )}

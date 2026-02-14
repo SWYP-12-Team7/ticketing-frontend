@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserTaste, addFavorite, getUserTimeline } from "@/services/api/user";
 import type { EventType } from "@/types/user";
+import type { FavoriteResponse } from "@/types/favorite";
 
 /**
  * 사용자 취향 조회 Query
@@ -60,8 +61,8 @@ export function useAddFavorite() {
       curationType: EventType;
     }) => addFavorite(curationId, curationType),
     onSuccess: () => {
-      // 취향 데이터 자동 갱신
       queryClient.invalidateQueries({ queryKey: ["userTaste"] });
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
     onError: (error) => {
       console.error("찜하기 실패:", error);
