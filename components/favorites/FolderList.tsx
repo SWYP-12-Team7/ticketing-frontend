@@ -13,7 +13,11 @@ import "swiper/css/free-mode";
 
 const FOLDER_COLORS = ["orange", "emerald", "violet", "blue", "rose", "indigo"];
 
-export function FolderList() {
+interface FolderListProps {
+    onEditClick?: () => void;
+}
+
+export function FolderList({ onEditClick }: FolderListProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { data: folders = [] } = useFolders();
 
@@ -23,7 +27,10 @@ export function FolderList() {
                 <h2 className="flex items-center gap-2 text-2xl font-semibold #000">
                     내 폴더 <span className="text-orange">{folders.length}</span>
                 </h2>
-                <button className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600">
+                <button
+                    onClick={onEditClick}
+                    className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600"
+                >
                     폴더 편집하기
                     <ChevronRight size={16} />
                 </button>

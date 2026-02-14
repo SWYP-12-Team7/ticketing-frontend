@@ -54,18 +54,48 @@ export function useUserTaste() {
  */
 export function useAddFavorite() {
   const queryClient = useQueryClient();
+  const likedIdsKey = ["favorites", "likedIds"];
 
   return useMutation({
     mutationFn: ({ curationId, curationType }: {
       curationId: number;
       curationType: EventType;
     }) => addFavorite(curationId, curationType),
-    onSuccess: () => {
+    onMutate: async ({ curationId, curationType }) => {
+      await queryClient.cancelQueries({ queryKey: likedIdsKey });
+      const previous = queryClient.getQueryData<FavoriteResponse>(likedIdsKey);
+
+      queryClient.setQueryData<FavoriteResponse>(likedIdsKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: [
+            ...old.items,
+            {
+              id: -Date.now(),
+              curationId,
+              curationType,
+              title: "",
+              thumbnail: "",
+              region: "",
+              startDate: "",
+              endDate: "",
+              folderId: 0,
+            },
+          ],
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(likedIdsKey, context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["userTaste"] });
       queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-    onError: (error) => {
-      console.error("찜하기 실패:", error);
     },
   });
 }

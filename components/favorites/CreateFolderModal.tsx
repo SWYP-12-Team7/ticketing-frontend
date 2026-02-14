@@ -20,7 +20,13 @@ export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
   const handleCreate = () => {
     if (!isButtonEnabled) return;
 
-    createFolder(folderName.trim(), {
+    const normalizedName = folderName
+      .trim()
+      .replace(/^["']+|["']+$/g, "");
+
+    if (!normalizedName) return;
+
+    createFolder(normalizedName, {
       onSuccess: () => {
         setFolderName("");
         onClose();

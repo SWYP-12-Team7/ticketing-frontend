@@ -141,7 +141,7 @@ export function FolderCard({
     return (
         <div className={cardClasses} onClick={onClick}>
             <div className="relative h-full w-full flex items-center justify-center text-gray-400">
-                No items
+                {/* No items */}
             </div>
             {infoSection}
         </div>
