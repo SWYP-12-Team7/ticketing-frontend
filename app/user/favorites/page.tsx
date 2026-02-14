@@ -316,10 +316,11 @@ function FavoriteContent() {
                   const favoriteId = curationToFavoriteId.get(event.id);
                   const isSelected = favoriteId !== undefined && selectedFavoriteIds.has(favoriteId);
                   return (
-                    <div key={event.id} className="relative">
+                    <div key={event.id} className="relative w-full">
                       <EventCard
                         event={{ ...event, isLiked: likedIds.has(event.id) }}
                         showMeta={false}
+                        className="w-full"
                         onLikeClick={isEditMode ? undefined : handleLikeClick}
                       />
                       {isEditMode && (
