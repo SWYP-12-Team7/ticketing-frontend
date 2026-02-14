@@ -7,7 +7,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { OverlayEventCard } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import type { Event } from "@/types/event";
+import type { EventType } from "@/types/user";
 
 import "swiper/css";
 
@@ -199,6 +201,14 @@ export function ShowPick({
     );
 
   const displayEvents = events || mockEvents;
+  const { mutate: addToFavorites } = useAddFavorite();
+
+  const handleLikeClick = (id: string) => {
+    const event = displayEvents.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  };
 
   const handlePrev = () => {
     swiperRef.current?.slidePrev();
@@ -281,7 +291,7 @@ export function ShowPick({
       >
         {displayEvents.map((event) => (
           <SwiperSlide key={event.id} style={{ width: "302px" }}>
-            <OverlayEventCard event={event} />
+            <OverlayEventCard event={event} onLikeClick={handleLikeClick} />
           </SwiperSlide>
         ))}
       </Swiper>

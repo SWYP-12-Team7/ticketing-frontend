@@ -1,16 +1,17 @@
 
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { EventCard, type Event } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
 import { getFavorites } from "@/services/api/favorite";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import type { FavoriteItem } from "@/types/favorite";
+import type { EventType } from "@/types/user";
 import { RequireAuth } from "@/components/auth";
-import { Console } from "console";
 
 import { FolderList } from "@/components/favorites/FolderList";
 
@@ -136,7 +137,15 @@ function FavoriteContent() {
     return () => controller.abort();
   }, [hasClientFilters]);
 
+  const { mutate: addToFavorites } = useAddFavorite();
   const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
+
+  const handleLikeClick = useCallback((id: string) => {
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  }, [events, addToFavorites]);
 
   const visibleEvents = useMemo(() => {
     if (!hasClientFilters) return events;
@@ -265,7 +274,7 @@ function FavoriteContent() {
               <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                 {pagedEvents.map((event) => (
                   <Fragment key={event.id}>
-                    <EventCard event={event} showMeta={false} />
+                    <EventCard event={event} showMeta={false} onLikeClick={handleLikeClick} />
                   </Fragment>
                 ))}
               </div>

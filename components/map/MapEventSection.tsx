@@ -5,7 +5,9 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EventCard } from "@/components/common/EventCard";
 import { EmptyState } from "@/components/common/404/EmptyState";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import type { Event, EventSortOption } from "@/types/event";
+import type { EventType } from "@/types/user";
 
 interface MapEventSectionProps {
   className?: string;
@@ -28,6 +30,7 @@ export function MapEventSection({
   isFiltered = false,
 }: MapEventSectionProps) {
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
+  const { mutate: addToFavorites } = useAddFavorite();
 
   const sortedEvents = [...events].sort((a, b) => {
     switch (sortBy) {
@@ -41,7 +44,10 @@ export function MapEventSection({
   });
 
   const handleLikeClick = (id: string) => {
-    console.log("좋아요 클릭:", id);
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
   };
 
   return (

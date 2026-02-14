@@ -18,8 +18,10 @@ import { InterestsChip } from "./InterestsChip";
 import { InterestsEmptyState } from "./InterestsEmptyState";
 import { EventListCard } from "@/components/common/EventListCard";
 import { useInterestsSpot } from "@/hooks";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import { INTERESTS_DESIGN_TOKENS as TOKENS } from "./constants";
 import type { Event } from "@/types/event";
+import type { EventType } from "@/types/user";
 
 interface InterestsSpotSectionProps {
   events?: Event[];
@@ -47,6 +49,14 @@ export function InterestsSpotSection({
   // 커스텀 훅으로 비즈니스 로직 분리
   const { selectedChipIndex, filteredEvents, handleChipClick, chipLabels } =
     useInterestsSpot(events);
+  const { mutate: addToFavorites } = useAddFavorite();
+
+  const handleLikeClick = (id: string) => {
+    const event = filteredEvents.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  };
 
   const { sectionTitle } = TOKENS.typography;
   const hasEvents = filteredEvents.length > 0;
@@ -120,7 +130,7 @@ export function InterestsSpotSection({
                 key={event.id}
                 event={event}
                 type={event.category === "전시" ? "exhibition" : "popup"}
-                onLikeClick={(id) => console.log("Like:", id)}
+                onLikeClick={handleLikeClick}
               />
             ))}
           </div>

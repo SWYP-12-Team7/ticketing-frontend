@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { EventCard } from "@/components/common/EventCard";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import type { Event } from "@/types/event";
+import type { EventType } from "@/types/user";
 
 interface RelatedPopupsProps {
   className?: string;
@@ -62,6 +64,7 @@ const mockPopups: Event[] = [
 
 export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
   const [startIndex, setStartIndex] = useState(0);
+  const { mutate: addToFavorites } = useAddFavorite();
   const displayPopups = popups || mockPopups;
   const visibleCount = 5;
   const maxIndex = Math.max(0, displayPopups.length - visibleCount);
@@ -76,8 +79,10 @@ export function RelatedPopups({ className, popups }: RelatedPopupsProps) {
   );
 
   const handleLikeClick = (id: string) => {
-    console.log("좋아요 클릭:", id);
-    // TODO: 좋아요 API 호출
+    const event = displayPopups.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
   };
 
   return (

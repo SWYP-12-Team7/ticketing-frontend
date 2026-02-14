@@ -1,10 +1,12 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { EventCard, type Event } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import type { FilterState } from "@/components/search/FilterSidebar";
+import type { EventType } from "@/types/user";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { searchCurations } from "@/services/api/search";
@@ -220,7 +222,15 @@ function SearchContent() {
     ? Math.max(1, Math.ceil(visibleEvents.length / size))
     : totalPages;
 
-    
+  const { mutate: addToFavorites } = useAddFavorite();
+  const handleLikeClick = useCallback((id: string) => {
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  }, [events, addToFavorites]);
+
+
 
   return (
     <main className="min-h-screen bg-background py-5">
@@ -280,7 +290,7 @@ function SearchContent() {
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {pagedEvents.map((event) => (
               <Fragment key={event.id}>
-                <EventCard event={event} showMeta={false} />
+                <EventCard event={event} showMeta={false} onLikeClick={handleLikeClick} />
               </Fragment>
             ))}
           </div>
