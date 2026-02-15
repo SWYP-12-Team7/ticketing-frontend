@@ -74,7 +74,7 @@ export function useAddFavorite() {
             {
               id: -Date.now(),
               curationId,
-              curationType,
+              curationType: curationType as "EXHIBITION" | "POPUP",
               title: "",
               thumbnail: "",
               region: "",
