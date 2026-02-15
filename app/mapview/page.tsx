@@ -3,7 +3,10 @@
 import { useState, useMemo } from "react";
 import { KakaoMap } from "@/components/map";
 import { OverlayEventCard, type Event } from "@/components/common";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import { X } from "lucide-react";
+import type { EventType } from "@/types/user";
 
 interface Location {
   id: string;
@@ -67,6 +70,17 @@ export default function MapViewPage() {
     setSelectedLocation(found || null);
   };
 
+  const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
+
+  const handleLikeClick = (id: string) => {
+    const loc = mockLocations.find((l) => l.id === id);
+    if (!loc) return;
+    const event = loc.event;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  };
+
   const handleCloseCard = () => {
     setSelectedLocation(null);
   };
@@ -92,7 +106,7 @@ export default function MapViewPage() {
             >
               <X className="h-4 w-4" />
             </button>
-            <OverlayEventCard event={selectedLocation.event} />
+            <OverlayEventCard event={{ ...selectedLocation.event, isLiked: likedIds.has(selectedLocation.event.id) }} onLikeClick={handleLikeClick} />
           </div>
         </div>
       )}

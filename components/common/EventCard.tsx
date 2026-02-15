@@ -96,7 +96,7 @@ export function EventCard({
           <button
             type="button"
             onClick={handleLikeClick}
-            className="eventCard__likeButton absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="eventCard__likeButton absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-[#00000066] transition-colors hover:bg-[#00000080] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label={isLiked ? "좋아요 취소" : "좋아요"}
           >
             <Heart
@@ -104,8 +104,9 @@ export function EventCard({
                 "eventCard__likeIcon size-5 transition-colors",
                 isLiked
                   ? "fill-red-500 text-red-500"
-                  : "text-gray-600 group-hover:text-gray-800"
+                  : "text-white"
               )}
+              strokeWidth={1.5}
             />
           </button>
         </div>

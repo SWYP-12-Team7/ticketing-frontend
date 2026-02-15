@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserTaste, addFavorite, getUserTimeline } from "@/services/api/user";
 import type { EventType } from "@/types/user";
+import type { FavoriteResponse } from "@/types/favorite";
 
 /**
  * 사용자 취향 조회 Query
@@ -53,18 +54,48 @@ export function useUserTaste() {
  */
 export function useAddFavorite() {
   const queryClient = useQueryClient();
+  const likedIdsKey = ["favorites", "likedIds"];
 
   return useMutation({
     mutationFn: ({ curationId, curationType }: {
       curationId: number;
       curationType: EventType;
     }) => addFavorite(curationId, curationType),
-    onSuccess: () => {
-      // 취향 데이터 자동 갱신
-      queryClient.invalidateQueries({ queryKey: ["userTaste"] });
+    onMutate: async ({ curationId, curationType }) => {
+      await queryClient.cancelQueries({ queryKey: likedIdsKey });
+      const previous = queryClient.getQueryData<FavoriteResponse>(likedIdsKey);
+
+      queryClient.setQueryData<FavoriteResponse>(likedIdsKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: [
+            ...old.items,
+            {
+              id: -Date.now(),
+              curationId,
+              curationType: curationType as "EXHIBITION" | "POPUP",
+              title: "",
+              thumbnail: "",
+              region: "",
+              startDate: "",
+              endDate: "",
+              folderId: 0,
+            },
+          ],
+        };
+      });
+
+      return { previous };
     },
-    onError: (error) => {
-      console.error("찜하기 실패:", error);
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(likedIdsKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["userTaste"] });
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
   });
 }

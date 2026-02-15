@@ -4,7 +4,11 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EventCard } from "@/components/common/EventCard";
+import { EmptyState } from "@/components/common/404/EmptyState";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event, EventSortOption } from "@/types/event";
+import type { EventType } from "@/types/user";
 
 interface MapEventSectionProps {
   className?: string;
@@ -27,6 +31,8 @@ export function MapEventSection({
   isFiltered = false,
 }: MapEventSectionProps) {
   const [sortBy, setSortBy] = useState<EventSortOption>("popular");
+  const { mutate: addToFavorites } = useAddFavorite();
+  const likedIds = useLikedIds();
 
   const sortedEvents = [...events].sort((a, b) => {
     switch (sortBy) {
@@ -40,7 +46,10 @@ export function MapEventSection({
   });
 
   const handleLikeClick = (id: string) => {
-    console.log("좋아요 클릭:", id);
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
   };
 
   return (
@@ -75,13 +84,20 @@ export function MapEventSection({
         </select>
       </div>
 
-      <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {sortedEvents.map((event) => (
-          <li key={event.id}>
-            <EventCard event={event} onLikeClick={handleLikeClick} />
-          </li>
-        ))}
-      </ul>
+      {sortedEvents.length === 0 ? (
+        <EmptyState
+          message="해당 지역에 이벤트가 없어요"
+          className="py-40"
+        />
+      ) : (
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {sortedEvents.map((event) => (
+            <li key={event.id}>
+              <EventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

@@ -12,7 +12,10 @@
 import React, { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarEventCard } from "./CalendarEventCard";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds } from "@/queries/favorite";
 import type { Event, EventSortOption } from "@/types/event";
+import type { EventType } from "@/types/user";
 import type {
   IsoDate,
   CalendarCategory,
@@ -71,10 +74,11 @@ export function HotEventSection({
   apiFilterParams,
   locationFilterState,
 }: HotEventSectionProps) {
+  const { mutate: addToFavorites } = useAddFavorite();
+  const serverLikedIds = useLikedIds();
+
   /**
-   * 좋아요 상태 관리 (로컬)
-   * - Set을 사용하여 좋아요한 이벤트 ID 추적
-   * - TODO: 백엔드 API 연동 시 전역 상태 또는 서버 상태로 전환
+   * 좋아요 상태 관리 (로컬 토글용)
    */
   const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
 
@@ -262,9 +266,9 @@ export function HotEventSection({
   const eventsWithLikeState = useMemo(() => {
     return sortedEvents.map((event) => ({
       ...event,
-      isLiked: likedEventIds.has(event.id),
+      isLiked: serverLikedIds.has(event.id) || likedEventIds.has(event.id),
     }));
-  }, [sortedEvents, likedEventIds]);
+  }, [sortedEvents, serverLikedIds, likedEventIds]);
 
   /**
    * 섹션 제목 결정
@@ -291,17 +295,18 @@ export function HotEventSection({
     setLikedEventIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
-        newSet.delete(id); // 좋아요 취소
-        console.log("좋아요 취소:", id);
+        newSet.delete(id);
       } else {
-        newSet.add(id); // 좋아요 추가
-        console.log("좋아요 추가:", id);
+        newSet.add(id);
       }
       return newSet;
     });
 
-    // TODO: 백엔드 API 호출
-    // await likeEvent(id);
+    const event = displayEvents.find((e) => e.id === id);
+    if (event) {
+      const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+      addToFavorites({ curationId: Number(id), curationType });
+    }
   };
 
   /**
