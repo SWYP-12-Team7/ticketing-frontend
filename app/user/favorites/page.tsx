@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useState, useCallback } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { EventCard, type Event } from "@/components/common";
@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
 import { getFavorites } from "@/services/api/favorite";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
-import { useLikedIds } from "@/queries/favorite";
+import { useLikedIds, useMoveFavoriteToFolder } from "@/queries/favorite";
 import type { FavoriteItem } from "@/types/favorite";
 import type { EventType } from "@/types/user";
 import { RequireAuth } from "@/components/auth";
@@ -51,6 +51,8 @@ function FavoriteContent() {
   const [activeTab, setActiveTab] = useState<"favorites" | "timeline">("favorites");
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedFavoriteIds, setSelectedFavoriteIds] = useState<Set<number>>(new Set());
+  const selectedIdsRef = useRef(selectedFavoriteIds);
+  selectedIdsRef.current = selectedFavoriteIds;
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     type: "",
@@ -143,6 +145,7 @@ function FavoriteContent() {
   }, [hasClientFilters]);
 
   const { mutate: addToFavorites } = useAddFavorite();
+  const { mutate: moveToFolder } = useMoveFavoriteToFolder();
   const likedIds = useLikedIds();
   const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
 
@@ -181,11 +184,14 @@ function FavoriteContent() {
     setSelectedFavoriteIds(new Set());
   }, []);
 
-  const handleMoveFolder = useCallback((_folderId: number | null) => {
-    // TODO: API 연결
+  const handleMoveFolder = useCallback((folderId: number | null) => {
+    const ids = selectedIdsRef.current;
+    ids.forEach((favoriteId) => {
+      moveToFolder({ favoriteId, folderId });
+    });
     setIsMoveModalOpen(false);
     handleExitEditMode();
-  }, [handleExitEditMode]);
+  }, [moveToFolder, handleExitEditMode]);
 
   const visibleEvents = useMemo(() => {
     if (!hasClientFilters) return events;
