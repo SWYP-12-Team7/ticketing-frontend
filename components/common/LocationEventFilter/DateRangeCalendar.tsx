@@ -1,19 +1,28 @@
 /**
  * 기간 선택 캘린더 위젯
  *
- * 필터 모달 내부에서 사용하는 날짜 범위 선택 캘린더
+ * 필터 모달 및 홈 FilterSection에서 사용하는 날짜 범위 선택 캘린더
  *
- * Figma 스펙:
- * - Size: 356px × 320px
+ * Figma 스펙 (2026-02-10):
+ * - **default variant**: 430px × 320px (필터 사이드바용)
+ * - **compact variant**: 312px × 320px (홈 FilterSection용)
  * - Padding: 16px
  * - Border: 1px solid #D3D5DC
  * - Border-radius: 12px
- * - 월 네비게이션: 48px height
  * - 캘린더 테이블: 280px × 240px
  * - 날짜 셀: 40px × 40px
  * - 범위 선택 지원 (시작~종료)
  * - 선택된 날짜: 원형 dark style (#4B5462)
  * - 범위 배경: #F3F4F6
+ *
+ * @example
+ * ```tsx
+ * // 필터 사이드바용
+ * <DateRangeCalendar variant="default" startDate={start} endDate={end} onChange={handleChange} />
+ *
+ * // 홈 FilterSection용 (compact)
+ * <DateRangeCalendar variant="compact" startDate={start} endDate={end} onChange={handleChange} />
+ * ```
  */
 
 "use client";
@@ -29,6 +38,8 @@ interface DateRangeCalendarProps {
   endDate: string | null;
   /** 날짜 변경 핸들러 */
   onChange: (startDate: string | null, endDate: string | null) => void;
+  /** 캘린더 크기 variant (default: 430px, compact: 312px) */
+  variant?: "default" | "compact";
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -39,12 +50,17 @@ export function DateRangeCalendar({
   startDate,
   endDate,
   onChange,
+  variant = "default",
   className,
 }: DateRangeCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
+  // Variant에 따른 width 설정
+  const containerWidth = variant === "compact" ? "312px" : "430px";
+  const navWidth = variant === "compact" ? "280px" : "398px";
 
   // 이전 달로 이동
   const goToPreviousMonth = () => {
@@ -169,19 +185,20 @@ export function DateRangeCalendar({
     <div
       className={cn("flex flex-col items-center bg-white", className)}
       style={{
-        width: "356px",
+        width: containerWidth,
         height: "320px",
         padding: "16px",
         border: "1px solid #D3D5DC",
         borderRadius: "12px",
         boxSizing: "border-box",
+        isolation: "isolate",
       }}
     >
       {/* 월 네비게이션 */}
       <div
         className="flex items-center justify-center"
         style={{
-          width: "324px",
+          width: navWidth,
           height: "48px",
           gap: "8px",
         }}

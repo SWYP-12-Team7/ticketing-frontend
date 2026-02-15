@@ -29,6 +29,9 @@ interface SelectedFilterPillsProps {
   /** 필터 제거 핸들러 */
   onRemove: (filterId: string) => void;
 
+  /** 필터 칩 클릭 핸들러 (필터바 열기) */
+  onFilterClick?: () => void;
+
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -51,6 +54,7 @@ interface SelectedFilterPillsProps {
 export function SelectedFilterPills({
   filters,
   onRemove,
+  onFilterClick,
   className,
 }: SelectedFilterPillsProps) {
   const tokens = CALENDAR_DESIGN_TOKENS.filterPill.scrollContainer;
@@ -91,6 +95,8 @@ export function SelectedFilterPills({
             values={filter.values}
             onRemove={() => onRemove(filter.id)}
             showRemoveButton={filter.showRemoveButton ?? true}
+            isActive={filter.isActive ?? false}
+            onClick={onFilterClick}
           />
         ))
       )}
