@@ -271,8 +271,9 @@ export function LocationEventFilterSidebar({
       className="bg-white"
       style={{
         width: "512px",
-        height: "auto",
+        height: "calc(100vh - 80px)",
         maxHeight: "calc(100vh - 80px)",
+        overflow: "hidden",
         boxShadow: "-6px 0px 25px rgba(0, 0, 0, 0.1)",
         borderRadius: "12px 16px 16px 12px",
         flexShrink: 0,
@@ -288,7 +289,10 @@ export function LocationEventFilterSidebar({
         }}
       >
         {/* 헤더 */}
-        <header className="flex items-center justify-between">
+        <header 
+          className="flex items-center justify-between"
+          style={{ flexShrink: 0 }}
+        >
           <h2
             className="text-[#000000]"
             style={{
@@ -313,10 +317,10 @@ export function LocationEventFilterSidebar({
 
         {/* 필터 섹션들 (스크롤 가능) */}
         <div
-          className="flex-1 overflow-y-scroll"
+          className="flex-1 overflow-y-auto"
           style={{
             width: "460px",
-            maxHeight: "calc(100vh - 320px)",
+            minHeight: 0,
             scrollbarWidth: "thin",
             scrollbarColor: "#D3D5DC #F7F7F7",
           }}
@@ -437,40 +441,41 @@ export function LocationEventFilterSidebar({
               onChange={handleAmenityChange}
             />
           </AccordionSection>
-        </div>
 
-        {/* 선택된 항목 (조건부 렌더링) */}
-        {selectedItems.length > 0 && (
-          <div
-            className="flex flex-col"
-            style={{
-              width: "460px",
-              padding: "12px 0px 20px",
-              gap: "20px",
-            }}
-          >
-            <h3
-              className="text-[#202937]"
+          {/* 선택된 항목 (조건부 렌더링) - 스크롤 영역 내부로 이동 */}
+          {selectedItems.length > 0 && (
+            <div
+              className="flex flex-col"
               style={{
-                fontFamily: "Pretendard Variable",
-                fontSize: "14px",
-                fontWeight: 600,
-                lineHeight: "140%",
+                width: "100%",
+                padding: "24px 0px 20px",
+                gap: "20px",
+                marginTop: "12px",
               }}
             >
-              선택된 항목
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedItems.map((item) => (
-                <SelectedItemChip
-                  key={item.id}
-                  label={item.label}
-                  onRemove={() => handleRemoveItem(item.id)}
-                />
-              ))}
+              <h3
+                className="text-[#202937]"
+                style={{
+                  fontFamily: "Pretendard Variable",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  lineHeight: "140%",
+                }}
+              >
+                선택된 항목
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedItems.map((item) => (
+                  <SelectedItemChip
+                    key={item.id}
+                    label={item.label}
+                    onRemove={() => handleRemoveItem(item.id)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 하단 버튼 (초기화 + 검색) */}
         <footer
@@ -478,6 +483,7 @@ export function LocationEventFilterSidebar({
           style={{
             width: "460px",
             gap: "8px",
+            flexShrink: 0,
           }}
         >
           {/* 초기화 버튼 */}

@@ -129,14 +129,6 @@ export function HotEventSection({
     }
   );
 
-  // #region agent log
-  React.useEffect(() => {
-    if (selectedDate) {
-      fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:130',message:'useCalendarEventsByDate state',data:{selectedDate,isLoadingDateEvents,hasDateData:!!dateEventsData,dateEventsCount:dateEventsData?.events?.length},timestamp:Date.now(),runId:'dateselect',hypothesisId:'I'})}).catch(()=>{});
-    }
-  }, [selectedDate, isLoadingDateEvents, dateEventsData]);
-  // #endregion
-
   /**
    * 인기 이벤트 API 조회
    * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
