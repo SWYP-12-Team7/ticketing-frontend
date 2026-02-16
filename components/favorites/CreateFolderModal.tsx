@@ -42,6 +42,7 @@ export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && isButtonEnabled) {
+      e.preventDefault();
       handleCreate();
     }
   };
