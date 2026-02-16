@@ -84,7 +84,7 @@ function SearchContent() {
             keyword: keyword || undefined,
             type: typeParam || undefined,
             category: selectedCategory || undefined,
-            page,
+            page: page - 1,
             size,
           });
         if (controller.signal.aborted) return;
