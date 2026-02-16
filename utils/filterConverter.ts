@@ -17,7 +17,9 @@ import type {
  *
  * @description
  * - regions: 첫 번째 지역만 사용 (API는 단일 지역만 지원)
+ *   - "all" 값은 undefined로 변환 (백엔드가 region=all을 지원하지 않음)
  * - popupCategories + exhibitionCategories: subcategories로 병합
+ *   - "all" 값이 포함된 경우 undefined로 변환 (전체 조회)
  * - 카테고리가 선택되었는지 자동 판단하여 categories 배열 생성
  * - API 미지원 필터(price, amenities, dateRange, eventStatus)는 제외
  *
@@ -51,7 +53,9 @@ export function convertLocationFilterToAPIParams(
   const { regions, popupCategories, exhibitionCategories } = filterState;
 
   // 1. regionId: 첫 번째 지역만 사용 (API는 단일 지역만 지원)
-  const regionId = regions.length > 0 ? regions[0] : undefined;
+  // ⚠️ "all" 값은 undefined로 변환 (백엔드가 region=all을 빈 배열로 응답)
+  const regionId =
+    regions.length > 0 && regions[0] !== "all" ? regions[0] : undefined;
 
   // 2. categories: 선택된 카테고리 판단
   const categories: CalendarCategory[] = [];
@@ -73,7 +77,11 @@ export function convertLocationFilterToAPIParams(
   return {
     regionId: regionId || undefined,
     categories: categories.length > 0 ? categories : undefined,
-    subcategories: subcategories.length > 0 ? subcategories : undefined,
+    // ⚠️ "all" 값이 포함된 경우 undefined로 변환 (백엔드가 전체 조회로 처리)
+    subcategories:
+      subcategories.length > 0 && !subcategories.includes("all")
+        ? subcategories
+        : undefined,
   };
 }
 

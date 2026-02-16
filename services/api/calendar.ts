@@ -168,6 +168,9 @@ export async function getCalendarMonthSummary(
 export async function getCalendarEventsByDate(
   params: CalendarEventsByDateParams
 ): Promise<CalendarEventListResponse> {
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'calendar.ts:168',message:'getCalendarEventsByDate START',data:{params},timestamp:Date.now(),runId:'dateselect',hypothesisId:'I'})}).catch(()=>{});
+  // #endregion
   const { date, regionId, categories } = params;
   
   // 백엔드 미지원 파라미터 (향후 확장을 위해 타입에는 존재)
@@ -190,6 +193,8 @@ export async function getCalendarEventsByDate(
     dateText: string; // "2026.02.08 ~ 2026.02.28"
     viewCount: number;
     likeCount: number;
+    latitude: number; // 위도 (지도 표시용)
+    longitude: number; // 경도 (지도 표시용)
   }
 
   interface BackendCalendarListResponse {
@@ -221,6 +226,10 @@ export async function getCalendarEventsByDate(
     );
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'calendar.ts:226',message:'API Response received',data:{itemCount:response.data.items.length},timestamp:Date.now(),runId:'dateselect',hypothesisId:'I'})}).catch(()=>{});
+  // #endregion
+
   /**
    * 백엔드 응답 → 프론트엔드 Event 타입 변환
    */
@@ -249,6 +258,10 @@ export async function getCalendarEventsByDate(
 
     // 좋아요 여부: 기본값 false (향후 찜하기 API 연동 필요)
     isLiked: false,
+
+    // 위치 정보: 백엔드 API 제공 (지도 표시용)
+    latitude: item.latitude,
+    longitude: item.longitude,
   }));
 
   /**
@@ -263,11 +276,15 @@ export async function getCalendarEventsByDate(
   }
 
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
-  if (params.subcategories?.length) {
+  if (params.subcategories?.length && !params.subcategories.includes("all")) {
     events = events.filter((event) =>
       event.subcategory && params.subcategories!.includes(event.subcategory)
     );
   }
+
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'calendar.ts:283',message:'getCalendarEventsByDate RETURN',data:{finalCount:events.length,hasSubcategoryFilter:params.subcategories?.length,subcategories:params.subcategories},timestamp:Date.now(),runId:'dateselect',hypothesisId:'I'})}).catch(()=>{});
+  // #endregion
 
   return {
     events,
@@ -397,6 +414,10 @@ export async function getCalendarPopularEvents(
 
         // 좋아요 여부: 기본값 false
         isLiked: false,
+
+        // 위치 정보: /main/popular API는 제공하지 않음
+        latitude: undefined,
+        longitude: undefined,
       })
     );
     allEvents.push(...exhibitionEvents);
@@ -415,6 +436,8 @@ export async function getCalendarPopularEvents(
         viewCount: 0,
         likeCount: 0,
         isLiked: false,
+        latitude: undefined,
+        longitude: undefined,
       })
     );
     allEvents.push(...popupEvents);
@@ -422,7 +445,7 @@ export async function getCalendarPopularEvents(
 
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
   let filteredEvents = allEvents;
-  if (params.subcategories?.length) {
+  if (params.subcategories?.length && !params.subcategories.includes("all")) {
     filteredEvents = allEvents.filter((event) =>
       event.subcategory && params.subcategories!.includes(event.subcategory)
     );

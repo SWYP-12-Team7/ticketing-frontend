@@ -21,6 +21,12 @@ export interface Event {
   /** 장소 (ShowPick에서 사용) */
   location?: string;
 
+  /** 위도 (지도 표시용, 백엔드 API 제공) */
+  latitude?: number;
+
+  /** 경도 (지도 표시용, 백엔드 API 제공) */
+  longitude?: number;
+
   /** 기간 (예: "26.01.01 ~ 26.01.31") */
   period: string;
 
