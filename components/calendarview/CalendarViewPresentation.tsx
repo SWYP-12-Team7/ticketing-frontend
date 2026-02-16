@@ -26,7 +26,6 @@ import {
   convertFiltersToDisplayPills,
   removeFilterFromState,
 } from "@/components/common/LocationEventFilter/utils";
-import { calculateEventCount } from "@/utils/filterEventCounter";
 import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 
 /**
@@ -94,10 +93,11 @@ export function CalendarViewPresentation({
 
   /**
    * Pill 클릭 상태 (전시/팝업 다중 선택 지원)
+   * 초기값: 전시+팝업 모두 선택 (페이지 로드 시 모든 이벤트 표시)
    */
   const [selectedPillCategories, setSelectedPillCategories] = useState<
     Set<"exhibition" | "popup">
-  >(new Set());
+  >(new Set(["exhibition", "popup"]));
 
   /**
    * 필터 사이드바 상태
@@ -244,9 +244,9 @@ export function CalendarViewPresentation({
             selectedDate={selectedDate}
             selectedPillCategories={selectedPillCategories}
             onDateClick={(date) => {
-              // 날짜 변경 시 pill 선택 초기화
+              // 날짜 변경 시 pill 전체 활성화 (전시+팝업 둘 다 선택)
               if (date !== selectedDate) {
-                setSelectedPillCategories(new Set());
+                setSelectedPillCategories(new Set(["exhibition", "popup"]));
               }
               onDateClick?.(date);
             }}
@@ -303,7 +303,6 @@ export function CalendarViewPresentation({
               filterState={locationFilterState}
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
-              resultCount={calculateEventCount(locationFilterState)}
             />
           </div>
         </>

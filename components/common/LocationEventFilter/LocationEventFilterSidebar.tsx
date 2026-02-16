@@ -58,7 +58,6 @@ import {
   EVENT_STATUS_OPTIONS,
   INITIAL_FILTER_STATE,
 } from "./constants";
-import { calculateEventCount } from "@/utils/filterEventCounter";
 
 interface LocationEventFilterSidebarProps {
   /** 사이드바 열림 상태 */
@@ -71,8 +70,6 @@ interface LocationEventFilterSidebarProps {
   onApply: (filters: LocationEventFilterState) => void;
   /** 필터 초기화 핸들러 */
   onReset: () => void;
-  /** 검색 결과 개수 */
-  resultCount: number;
 }
 
 export function LocationEventFilterSidebar({
@@ -81,25 +78,15 @@ export function LocationEventFilterSidebar({
   filterState,
   onApply,
   onReset,
-  resultCount,
 }: LocationEventFilterSidebarProps) {
   // 로컬 필터 상태 (적용 전까지 임시 저장)
   const [localFilters, setLocalFilters] =
     useState<LocationEventFilterState>(filterState);
 
-  // 실시간 이벤트 개수
-  const [calculatedCount, setCalculatedCount] = useState(resultCount);
-
   // filterState가 변경되면 로컬 상태 동기화
   useEffect(() => {
     setLocalFilters(filterState);
   }, [filterState]);
-
-  // 필터 변경 시 실시간 개수 계산
-  useEffect(() => {
-    const count = calculateEventCount(localFilters);
-    setCalculatedCount(count);
-  }, [localFilters]);
 
   // Accordion 확장 상태
   const [expandedSections, setExpandedSections] = useState({
@@ -533,10 +520,7 @@ export function LocationEventFilterSidebar({
               lineHeight: "140%",
             }}
           >
-            <span className="flex items-center gap-0.5">
-              <span className="font-semibold">{calculatedCount}</span>
-              <span className="font-medium">개 행사 검색</span>
-            </span>
+            검색
           </button>
         </footer>
       </div>

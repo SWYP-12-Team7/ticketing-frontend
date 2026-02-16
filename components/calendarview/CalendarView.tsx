@@ -54,9 +54,12 @@ export function CalendarView({ selectedDate, onDateClick }: CalendarViewProps) {
     useState<LocationEventFilterState>(INITIAL_FILTER_STATE);
 
   // 그리드 데이터 조회
+  // 필터바의 지역 필터를 달력 숫자에 반영
   const gridData = useCalendarGridData({
     month: queryState.month,
-    regionId: queryState.regionId,
+    regionId: locationFilterState.regions[0] === "all" 
+      ? "all" 
+      : locationFilterState.regions[0] || "all",
     selectedCategories: queryState.selectedCategories,
   });
 
