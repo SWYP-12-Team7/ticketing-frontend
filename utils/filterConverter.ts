@@ -60,13 +60,13 @@ export function convertLocationFilterToAPIParams(
   // 2. categories: 선택된 카테고리 판단
   const categories: CalendarCategory[] = [];
 
-  // 팝업 카테고리가 선택되었으면 'popup' 추가
-  if (popupCategories.length > 0) {
+  // 팝업 카테고리가 선택되었으면 'popup' 추가 (단, "all"은 제외)
+  if (popupCategories.length > 0 && !popupCategories.includes("all")) {
     categories.push("popup");
   }
 
-  // 전시 카테고리가 선택되었으면 'exhibition' 추가
-  if (exhibitionCategories.length > 0) {
+  // 전시 카테고리가 선택되었으면 'exhibition' 추가 (단, "all"은 제외)
+  if (exhibitionCategories.length > 0 && !exhibitionCategories.includes("all")) {
     categories.push("exhibition");
   }
 

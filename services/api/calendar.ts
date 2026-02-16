@@ -366,6 +366,8 @@ export async function getCalendarPopularEvents(
 
   /**
    * 카테고리별 이벤트 수집
+   * - daily, weekly, monthly 모두 포함하여 더 많은 이벤트 제공
+   * - 중복 제거 처리
    */
   const allEvents: Event[] = [];
 
@@ -375,67 +377,86 @@ export async function getCalendarPopularEvents(
   const shouldIncludePopup =
     !categories?.length || categories.includes("popup");
 
-  // 전시 이벤트 추가
+  // 전시 이벤트 추가 (daily + weekly + monthly 모두 포함)
   if (shouldIncludeExhibition) {
-    const exhibitionEvents: Event[] = response.data.data.exhibition.daily.map(
-      (item) => ({
-        // ID: number → string 변환
-        id: item.id.toString(),
+    const exhibitionSources = [
+      ...response.data.data.exhibition.daily,
+      ...response.data.data.exhibition.weekly,
+      ...response.data.data.exhibition.monthly,
+    ];
 
-        // 제목
-        title: item.title,
+    const exhibitionEvents: Event[] = exhibitionSources.map((item) => ({
+      // ID: number → string 변환
+      id: item.id.toString(),
 
-        // 카테고리: 전시로 고정
-        category: "전시",
+      // 제목
+      title: item.title,
 
-        // 이미지: thumbnail → imageUrl
-        imageUrl: item.thumbnail,
+      // 카테고리: 전시로 고정
+      category: "전시",
 
-        // 기간: 그대로 사용
-        period: item.period,
+      // 이미지: thumbnail → imageUrl
+      imageUrl: item.thumbnail,
 
-        // 지역: address → region
-        region: item.address,
+      // 기간: 그대로 사용
+      period: item.period,
 
-        // 조회수/좋아요: 백엔드에서 제공하지 않으므로 기본값 0
-        viewCount: 0,
-        likeCount: 0,
+      // 지역: address → region
+      region: item.address,
 
-        // 좋아요 여부: 기본값 false
-        isLiked: false,
+      // 조회수/좋아요: 백엔드에서 제공하지 않으므로 기본값 0
+      viewCount: 0,
+      likeCount: 0,
 
-        // 위치 정보: /main/popular API는 제공하지 않음
-        latitude: undefined,
-        longitude: undefined,
-      })
-    );
+      // 좋아요 여부: 기본값 false
+      isLiked: false,
+
+      // 위치 정보: /main/popular API는 제공하지 않음
+      latitude: undefined,
+      longitude: undefined,
+    }));
+
     allEvents.push(...exhibitionEvents);
   }
 
-  // 팝업 이벤트 추가
+  // 팝업 이벤트 추가 (daily + weekly + monthly 모두 포함)
   if (shouldIncludePopup) {
-    const popupEvents: Event[] = response.data.data.popup.daily.map(
-      (item) => ({
-        id: item.id.toString(),
-        title: item.title,
-        category: "팝업",
-        imageUrl: item.thumbnail,
-        period: item.period,
-        region: item.address,
-        viewCount: 0,
-        likeCount: 0,
-        isLiked: false,
-        latitude: undefined,
-        longitude: undefined,
-      })
-    );
+    const popupSources = [
+      ...response.data.data.popup.daily,
+      ...response.data.data.popup.weekly,
+      ...response.data.data.popup.monthly,
+    ];
+
+    const popupEvents: Event[] = popupSources.map((item) => ({
+      id: item.id.toString(),
+      title: item.title,
+      category: "팝업",
+      imageUrl: item.thumbnail,
+      period: item.period,
+      region: item.address,
+      viewCount: 0,
+      likeCount: 0,
+      isLiked: false,
+      latitude: undefined,
+      longitude: undefined,
+    }));
+
     allEvents.push(...popupEvents);
   }
 
+  // 중복 제거 (같은 이벤트가 daily, weekly, monthly에 중복될 수 있음)
+  const uniqueEventsMap = new Map<string, Event>();
+  allEvents.forEach((event) => {
+    if (!uniqueEventsMap.has(event.id)) {
+      uniqueEventsMap.set(event.id, event);
+    }
+  });
+  const uniqueEvents = Array.from(uniqueEventsMap.values());
+
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
-  let filteredEvents = allEvents;
+  let filteredEvents = uniqueEvents;
   if (params.subcategories?.length && !params.subcategories.includes("all")) {
-    filteredEvents = allEvents.filter((event) =>
+    filteredEvents = uniqueEvents.filter((event) =>
       event.subcategory && params.subcategories!.includes(event.subcategory)
     );
   }
