@@ -29,6 +29,7 @@
  * ```
  */
 
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { CalendarPopularEventsParams } from "@/types/calendar";
 import { getCalendarPopularEvents } from "@/services/api/calendar";
@@ -101,6 +102,12 @@ export function useCalendarPopularEvents(
     page,
     size,
   });
+
+  // #region agent log
+  React.useEffect(() => {
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useCalendarPopularEvents.ts:queryKey',message:'Query key calculated',data:{limit,filtersKey,categories,enabled:options?.enabled??true},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H4'})}).catch(()=>{});
+  }, [limit, filtersKey, categories, options?.enabled]);
+  // #endregion
 
   return useQuery({
     queryKey: calendarKeys.events.popular(limit, filtersKey),

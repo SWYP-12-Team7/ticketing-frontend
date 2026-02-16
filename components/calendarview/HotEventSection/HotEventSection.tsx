@@ -29,6 +29,11 @@ import { EmptyState } from "./EmptyState";
 import { applyClientSideFilters } from "@/utils/eventFilters";
 
 /**
+ * 기본 빈 Set (안정적인 참조 유지)
+ */
+const EMPTY_CATEGORY_SET = new Set<"exhibition" | "popup">();
+
+/**
  * HotEventSection Props
  */
 interface HotEventSectionProps {
@@ -67,7 +72,7 @@ export function HotEventSection({
   activeCategories,
   sortBy,
   events,
-  selectedCategories = new Set(),
+  selectedCategories = EMPTY_CATEGORY_SET,
   apiFilterParams,
   locationFilterState,
 }: HotEventSectionProps) {
@@ -101,6 +106,13 @@ export function HotEventSection({
    * - size = 0: undefined 반환 (백엔드가 전체 카테고리로 해석)
    */
   const selectedCategoriesArray = useMemo(() => {
+    // #region agent log
+    const setRef = selectedCategories;
+    const setSize = selectedCategories?.size || 0;
+    const setValues = selectedCategories ? Array.from(selectedCategories) : [];
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:selectedCategoriesArray',message:'useMemo recalculating',data:{setRef:setRef===EMPTY_CATEGORY_SET?'CONSTANT':typeof setRef,setSize,setValues,timestamp:Date.now()},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1,H3'})}).catch(()=>{});
+    // #endregion
+
     // Pill 상태 기반으로 API 요청 파라미터 생성
     if (selectedCategories && selectedCategories.size > 0) {
       return Array.from(selectedCategories) as CalendarCategory[];
@@ -134,17 +146,24 @@ export function HotEventSection({
    * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
    * - 필터 파라미터 통합 (지역, 카테고리, 서브카테고리)
    */
+  const mergedParams = useMemo(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:mergedParams',message:'useMemo recalculating',data:{selectedCategoriesArray,sortBy,apiFilterParams,apiFilterParamsKeys:Object.keys(apiFilterParams||{})},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H2,H3'})}).catch(()=>{});
+    // #endregion
+
+    return {
+      limit: 24,
+      categories: selectedCategoriesArray,
+      sortBy,
+      ...apiFilterParams,
+    };
+  }, [selectedCategoriesArray, sortBy, apiFilterParams]);
+
   const {
     data: popularEventsData,
     isLoading: isLoadingPopularEvents,
   } = useCalendarPopularEvents(
-    {
-      limit: 24,
-      categories: selectedCategoriesArray,
-      sortBy,
-      // API 필터 파라미터 통합
-      ...apiFilterParams,
-    },
+    mergedParams,
     {
       enabled: !selectedDate, // 날짜 선택 안 됐을 때만 쿼리 실행
     }
@@ -163,6 +182,10 @@ export function HotEventSection({
    * - 클라이언트 필터링 적용 (price, amenities, dateRange, eventStatus)
    */
   const displayEvents = useMemo(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:displayEvents',message:'useMemo recalculating',data:{selectedDate,hasPopularData:!!popularEventsData,popularCount:popularEventsData?.events?.length||0,selectedCategoriesSize:selectedCategories?.size||0},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1,H3'})}).catch(()=>{});
+    // #endregion
+
     let allEvents: Event[] = [];
 
     // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트 (API 또는 props)
@@ -207,6 +230,9 @@ export function HotEventSection({
    * - deadline: 마감 임박 순 (종료일이 가까운 순)
    */
   const sortedEvents = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now(); // 현재 시간을 한 번만 계산 (deadline 정렬용)
+
     return [...displayEvents].sort((a, b) => {
       switch (sortBy) {
         case "popular":
@@ -223,7 +249,6 @@ export function HotEventSection({
 
         case "deadline":
           if (!a.endDate || !b.endDate) return 0;
-          const now = Date.now();
           const diffA = Math.abs(new Date(a.endDate).getTime() - now);
           const diffB = Math.abs(new Date(b.endDate).getTime() - now);
           return diffA - diffB; // 가까운 순

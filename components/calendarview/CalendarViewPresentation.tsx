@@ -99,6 +99,12 @@ export function CalendarViewPresentation({
     Set<"exhibition" | "popup">
   >(new Set(["exhibition", "popup"]));
 
+  // #region agent log
+  React.useEffect(() => {
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CalendarViewPresentation.tsx:render',message:'Component rendered',data:{selectedPillCategoriesSize:selectedPillCategories.size,selectedPillCategoriesValues:Array.from(selectedPillCategories)},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1'})}).catch(()=>{});
+  });
+  // #endregion
+
   /**
    * 필터 사이드바 상태
    */
@@ -169,10 +175,13 @@ export function CalendarViewPresentation({
    * - useMemo로 성능 최적화
    * - HotEventSection과 캘린더 그리드에서 사용
    */
-  const apiFilterParams = useMemo(
-    () => convertLocationFilterToAPIParams(locationFilterState),
-    [locationFilterState]
-  );
+  const apiFilterParams = useMemo(() => {
+    // #region agent log
+    const result = convertLocationFilterToAPIParams(locationFilterState);
+    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CalendarViewPresentation.tsx:apiFilterParams',message:'useMemo recalculating',data:{locationFilterStateRegions:locationFilterState.regions,locationFilterStatePopup:locationFilterState.popupCategories,locationFilterStateExhibition:locationFilterState.exhibitionCategories,resultKeys:Object.keys(result)},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
+    return result;
+  }, [locationFilterState]);
 
   /**
    * HOT EVENT 섹션 제목 계산
