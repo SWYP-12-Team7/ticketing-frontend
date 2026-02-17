@@ -18,9 +18,7 @@ export {
 export {
   CALENDAR_LAYOUT,
   WEEKDAY_LABELS,
-  WEEKDAY_LABELS_KO,
   type WeekdayLabel,
-  type WeekdayLabelKo,
   type WeekIndex,
   type DayOfWeekIndex,
 } from "./calendar.layout";

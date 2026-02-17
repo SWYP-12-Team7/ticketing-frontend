@@ -8,5 +8,5 @@ export { CalendarToolbar } from "./CalendarToolbar";
 export { CategoryToggle } from "./CategoryToggle";
 export { RegionSelector } from "./RegionSelector";
 export { SubcategorySelector } from "./SubcategorySelector";
-export { SelectedFilterPills, type DisplayFilter } from "./SelectedFilterPills";
-export { FilterPill } from "./FilterPill";
+export { FilterStatusButton } from "./FilterStatusButton";
+export { ResetButton } from "./ResetButton";

@@ -31,6 +31,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { CalendarEventsByDateParams } from "@/types/calendar";
 import { getCalendarEventsByDate } from "@/services/api/calendar";
 import { calendarKeys } from "./index";
@@ -81,14 +82,17 @@ export function useCalendarEventsByDate(
   options?: UseCalendarEventsByDateOptions
 ) {
   // 필터를 문자열로 직렬화 (Query Key용)
-  const filtersKey = JSON.stringify({
-    regionId: params.regionId,
-    categories: params.categories,
-    subcategories: params.subcategories,
-    sortBy: params.sortBy,
-    page: params.page,
-    size: params.size,
-  });
+  const filtersKey = useMemo(
+    () => JSON.stringify({
+      regionId: params.regionId,
+      categories: params.categories,
+      subcategories: params.subcategories,
+      sortBy: params.sortBy,
+      page: params.page,
+      size: params.size,
+    }),
+    [params.regionId, params.categories, params.subcategories, params.sortBy, params.page, params.size]
+  );
 
   return useQuery({
     queryKey: calendarKeys.events.byDate(params.date, filtersKey),

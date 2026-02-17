@@ -27,9 +27,13 @@ import {
   useCalendarEventsByDate,
   useCalendarPopularEvents,
 } from "@/queries/calendar";
-import { formatDateKorean } from "../utils/calendar.formatters";
 import { EmptyState } from "./EmptyState";
 import { applyClientSideFilters } from "@/utils/eventFilters";
+
+/**
+ * 기본 빈 Set (안정적인 참조 유지)
+ */
+const EMPTY_CATEGORY_SET = new Set<"exhibition" | "popup">();
 
 /**
  * HotEventSection Props
@@ -67,10 +71,9 @@ interface HotEventSectionProps {
 export function HotEventSection({
   className,
   selectedDate,
-  activeCategories,
   sortBy,
   events,
-  selectedCategories = new Set(),
+  selectedCategories = EMPTY_CATEGORY_SET,
   apiFilterParams,
   locationFilterState,
 }: HotEventSectionProps) {
@@ -82,21 +85,6 @@ export function HotEventSection({
    */
   const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
 
-  /**
-   * 카테고리 레이블 결정
-   * - 전시만: "전시"
-   * - 팝업만: "팝업"
-   * - 둘 다 또는 둘 다 아님: "이벤트"
-   */
-  const categoryLabel = useMemo(() => {
-    if (!activeCategories) return "이벤트";
-
-    const { exhibition, popup } = activeCategories;
-
-    if (exhibition && !popup) return "전시";
-    if (!exhibition && popup) return "팝업";
-    return "이벤트";
-  }, [activeCategories]);
 
   /**
    * API 요청에 사용할 카테고리 배열
@@ -138,17 +126,18 @@ export function HotEventSection({
    * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
    * - 필터 파라미터 통합 (지역, 카테고리, 서브카테고리)
    */
+  const mergedParams = useMemo(() => ({
+    limit: 24,
+    categories: selectedCategoriesArray,
+    sortBy,
+    ...apiFilterParams,
+  }), [selectedCategoriesArray, sortBy, apiFilterParams]);
+
   const {
     data: popularEventsData,
     isLoading: isLoadingPopularEvents,
   } = useCalendarPopularEvents(
-    {
-      limit: 24,
-      categories: selectedCategoriesArray,
-      sortBy,
-      // API 필터 파라미터 통합
-      ...apiFilterParams,
-    },
+    mergedParams,
     {
       enabled: !selectedDate, // 날짜 선택 안 됐을 때만 쿼리 실행
     }
@@ -211,6 +200,9 @@ export function HotEventSection({
    * - deadline: 마감 임박 순 (종료일이 가까운 순)
    */
   const sortedEvents = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now(); // 현재 시간을 한 번만 계산 (deadline 정렬용)
+
     return [...displayEvents].sort((a, b) => {
       switch (sortBy) {
         case "popular":
@@ -227,7 +219,6 @@ export function HotEventSection({
 
         case "deadline":
           if (!a.endDate || !b.endDate) return 0;
-          const now = Date.now();
           const diffA = Math.abs(new Date(a.endDate).getTime() - now);
           const diffB = Math.abs(new Date(b.endDate).getTime() - now);
           return diffA - diffB; // 가까운 순
@@ -248,21 +239,6 @@ export function HotEventSection({
     }));
   }, [sortedEvents, serverLikedIds, likedEventIds]);
 
-  /**
-   * 섹션 제목 결정
-   * - 날짜 선택 안 됨: "HOT EVENT"
-   * - 날짜 선택됨: "1월 8일 전시 60개"
-   */
-  const _sectionTitle = useMemo(() => {
-    if (!selectedDate) {
-      return "HOT EVENT";
-    }
-
-    const dateStr = formatDateKorean(selectedDate);
-    const count = eventsWithLikeState.length;
-
-    return `${dateStr} ${categoryLabel} ${count}개`;
-  }, [selectedDate, categoryLabel, eventsWithLikeState.length]);
 
   /**
    * 좋아요 클릭 핸들러
@@ -273,9 +249,9 @@ export function HotEventSection({
     setLikedEventIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
-        newSet.delete(id);
+        newSet.delete(id); // 좋아요 취소
       } else {
-        newSet.add(id);
+        newSet.add(id); // 좋아요 추가
       }
       return newSet;
     });
@@ -289,16 +265,17 @@ export function HotEventSection({
 
   /**
    * 빈 상태 타입 결정
+   * - 이벤트가 있으면: null (정상 표시)
+   * - 이벤트 없음: "no-events" (선택하신 조건에 맞는 행사가 없어요!)
    */
   const emptyStateType: "no-date" | "no-events" | null = useMemo(() => {
+    // 이벤트가 있으면 null 반환 (정상 표시)
     if (eventsWithLikeState.length > 0) return null;
 
-    // 날짜 선택됨 + 이벤트 없음
-    if (selectedDate) return "no-events";
-
-    // 날짜 선택 안 됨
-    return "no-date";
-  }, [selectedDate, eventsWithLikeState.length]);
+    // 이벤트가 0개 → "no-events" 표시
+    // (날짜 선택 여부와 무관하게, 조건에 맞는 행사가 없으면 메시지 표시)
+    return "no-events";
+  }, [eventsWithLikeState.length]);
 
   return (
     <section

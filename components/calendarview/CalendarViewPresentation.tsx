@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarQueryState } from "./hooks/useCalendarQueryState";
 import type { CalendarGridData } from "./hooks/useCalendarGridData";
@@ -21,11 +21,9 @@ import { HotEventSection, EventSortSelector } from "./HotEventSection";
 import {
   LocationEventFilterSidebar,
   type LocationEventFilterState,
+  INITIAL_FILTER_STATE,
 } from "@/components/common/LocationEventFilter";
-import {
-  convertFiltersToDisplayPills,
-  removeFilterFromState,
-} from "@/components/common/LocationEventFilter/utils";
+// Removed: convertFiltersToDisplayPills, removeFilterFromState (no longer needed)
 import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 
 /**
@@ -63,24 +61,15 @@ export function CalendarViewPresentation({
   onFilterChange,
 }: CalendarViewPresentationProps) {
   const {
-    regionId: _regionId,
     activeCategories,
-    popupSubcategory: _popupSubcategory,
-    exhibitionSubcategory: _exhibitionSubcategory,
     goToPreviousMonth,
     goToNextMonth,
-    toggleCategory: _toggleCategory,
-    changeRegion: _changeRegion,
-    changePopupSubcategory: _changePopupSubcategory,
-    changeExhibitionSubcategory: _changeExhibitionSubcategory,
-    resetFilters: _resetFilters,
   } = queryState;
 
   const {
     monthTitle,
     visibleMonthDate,
     gridDays,
-    regions: _regions,
     countsByDate,
     isLoading,
     isError,
@@ -116,53 +105,76 @@ export function CalendarViewPresentation({
     }
   }, [isFilterOpen, isFilterClosing]);
 
+  /**
+   * locationFilterState 변경 시 selectedPillCategories 동기화
+   * - 사이드바 필터가 변경되면 Pill 상태도 자동으로 업데이트
+   * 
+   * ℹ️ ESLint 규칙 비활성화 이유:
+   * - 사이드바 필터와 Pill 상태를 동기화하는 정당한 use case
+   * - isEqual 체크로 무한 루프 방지
+   * - selectedPillCategories를 dependencies에 포함하여 안전성 보장
+   */
+  useEffect(() => {
+    const categories = new Set<"exhibition" | "popup">();
+    
+    // 팝업 카테고리가 "all"이 아니면 추가
+    const hasSpecificPopup = 
+      locationFilterState.popupCategories.length > 0 &&
+      !locationFilterState.popupCategories.includes("all");
+    
+    // 전시 카테고리가 "all"이 아니면 추가
+    const hasSpecificExhibition = 
+      locationFilterState.exhibitionCategories.length > 0 &&
+      !locationFilterState.exhibitionCategories.includes("all");
+    
+    if (hasSpecificPopup) {
+      categories.add("popup");
+    }
+    
+    if (hasSpecificExhibition) {
+      categories.add("exhibition");
+    }
+    
+    // 둘 다 "all"인 경우 → 모두 선택
+    if (categories.size === 0) {
+      categories.add("exhibition");
+      categories.add("popup");
+    }
+    
+    // 현재 값과 다를 때만 업데이트 (무한 루프 방지)
+    const isEqual = 
+      categories.size === selectedPillCategories.size &&
+      Array.from(categories).every(cat => selectedPillCategories.has(cat));
+    
+    if (!isEqual) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedPillCategories(categories);
+    }
+  }, [locationFilterState, selectedPillCategories]);
+
   /** 필터 닫기 핸들러 - exit 애니메이션 후 언마운트 */
-  const handleCloseFilter = () => {
+  const handleCloseFilter = useCallback(() => {
     setIsFilterClosing(true);
     setTimeout(() => {
       setIsFilterOpen(false);
       setIsFilterClosing(false);
     }, 300);
-  };
-
-  /**
-   * 선택된 필터를 display pills로 변환
-   */
-  const selectedFilterPills = useMemo(
-    () => convertFiltersToDisplayPills(locationFilterState),
-    [locationFilterState]
-  );
-
-  /**
-   * 필터 제거 핸들러
-   */
-  const handleRemoveFilter = (filterId: string) => {
-    const newState = removeFilterFromState(locationFilterState, filterId);
-    onFilterChange(newState);
-  };
+  }, []);
 
   /**
    * 필터 리셋 핸들러
    */
-  const handleResetFilters = () => {
-    onFilterChange({
-      dateRange: { startDate: null, endDate: null },
-      regions: [],
-      popupCategories: [],
-      exhibitionCategories: [],
-      price: { free: false, paid: false },
-      amenities: { parking: false, petFriendly: false },
-      eventStatus: { all: false, ongoing: false, upcoming: false, ended: false },
-    });
-  };
+  const handleResetFilters = useCallback(() => {
+    onFilterChange(INITIAL_FILTER_STATE);
+  }, [onFilterChange]);
 
   /**
    * 필터 적용 핸들러
    */
-  const handleApplyFilters = (filters: LocationEventFilterState) => {
+  const handleApplyFilters = useCallback((filters: LocationEventFilterState) => {
     onFilterChange(filters);
     handleCloseFilter(); // 필터 적용 시 사이드바 닫기
-  };
+  }, [onFilterChange, handleCloseFilter]);
 
   /**
    * 필터 상태를 API 파라미터로 변환
@@ -173,6 +185,38 @@ export function CalendarViewPresentation({
     () => convertLocationFilterToAPIParams(locationFilterState),
     [locationFilterState]
   );
+
+  /**
+   * 날짜 클릭 핸들러
+   * - 날짜 변경 시 pill 전체 활성화 (전시+팝업 둘 다 선택)
+   */
+  const handleDateClick = useCallback((date: IsoDate) => {
+    if (date !== selectedDate) {
+      setSelectedPillCategories(new Set(["exhibition", "popup"]));
+    }
+    onDateClick?.(date);
+  }, [selectedDate, onDateClick]);
+
+  /**
+   * Pill 클릭 핸들러
+   * - Pill 토글 (다중 선택 지원)
+   * - 날짜도 함께 선택
+   */
+  const handlePillClick = useCallback((date: IsoDate, category: "exhibition" | "popup") => {
+    setSelectedPillCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+    
+    if (date !== selectedDate) {
+      onDateClick?.(date);
+    }
+  }, [selectedDate, onDateClick]);
 
   /**
    * HOT EVENT 섹션 제목 계산
@@ -216,8 +260,7 @@ export function CalendarViewPresentation({
 
         {/* Order 1: 필터바 */}
         <CalendarToolbar
-          selectedFilters={selectedFilterPills}
-          onRemoveFilter={handleRemoveFilter}
+          locationFilterState={locationFilterState}
           onOpenFilter={() => {
             setIsFilterEntered(false);
             setIsFilterOpen(true);
@@ -243,30 +286,8 @@ export function CalendarViewPresentation({
             countsByDate={countsByDate}
             selectedDate={selectedDate}
             selectedPillCategories={selectedPillCategories}
-            onDateClick={(date) => {
-              // 날짜 변경 시 pill 전체 활성화 (전시+팝업 둘 다 선택)
-              if (date !== selectedDate) {
-                setSelectedPillCategories(new Set(["exhibition", "popup"]));
-              }
-              onDateClick?.(date);
-            }}
-            onPillClick={(date, category) => {
-              // Pill 토글 (다중 선택 지원)
-              setSelectedPillCategories((prev) => {
-                const next = new Set(prev);
-                if (next.has(category)) {
-                  next.delete(category); // 이미 선택됨 → 해제
-                } else {
-                  next.add(category); // 선택 안 됨 → 추가
-                }
-                return next;
-              });
-              
-              // 날짜도 함께 선택
-              if (date !== selectedDate) {
-                onDateClick?.(date);
-              }
-            }}
+            onDateClick={handleDateClick}
+            onPillClick={handlePillClick}
           />
         )}
       </div>

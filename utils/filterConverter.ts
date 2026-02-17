@@ -17,7 +17,9 @@ import type {
  *
  * @description
  * - regions: 첫 번째 지역만 사용 (API는 단일 지역만 지원)
+ *   - "all" 값은 undefined로 변환 (백엔드가 region=all을 지원하지 않음)
  * - popupCategories + exhibitionCategories: subcategories로 병합
+ *   - "all" 값이 포함된 경우 undefined로 변환 (전체 조회)
  * - 카테고리가 선택되었는지 자동 판단하여 categories 배열 생성
  * - API 미지원 필터(price, amenities, dateRange, eventStatus)는 제외
  *
@@ -51,30 +53,43 @@ export function convertLocationFilterToAPIParams(
   const { regions, popupCategories, exhibitionCategories } = filterState;
 
   // 1. regionId: 첫 번째 지역만 사용 (API는 단일 지역만 지원)
-  const regionId = regions.length > 0 ? regions[0] : undefined;
+  // ⚠️ "all" 값은 undefined로 변환 (백엔드가 region=all을 빈 배열로 응답)
+  const regionId =
+    regions.length > 0 && regions[0] !== "all" ? regions[0] : undefined;
 
   // 2. categories: 선택된 카테고리 판단
   const categories: CalendarCategory[] = [];
 
-  // 팝업 카테고리가 선택되었으면 'popup' 추가
-  if (popupCategories.length > 0) {
+  // 팝업 카테고리가 선택되었으면 'popup' 추가 (단, "all"은 제외)
+  if (popupCategories.length > 0 && !popupCategories.includes("all")) {
     categories.push("popup");
   }
 
-  // 전시 카테고리가 선택되었으면 'exhibition' 추가
-  if (exhibitionCategories.length > 0) {
+  // 전시 카테고리가 선택되었으면 'exhibition' 추가 (단, "all"은 제외)
+  if (exhibitionCategories.length > 0 && !exhibitionCategories.includes("all")) {
     categories.push("exhibition");
   }
 
   // 3. subcategories: 팝업 + 전시 카테고리 병합
   const subcategories = [...popupCategories, ...exhibitionCategories];
 
-  // 4. API 파라미터 반환
-  return {
-    regionId: regionId || undefined,
-    categories: categories.length > 0 ? categories : undefined,
-    subcategories: subcategories.length > 0 ? subcategories : undefined,
-  };
+  // 4. API 파라미터 반환 (undefined 값을 가진 키 제거하여 안정적인 참조 유지)
+  const result: CalendarEventFilterParams = {};
+  
+  if (regionId) {
+    result.regionId = regionId;
+  }
+  
+  if (categories.length > 0) {
+    result.categories = categories;
+  }
+  
+  // ⚠️ "all" 값이 포함된 경우 undefined로 변환 (백엔드가 전체 조회로 처리)
+  if (subcategories.length > 0 && !subcategories.includes("all")) {
+    result.subcategories = subcategories;
+  }
+  
+  return result;
 }
 
 /**

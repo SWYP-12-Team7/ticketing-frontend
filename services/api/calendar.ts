@@ -15,7 +15,6 @@ import type {
   CalendarEventsByDateParams,
   CalendarPopularEventsParams,
   CalendarEventListResponse,
-  IsoMonth,
   IsoDate,
   CalendarRegion,
 } from "@/types/calendar";
@@ -44,7 +43,6 @@ import type { Event } from "@/types/event";
 export async function getCalendarMonthSummary(
   params: CalendarMonthSummaryParams
 ): Promise<CalendarMonthSummaryResponse> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { month, regionId, categories: _categories } = params;
 
   // ISO 문자열을 year, month로 분리
@@ -66,21 +64,17 @@ export async function getCalendarMonthSummary(
   }
 
   /**
-   * ⚠️ 백엔드 API의 category 파라미터가 제대로 작동하지 않음
-   * - category 파라미터 없음: 정상 동작 (79개)
-   * - category 파라미터 있음: 항상 0개 반환
-   * - 해결책: category 파라미터를 보내지 않고 전체 데이터 조회
-   * - TODO: 백엔드 API 수정 후 아래 주석 해제
+   * category 파라미터 생성
+   * - 선택된 카테고리를 백엔드 형식으로 변환 ("exhibition" → "EXHIBITION")
+   * - 카테고리가 없으면 undefined (백엔드가 전체로 해석)
    */
-  
-  // const categoryParam = categories?.length
-  //   ? categories
-  //       .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
-  //       .join(",")
-  //   : undefined;
+  const categoryParam = _categories?.length
+    ? _categories
+        .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
+        .join(",")
+    : undefined;
 
   // 실제 API 호출 (Swagger 기준)
-  // ⚠️ category 파라미터 제외 (백엔드 버그로 인해)
   const res = await axiosInstance.get<BackendCalendarResponse>(
     "/curations/calendar",
     {
@@ -88,7 +82,7 @@ export async function getCalendarMonthSummary(
         year,
         month: monthNum,
         region: regionId || undefined,
-        // category: categoryParam,  // 백엔드 버그로 인해 주석 처리
+        category: categoryParam,
       },
     }
   );
@@ -190,6 +184,8 @@ export async function getCalendarEventsByDate(
     dateText: string; // "2026.02.08 ~ 2026.02.28"
     viewCount: number;
     likeCount: number;
+    latitude: number; // 위도 (지도 표시용)
+    longitude: number; // 경도 (지도 표시용)
   }
 
   interface BackendCalendarListResponse {
@@ -249,6 +245,10 @@ export async function getCalendarEventsByDate(
 
     // 좋아요 여부: 기본값 false (향후 찜하기 API 연동 필요)
     isLiked: false,
+
+    // 위치 정보: 백엔드 API 제공 (지도 표시용)
+    latitude: item.latitude,
+    longitude: item.longitude,
   }));
 
   /**
@@ -263,7 +263,7 @@ export async function getCalendarEventsByDate(
   }
 
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
-  if (params.subcategories?.length) {
+  if (params.subcategories?.length && !params.subcategories.includes("all")) {
     events = events.filter((event) =>
       event.subcategory && params.subcategories!.includes(event.subcategory)
     );
@@ -360,6 +360,8 @@ export async function getCalendarPopularEvents(
 
   /**
    * 카테고리별 이벤트 수집
+   * - daily, weekly, monthly 모두 포함하여 더 많은 이벤트 제공
+   * - 중복 제거 처리
    */
   const allEvents: Event[] = [];
 
@@ -369,61 +371,86 @@ export async function getCalendarPopularEvents(
   const shouldIncludePopup =
     !categories?.length || categories.includes("popup");
 
-  // 전시 이벤트 추가
+  // 전시 이벤트 추가 (daily + weekly + monthly 모두 포함)
   if (shouldIncludeExhibition) {
-    const exhibitionEvents: Event[] = response.data.data.exhibition.daily.map(
-      (item) => ({
-        // ID: number → string 변환
-        id: item.id.toString(),
+    const exhibitionSources = [
+      ...response.data.data.exhibition.daily,
+      ...response.data.data.exhibition.weekly,
+      ...response.data.data.exhibition.monthly,
+    ];
 
-        // 제목
-        title: item.title,
+    const exhibitionEvents: Event[] = exhibitionSources.map((item) => ({
+      // ID: number → string 변환
+      id: item.id.toString(),
 
-        // 카테고리: 전시로 고정
-        category: "전시",
+      // 제목
+      title: item.title,
 
-        // 이미지: thumbnail → imageUrl
-        imageUrl: item.thumbnail,
+      // 카테고리: 전시로 고정
+      category: "전시",
 
-        // 기간: 그대로 사용
-        period: item.period,
+      // 이미지: thumbnail → imageUrl
+      imageUrl: item.thumbnail,
 
-        // 지역: address → region
-        region: item.address,
+      // 기간: 그대로 사용
+      period: item.period,
 
-        // 조회수/좋아요: 백엔드에서 제공하지 않으므로 기본값 0
-        viewCount: 0,
-        likeCount: 0,
+      // 지역: address → region
+      region: item.address,
 
-        // 좋아요 여부: 기본값 false
-        isLiked: false,
-      })
-    );
+      // 조회수/좋아요: 백엔드에서 제공하지 않으므로 기본값 0
+      viewCount: 0,
+      likeCount: 0,
+
+      // 좋아요 여부: 기본값 false
+      isLiked: false,
+
+      // 위치 정보: /main/popular API는 제공하지 않음
+      latitude: undefined,
+      longitude: undefined,
+    }));
+
     allEvents.push(...exhibitionEvents);
   }
 
-  // 팝업 이벤트 추가
+  // 팝업 이벤트 추가 (daily + weekly + monthly 모두 포함)
   if (shouldIncludePopup) {
-    const popupEvents: Event[] = response.data.data.popup.daily.map(
-      (item) => ({
-        id: item.id.toString(),
-        title: item.title,
-        category: "팝업",
-        imageUrl: item.thumbnail,
-        period: item.period,
-        region: item.address,
-        viewCount: 0,
-        likeCount: 0,
-        isLiked: false,
-      })
-    );
+    const popupSources = [
+      ...response.data.data.popup.daily,
+      ...response.data.data.popup.weekly,
+      ...response.data.data.popup.monthly,
+    ];
+
+    const popupEvents: Event[] = popupSources.map((item) => ({
+      id: item.id.toString(),
+      title: item.title,
+      category: "팝업",
+      imageUrl: item.thumbnail,
+      period: item.period,
+      region: item.address,
+      viewCount: 0,
+      likeCount: 0,
+      isLiked: false,
+      latitude: undefined,
+      longitude: undefined,
+    }));
+
     allEvents.push(...popupEvents);
   }
 
+  // 중복 제거 (같은 이벤트가 daily, weekly, monthly에 중복될 수 있음)
+  const uniqueEventsMap = new Map<string, Event>();
+  allEvents.forEach((event) => {
+    if (!uniqueEventsMap.has(event.id)) {
+      uniqueEventsMap.set(event.id, event);
+    }
+  });
+  const uniqueEvents = Array.from(uniqueEventsMap.values());
+
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
-  let filteredEvents = allEvents;
-  if (params.subcategories?.length) {
-    filteredEvents = allEvents.filter((event) =>
+  let filteredEvents = uniqueEvents;
+  if (params.subcategories?.length && !params.subcategories.includes("all")) {
+    filteredEvents = uniqueEvents.filter((event) =>
       event.subcategory && params.subcategories!.includes(event.subcategory)
     );
   }

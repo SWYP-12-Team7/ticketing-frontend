@@ -412,7 +412,66 @@ export const CALENDAR_DESIGN_TOKENS = {
   },
 
   /**
+   * 필터 툴바 디자인 토큰 (Figma 스펙 2026-02-16)
+   * - 고정 6개 버튼 (초기화, 지역, 팝업스토어, 전시, 행사진행)
+   * - 상태에 따른 색상 변경
+   */
+  filterToolbar: {
+    /** 컨테이너 */
+    container: {
+      gap: "8px",
+      height: "32px",
+    },
+    
+    /** 버튼 공통 속성 */
+    button: {
+      height: "32px",
+      minWidth: "48px",
+      padding: "0px 16px",
+      gap: "4px",
+      borderRadius: "100px",
+      
+      /** 비활성화 상태 (전체 선택) */
+      inactive: {
+        background: "#FFFFFF",
+        border: "1px solid #D3D5DC",
+        textColor: "#4B5462",
+        arrowColor: "#4B5462",
+      },
+      
+      /** 활성화 상태 (일부 선택) */
+      active: {
+        background: "#6C7180",
+        border: "1px solid #4B5462",
+        textColor: "#FFFFFF",
+        arrowColor: "#FFFFFF",
+      },
+    },
+    
+    /** 초기화 버튼 */
+    reset: {
+      iconSize: "16px",
+      iconColor: "#4B5462",
+    },
+    
+    /** 폰트 */
+    fonts: {
+      fontFamily: "Pretendard Variable",
+      fontWeight: 400,
+      fontSize: "14px",
+      lineHeight: "140%",
+    },
+    
+    /** Arrow 아이콘 */
+    arrow: {
+      size: "16px",
+      strokeWidth: "1px",
+    },
+  },
+
+  /**
    * 필터 Pill 디자인 토큰 (Figma 스펙 2026-02-10 완전 준수)
+   * @deprecated 새로운 filterToolbar 사용
    */
   filterPill: {
     /** 컨테이너 (외부 chip) - 공통 속성 */

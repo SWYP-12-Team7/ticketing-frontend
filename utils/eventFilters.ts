@@ -10,6 +10,35 @@
 
 import type { Event } from "@/types/event";
 import type { LocationEventFilterState } from "@/components/common/LocationEventFilter/types";
+import {
+  REGIONS,
+  POPUP_CATEGORIES,
+  EXHIBITION_CATEGORIES,
+} from "@/components/common/LocationEventFilter/constants";
+
+/**
+ * 지역 ID → 레이블 매핑
+ * Backend API는 레이블("서울")을 반환하지만, 프론트엔드는 ID("seoul")를 사용
+ */
+const REGION_ID_TO_LABEL = Object.fromEntries(
+  REGIONS.map((region) => [region.id, region.label])
+) as Record<string, string>;
+
+/**
+ * 팝업 카테고리 ID → 레이블 매핑
+ * Backend API는 레이블("패션")을 반환하지만, 프론트엔드는 ID("fashion")를 사용
+ */
+const POPUP_ID_TO_LABEL = Object.fromEntries(
+  POPUP_CATEGORIES.map((cat) => [cat.id, cat.label])
+) as Record<string, string>;
+
+/**
+ * 전시 카테고리 ID → 레이블 매핑
+ * Backend API는 레이블("현대미술")을 반환하지만, 프론트엔드는 ID("art")를 사용
+ */
+const EXHIBITION_ID_TO_LABEL = Object.fromEntries(
+  EXHIBITION_CATEGORIES.map((cat) => [cat.id, cat.label])
+) as Record<string, string>;
 
 /**
  * 날짜 문자열을 Date 객체로 변환
@@ -79,7 +108,7 @@ function matchesPriceFilter(
     return true;
   }
 
-  // 이벤트의 무료 여부 판단 (priceDisplay 또는 discountPrice 기반)
+  // 필터가 설정된 경우에만 이벤트의 무료 여부 판단
   const isFree =
     event.priceDisplay?.toLowerCase().includes("무료") ||
     event.priceDisplay?.toLowerCase().includes("free") ||
@@ -212,6 +241,146 @@ function getEventStatus(event: Event): "ongoing" | "upcoming" | "ended" {
 }
 
 /**
+ * 이벤트가 지역 필터를 만족하는지 확인
+ *
+ * @param event - 이벤트 객체
+ * @param regions - 선택된 지역 ID 목록 (예: ["seoul", "gangwon"])
+ * @returns 필터를 만족하면 true
+ *
+ * @description
+ * Backend API가 지역 필터를 지원하지 않는 API(/main/popular 등)의 경우,
+ * 클라이언트에서 지역 필터링 수행
+ * 
+ * ⚠️ 중요: Backend는 레이블("서울 성수")을 반환하지만, 프론트엔드는 ID("seoul")를 사용
+ * → ID를 레이블로 변환하여 비교
+ *
+ * @example
+ * ```ts
+ * const event = { region: "강원 춘천", ... };
+ * const regions = ["gangwon"]; // ID로 전달됨
+ * matchesRegionFilter(event, regions); // true
+ * ```
+ */
+function matchesRegionFilter(
+  event: Event,
+  regions: string[]
+): boolean {
+  // "all" 선택 또는 지역 미선택 → 모두 통과
+  if (regions.length === 0 || regions.includes("all")) {
+    return true;
+  }
+
+  // 이벤트에 region 정보 없음 → 통과 (백엔드 데이터 불완전성 고려)
+  if (!event.region) {
+    return true;
+  }
+
+  // ID를 레이블로 변환하여 비교
+  // 예: ["seoul"] → ["서울"]
+  const selectedLabels = regions
+    .map(id => REGION_ID_TO_LABEL[id])
+    .filter(Boolean); // undefined 제거
+
+  // 선택된 지역 중 하나라도 이벤트 region에 포함되면 통과
+  // 예: selectedLabels = ["서울"], event.region = "서울 성수" → true
+  // 예: selectedLabels = ["강원"], event.region = "강원 춘천" → true
+  return selectedLabels.some(label => {
+    const normalizedLabel = label.toLowerCase().trim();
+    const normalizedEventRegion = event.region!.toLowerCase().trim();
+    return normalizedEventRegion.includes(normalizedLabel);
+  });
+}
+
+/**
+ * 이벤트가 서브카테고리 필터를 만족하는지 확인
+ *
+ * @param event - 이벤트 객체
+ * @param popupCategories - 선택된 팝업 서브카테고리 ID 목록 (예: ["furniture", "lifestyle"])
+ * @param exhibitionCategories - 선택된 전시 서브카테고리 ID 목록 (예: ["art", "photo"])
+ * @returns 필터를 만족하면 true
+ *
+ * @description
+ * Backend API가 서브카테고리 필터를 지원하지 않는 API(/main/popular 등)의 경우,
+ * 클라이언트에서 서브카테고리 필터링 수행
+ * 
+ * ⚠️ 중요: Backend는 레이블("가구/인테리어")을 반환하지만, 프론트엔드는 ID("furniture")를 사용
+ * → ID를 레이블로 변환하여 비교
+ *
+ * @example
+ * ```ts
+ * const event = { category: "팝업스토어", subcategory: "가구/인테리어", ... };
+ * const popupCats = ["furniture"]; // ID로 전달됨
+ * const exhibitionCats = ["all"];
+ * matchesSubcategoryFilter(event, popupCats, exhibitionCats); // true
+ * ```
+ */
+function matchesSubcategoryFilter(
+  event: Event,
+  popupCategories: string[],
+  exhibitionCategories: string[]
+): boolean {
+  // 모두 "all" 또는 빈 배열 → 통과
+  if (
+    (popupCategories.length === 0 || popupCategories.includes("all")) &&
+    (exhibitionCategories.length === 0 || exhibitionCategories.includes("all"))
+  ) {
+    return true;
+  }
+
+  // 이벤트 카테고리 확인 (다양한 표기 지원)
+  const eventCategoryLower = event.category?.toLowerCase() || "";
+  const isPopup = 
+    eventCategoryLower.includes("팝업") || 
+    eventCategoryLower.includes("popup") ||
+    event.type?.toLowerCase() === "popup";
+  const isExhibition = 
+    eventCategoryLower.includes("전시") || 
+    eventCategoryLower.includes("exhibition") ||
+    event.type?.toLowerCase() === "exhibition";
+
+  // 팝업스토어 이벤트
+  if (isPopup) {
+    // "all" 선택 → 통과
+    if (popupCategories.includes("all") || popupCategories.length === 0) {
+      return true;
+    }
+    // 서브카테고리가 없는 이벤트 → 통과 (API가 서브카테고리를 제공하지 않을 수 있음)
+    if (!event.subcategory) {
+      return true;
+    }
+    // ID를 레이블로 변환하여 비교
+    // 예: ["furniture"] → ["가구/인테리어"]
+    const selectedLabels = popupCategories
+      .map(id => POPUP_ID_TO_LABEL[id])
+      .filter(Boolean); // undefined 제거
+    
+    return selectedLabels.includes(event.subcategory);
+  }
+
+  // 전시 이벤트
+  if (isExhibition) {
+    // "all" 선택 → 통과
+    if (exhibitionCategories.includes("all") || exhibitionCategories.length === 0) {
+      return true;
+    }
+    // 서브카테고리가 없는 이벤트 → 통과 (API가 서브카테고리를 제공하지 않을 수 있음)
+    if (!event.subcategory) {
+      return true;
+    }
+    // ID를 레이블로 변환하여 비교
+    // 예: ["art"] → ["현대미술"]
+    const selectedLabels = exhibitionCategories
+      .map(id => EXHIBITION_ID_TO_LABEL[id])
+      .filter(Boolean); // undefined 제거
+    
+    return selectedLabels.includes(event.subcategory);
+  }
+
+  // 카테고리를 알 수 없는 이벤트 → 통과 (데이터 불완전성 고려)
+  return true;
+}
+
+/**
  * 이벤트가 진행 상태 필터를 만족하는지 확인
  *
  * @param event - 이벤트 객체
@@ -251,6 +420,8 @@ function matchesEventStatusFilter(
  *
  * @description
  * Backend API가 지원하지 않는 필터를 클라이언트에서 처리:
+ * - region: 지역 필터 (일부 API에서 미지원)
+ * - subcategory: 서브카테고리 필터 (일부 API에서 미지원)
  * - price: 무료/유료
  * - amenities: 주차/반려견
  * - dateRange: 기간 범위
@@ -271,22 +442,36 @@ export function applyClientSideFilters(
   filterState: LocationEventFilterState
 ): Event[] {
   return events.filter((event) => {
-    // 1. 가격 필터
+    // 1. 지역 필터 (Backend API 미지원 시 클라이언트 필터링)
+    if (!matchesRegionFilter(event, filterState.regions)) {
+      return false;
+    }
+
+    // 2. 서브카테고리 필터 (Backend API 미지원 시 클라이언트 필터링)
+    if (!matchesSubcategoryFilter(
+      event,
+      filterState.popupCategories,
+      filterState.exhibitionCategories
+    )) {
+      return false;
+    }
+
+    // 3. 가격 필터
     if (!matchesPriceFilter(event, filterState.price)) {
       return false;
     }
 
-    // 2. 편의사항 필터
+    // 4. 편의사항 필터
     if (!matchesAmenitiesFilter(event, filterState.amenities)) {
       return false;
     }
 
-    // 3. 기간 필터
+    // 5. 기간 필터
     if (!matchesDateRangeFilter(event, filterState.dateRange)) {
       return false;
     }
 
-    // 4. 진행 상태 필터
+    // 6. 진행 상태 필터
     if (!matchesEventStatusFilter(event, filterState.eventStatus)) {
       return false;
     }

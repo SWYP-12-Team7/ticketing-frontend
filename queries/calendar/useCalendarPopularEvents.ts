@@ -30,6 +30,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { CalendarPopularEventsParams } from "@/types/calendar";
 import { getCalendarPopularEvents } from "@/services/api/calendar";
 import { calendarKeys } from "./index";
@@ -93,14 +94,17 @@ export function useCalendarPopularEvents(
   } = params;
 
   // 필터를 문자열로 직렬화 (Query Key용)
-  const filtersKey = JSON.stringify({
-    regionId,
-    categories,
-    subcategories,
-    sortBy,
-    page,
-    size,
-  });
+  const filtersKey = useMemo(
+    () => JSON.stringify({
+      regionId,
+      categories,
+      subcategories,
+      sortBy,
+      page,
+      size,
+    }),
+    [regionId, categories, subcategories, sortBy, page, size]
+  );
 
   return useQuery({
     queryKey: calendarKeys.events.popular(limit, filtersKey),
