@@ -23,10 +23,7 @@ import {
   type LocationEventFilterState,
   INITIAL_FILTER_STATE,
 } from "@/components/common/LocationEventFilter";
-import {
-  convertFiltersToDisplayPills,
-  removeFilterFromState,
-} from "@/components/common/LocationEventFilter/utils";
+// Removed: convertFiltersToDisplayPills, removeFilterFromState (no longer needed)
 import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 
 /**
@@ -116,22 +113,6 @@ export function CalendarViewPresentation({
       setIsFilterClosing(false);
     }, 300);
   }, []);
-
-  /**
-   * 선택된 필터를 display pills로 변환
-   */
-  const selectedFilterPills = useMemo(
-    () => convertFiltersToDisplayPills(locationFilterState),
-    [locationFilterState]
-  );
-
-  /**
-   * 필터 제거 핸들러
-   */
-  const handleRemoveFilter = useCallback((filterId: string) => {
-    const newState = removeFilterFromState(locationFilterState, filterId);
-    onFilterChange(newState);
-  }, [locationFilterState, onFilterChange]);
 
   /**
    * 필터 리셋 핸들러
@@ -232,8 +213,7 @@ export function CalendarViewPresentation({
 
         {/* Order 1: 필터바 */}
         <CalendarToolbar
-          selectedFilters={selectedFilterPills}
-          onRemoveFilter={handleRemoveFilter}
+          locationFilterState={locationFilterState}
           onOpenFilter={() => {
             setIsFilterEntered(false);
             setIsFilterOpen(true);
