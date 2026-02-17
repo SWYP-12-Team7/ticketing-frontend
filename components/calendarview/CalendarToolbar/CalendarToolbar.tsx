@@ -181,11 +181,11 @@ export function CalendarToolbar({
         </div>
       )}
 
-      {/* 우측: 필터 아이콘 */}
+      {/* 우측: 필터 아이콘 - ml-auto로 항상 오른쪽 고정 */}
       <button
         type="button"
         onClick={onOpenFilter}
-        className="calendar-toolbar__filter-icon flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+        className="calendar-toolbar__filter-icon flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ml-auto"
         style={{
           width: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,
           height: CALENDAR_DESIGN_TOKENS.sizing.toolbar.filterIconSize,

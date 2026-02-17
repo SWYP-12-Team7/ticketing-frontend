@@ -15,7 +15,6 @@ import type {
   CalendarEventsByDateParams,
   CalendarPopularEventsParams,
   CalendarEventListResponse,
-  IsoMonth,
   IsoDate,
   CalendarRegion,
 } from "@/types/calendar";
@@ -44,7 +43,6 @@ import type { Event } from "@/types/event";
 export async function getCalendarMonthSummary(
   params: CalendarMonthSummaryParams
 ): Promise<CalendarMonthSummaryResponse> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { month, regionId, categories: _categories } = params;
 
   // ISO 문자열을 year, month로 분리
@@ -66,21 +64,17 @@ export async function getCalendarMonthSummary(
   }
 
   /**
-   * ⚠️ 백엔드 API의 category 파라미터가 제대로 작동하지 않음
-   * - category 파라미터 없음: 정상 동작 (79개)
-   * - category 파라미터 있음: 항상 0개 반환
-   * - 해결책: category 파라미터를 보내지 않고 전체 데이터 조회
-   * - TODO: 백엔드 API 수정 후 아래 주석 해제
+   * category 파라미터 생성
+   * - 선택된 카테고리를 백엔드 형식으로 변환 ("exhibition" → "EXHIBITION")
+   * - 카테고리가 없으면 undefined (백엔드가 전체로 해석)
    */
-  
-  // const categoryParam = categories?.length
-  //   ? categories
-  //       .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
-  //       .join(",")
-  //   : undefined;
+  const categoryParam = _categories?.length
+    ? _categories
+        .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
+        .join(",")
+    : undefined;
 
   // 실제 API 호출 (Swagger 기준)
-  // ⚠️ category 파라미터 제외 (백엔드 버그로 인해)
   const res = await axiosInstance.get<BackendCalendarResponse>(
     "/curations/calendar",
     {
@@ -88,7 +82,7 @@ export async function getCalendarMonthSummary(
         year,
         month: monthNum,
         region: regionId || undefined,
-        // category: categoryParam,  // 백엔드 버그로 인해 주석 처리
+        category: categoryParam,
       },
     }
   );

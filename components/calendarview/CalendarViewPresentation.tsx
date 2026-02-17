@@ -105,6 +105,53 @@ export function CalendarViewPresentation({
     }
   }, [isFilterOpen, isFilterClosing]);
 
+  /**
+   * locationFilterState 변경 시 selectedPillCategories 동기화
+   * - 사이드바 필터가 변경되면 Pill 상태도 자동으로 업데이트
+   * 
+   * ℹ️ ESLint 규칙 비활성화 이유:
+   * - 사이드바 필터와 Pill 상태를 동기화하는 정당한 use case
+   * - isEqual 체크로 무한 루프 방지
+   * - selectedPillCategories를 dependencies에 포함하여 안전성 보장
+   */
+  useEffect(() => {
+    const categories = new Set<"exhibition" | "popup">();
+    
+    // 팝업 카테고리가 "all"이 아니면 추가
+    const hasSpecificPopup = 
+      locationFilterState.popupCategories.length > 0 &&
+      !locationFilterState.popupCategories.includes("all");
+    
+    // 전시 카테고리가 "all"이 아니면 추가
+    const hasSpecificExhibition = 
+      locationFilterState.exhibitionCategories.length > 0 &&
+      !locationFilterState.exhibitionCategories.includes("all");
+    
+    if (hasSpecificPopup) {
+      categories.add("popup");
+    }
+    
+    if (hasSpecificExhibition) {
+      categories.add("exhibition");
+    }
+    
+    // 둘 다 "all"인 경우 → 모두 선택
+    if (categories.size === 0) {
+      categories.add("exhibition");
+      categories.add("popup");
+    }
+    
+    // 현재 값과 다를 때만 업데이트 (무한 루프 방지)
+    const isEqual = 
+      categories.size === selectedPillCategories.size &&
+      Array.from(categories).every(cat => selectedPillCategories.has(cat));
+    
+    if (!isEqual) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedPillCategories(categories);
+    }
+  }, [locationFilterState, selectedPillCategories]);
+
   /** 필터 닫기 핸들러 - exit 애니메이션 후 언마운트 */
   const handleCloseFilter = useCallback(() => {
     setIsFilterClosing(true);

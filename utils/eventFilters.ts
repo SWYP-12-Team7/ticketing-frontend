@@ -344,9 +344,9 @@ function matchesSubcategoryFilter(
     if (popupCategories.includes("all") || popupCategories.length === 0) {
       return true;
     }
-    // 서브카테고리가 없는 이벤트 → 제외
+    // 서브카테고리가 없는 이벤트 → 통과 (API가 서브카테고리를 제공하지 않을 수 있음)
     if (!event.subcategory) {
-      return false;
+      return true;
     }
     // ID를 레이블로 변환하여 비교
     // 예: ["furniture"] → ["가구/인테리어"]
@@ -363,9 +363,9 @@ function matchesSubcategoryFilter(
     if (exhibitionCategories.includes("all") || exhibitionCategories.length === 0) {
       return true;
     }
-    // 서브카테고리가 없는 이벤트 → 제외
+    // 서브카테고리가 없는 이벤트 → 통과 (API가 서브카테고리를 제공하지 않을 수 있음)
     if (!event.subcategory) {
-      return false;
+      return true;
     }
     // ID를 레이블로 변환하여 비교
     // 예: ["art"] → ["현대미술"]
