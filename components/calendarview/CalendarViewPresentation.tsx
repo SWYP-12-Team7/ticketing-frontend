@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import type { IsoDate } from "@/types/calendar";
 import type { CalendarQueryState } from "./hooks/useCalendarQueryState";
 import type { CalendarGridData } from "./hooks/useCalendarGridData";
@@ -21,6 +21,7 @@ import { HotEventSection, EventSortSelector } from "./HotEventSection";
 import {
   LocationEventFilterSidebar,
   type LocationEventFilterState,
+  INITIAL_FILTER_STATE,
 } from "@/components/common/LocationEventFilter";
 import {
   convertFiltersToDisplayPills,
@@ -63,24 +64,15 @@ export function CalendarViewPresentation({
   onFilterChange,
 }: CalendarViewPresentationProps) {
   const {
-    regionId: _regionId,
     activeCategories,
-    popupSubcategory: _popupSubcategory,
-    exhibitionSubcategory: _exhibitionSubcategory,
     goToPreviousMonth,
     goToNextMonth,
-    toggleCategory: _toggleCategory,
-    changeRegion: _changeRegion,
-    changePopupSubcategory: _changePopupSubcategory,
-    changeExhibitionSubcategory: _changeExhibitionSubcategory,
-    resetFilters: _resetFilters,
   } = queryState;
 
   const {
     monthTitle,
     visibleMonthDate,
     gridDays,
-    regions: _regions,
     countsByDate,
     isLoading,
     isError,
@@ -98,12 +90,6 @@ export function CalendarViewPresentation({
   const [selectedPillCategories, setSelectedPillCategories] = useState<
     Set<"exhibition" | "popup">
   >(new Set(["exhibition", "popup"]));
-
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CalendarViewPresentation.tsx:render',message:'Component rendered',data:{selectedPillCategoriesSize:selectedPillCategories.size,selectedPillCategoriesValues:Array.from(selectedPillCategories)},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1'})}).catch(()=>{});
-  });
-  // #endregion
 
   /**
    * 필터 사이드바 상태
@@ -123,13 +109,13 @@ export function CalendarViewPresentation({
   }, [isFilterOpen, isFilterClosing]);
 
   /** 필터 닫기 핸들러 - exit 애니메이션 후 언마운트 */
-  const handleCloseFilter = () => {
+  const handleCloseFilter = useCallback(() => {
     setIsFilterClosing(true);
     setTimeout(() => {
       setIsFilterOpen(false);
       setIsFilterClosing(false);
     }, 300);
-  };
+  }, []);
 
   /**
    * 선택된 필터를 display pills로 변환
@@ -142,46 +128,67 @@ export function CalendarViewPresentation({
   /**
    * 필터 제거 핸들러
    */
-  const handleRemoveFilter = (filterId: string) => {
+  const handleRemoveFilter = useCallback((filterId: string) => {
     const newState = removeFilterFromState(locationFilterState, filterId);
     onFilterChange(newState);
-  };
+  }, [locationFilterState, onFilterChange]);
 
   /**
    * 필터 리셋 핸들러
    */
-  const handleResetFilters = () => {
-    onFilterChange({
-      dateRange: { startDate: null, endDate: null },
-      regions: [],
-      popupCategories: [],
-      exhibitionCategories: [],
-      price: { free: false, paid: false },
-      amenities: { parking: false, petFriendly: false },
-      eventStatus: { all: false, ongoing: false, upcoming: false, ended: false },
-    });
-  };
+  const handleResetFilters = useCallback(() => {
+    onFilterChange(INITIAL_FILTER_STATE);
+  }, [onFilterChange]);
 
   /**
    * 필터 적용 핸들러
    */
-  const handleApplyFilters = (filters: LocationEventFilterState) => {
+  const handleApplyFilters = useCallback((filters: LocationEventFilterState) => {
     onFilterChange(filters);
     handleCloseFilter(); // 필터 적용 시 사이드바 닫기
-  };
+  }, [onFilterChange, handleCloseFilter]);
 
   /**
    * 필터 상태를 API 파라미터로 변환
    * - useMemo로 성능 최적화
    * - HotEventSection과 캘린더 그리드에서 사용
    */
-  const apiFilterParams = useMemo(() => {
-    // #region agent log
-    const result = convertLocationFilterToAPIParams(locationFilterState);
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CalendarViewPresentation.tsx:apiFilterParams',message:'useMemo recalculating',data:{locationFilterStateRegions:locationFilterState.regions,locationFilterStatePopup:locationFilterState.popupCategories,locationFilterStateExhibition:locationFilterState.exhibitionCategories,resultKeys:Object.keys(result)},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
-    return result;
-  }, [locationFilterState]);
+  const apiFilterParams = useMemo(
+    () => convertLocationFilterToAPIParams(locationFilterState),
+    [locationFilterState]
+  );
+
+  /**
+   * 날짜 클릭 핸들러
+   * - 날짜 변경 시 pill 전체 활성화 (전시+팝업 둘 다 선택)
+   */
+  const handleDateClick = useCallback((date: IsoDate) => {
+    if (date !== selectedDate) {
+      setSelectedPillCategories(new Set(["exhibition", "popup"]));
+    }
+    onDateClick?.(date);
+  }, [selectedDate, onDateClick]);
+
+  /**
+   * Pill 클릭 핸들러
+   * - Pill 토글 (다중 선택 지원)
+   * - 날짜도 함께 선택
+   */
+  const handlePillClick = useCallback((date: IsoDate, category: "exhibition" | "popup") => {
+    setSelectedPillCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+    
+    if (date !== selectedDate) {
+      onDateClick?.(date);
+    }
+  }, [selectedDate, onDateClick]);
 
   /**
    * HOT EVENT 섹션 제목 계산
@@ -252,30 +259,8 @@ export function CalendarViewPresentation({
             countsByDate={countsByDate}
             selectedDate={selectedDate}
             selectedPillCategories={selectedPillCategories}
-            onDateClick={(date) => {
-              // 날짜 변경 시 pill 전체 활성화 (전시+팝업 둘 다 선택)
-              if (date !== selectedDate) {
-                setSelectedPillCategories(new Set(["exhibition", "popup"]));
-              }
-              onDateClick?.(date);
-            }}
-            onPillClick={(date, category) => {
-              // Pill 토글 (다중 선택 지원)
-              setSelectedPillCategories((prev) => {
-                const next = new Set(prev);
-                if (next.has(category)) {
-                  next.delete(category); // 이미 선택됨 → 해제
-                } else {
-                  next.add(category); // 선택 안 됨 → 추가
-                }
-                return next;
-              });
-              
-              // 날짜도 함께 선택
-              if (date !== selectedDate) {
-                onDateClick?.(date);
-              }
-            }}
+            onDateClick={handleDateClick}
+            onPillClick={handlePillClick}
           />
         )}
       </div>

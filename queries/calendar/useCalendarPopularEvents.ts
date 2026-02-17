@@ -29,8 +29,8 @@
  * ```
  */
 
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { CalendarPopularEventsParams } from "@/types/calendar";
 import { getCalendarPopularEvents } from "@/services/api/calendar";
 import { calendarKeys } from "./index";
@@ -94,20 +94,17 @@ export function useCalendarPopularEvents(
   } = params;
 
   // 필터를 문자열로 직렬화 (Query Key용)
-  const filtersKey = JSON.stringify({
-    regionId,
-    categories,
-    subcategories,
-    sortBy,
-    page,
-    size,
-  });
-
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useCalendarPopularEvents.ts:queryKey',message:'Query key calculated',data:{limit,filtersKey,categories,enabled:options?.enabled??true},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H4'})}).catch(()=>{});
-  }, [limit, filtersKey, categories, options?.enabled]);
-  // #endregion
+  const filtersKey = useMemo(
+    () => JSON.stringify({
+      regionId,
+      categories,
+      subcategories,
+      sortBy,
+      page,
+      size,
+    }),
+    [regionId, categories, subcategories, sortBy, page, size]
+  );
 
   return useQuery({
     queryKey: calendarKeys.events.popular(limit, filtersKey),

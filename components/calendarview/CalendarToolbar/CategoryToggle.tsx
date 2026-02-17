@@ -5,7 +5,6 @@
  * - 접근성 고려 (label, 포커스 스타일)
  */
 
-import React from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarCategory } from "@/types/calendar";
 import { CALENDAR_CATEGORY_META } from "../constants/calendar.constants";

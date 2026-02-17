@@ -13,7 +13,7 @@
  * B안 구현: 각 pill을 개별적으로 클릭 가능 (전시만/팝업만 선택)
  */
 
-import React from "react";
+import { type MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarCategory } from "@/types/calendar";
 import { CALENDAR_CATEGORY_META } from "../constants/calendar.constants";
@@ -27,7 +27,7 @@ interface CalendarEventPillProps {
   /** 선택 상태 */
   isSelected: boolean;
   /** 클릭 핸들러 */
-  onClick: (e: React.MouseEvent) => void;
+  onClick: (e: MouseEvent) => void;
 }
 
 /**

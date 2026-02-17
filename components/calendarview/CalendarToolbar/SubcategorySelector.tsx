@@ -13,7 +13,6 @@
  * HeaderSideBar의 메뉴 구조와 동기화된 서브카테고리 옵션 제공
  */
 
-import React from "react";
 import { cn } from "@/lib/utils";
 import type {
   CalendarCategory,
@@ -64,10 +63,6 @@ export function SubcategorySelector({
       : EXHIBITION_SUBCATEGORY_OPTIONS;
 
   const label = category === "popup" ? "팝업" : "전시";
-
-  const _selectedOption = options.find(
-    (opt) => opt.value === selectedSubcategory
-  );
 
   return (
     <div

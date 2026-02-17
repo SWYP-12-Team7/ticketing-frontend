@@ -65,11 +65,9 @@ export {
   CALENDAR_DESIGN_TOKENS,
   CALENDAR_LAYOUT,
   WEEKDAY_LABELS,
-  WEEKDAY_LABELS_KO,
   type CalendarCategoryMeta,
   type CalendarDesignTokens,
   type WeekdayLabel,
-  type WeekdayLabelKo,
   type WeekIndex,
   type DayOfWeekIndex,
 } from "./constants";

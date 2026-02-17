@@ -44,29 +44,9 @@ export const WEEKDAY_LABELS = [
 ] as const;
 
 /**
- * 요일 레이블 (한글 전체 - WEEKDAY_LABELS와 동일)
- * 접근성 및 스크린 리더 지원용
- * @deprecated WEEKDAY_LABELS를 사용하세요
- */
-export const WEEKDAY_LABELS_KO = [
-  "일",
-  "월",
-  "화",
-  "수",
-  "목",
-  "금",
-  "토",
-] as const;
-
-/**
  * 요일 레이블 타입 (영문)
  */
 export type WeekdayLabel = (typeof WEEKDAY_LABELS)[number];
-
-/**
- * 요일 레이블 타입 (한글)
- */
-export type WeekdayLabelKo = (typeof WEEKDAY_LABELS_KO)[number];
 
 /**
  * 주 인덱스 타입 (0~5)

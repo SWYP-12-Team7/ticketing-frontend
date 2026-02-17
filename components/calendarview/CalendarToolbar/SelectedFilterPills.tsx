@@ -14,7 +14,6 @@
 
 "use client";
 
-import React from "react";
 import { FilterPill } from "./FilterPill";
 import { cn } from "@/lib/utils";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";

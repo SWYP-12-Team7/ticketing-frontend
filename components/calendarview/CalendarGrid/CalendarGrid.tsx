@@ -9,7 +9,6 @@
  * - 5행 × 7열 그리드
  */
 
-import React from "react";
 import type { CalendarGridProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
 import { CALENDAR_LAYOUT, WEEKDAY_LABELS } from "../constants/calendar.layout";

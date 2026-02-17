@@ -24,7 +24,6 @@ import {
   useCalendarEventsByDate,
   useCalendarPopularEvents,
 } from "@/queries/calendar";
-import { formatDateKorean } from "../utils/calendar.formatters";
 import { EmptyState } from "./EmptyState";
 import { applyClientSideFilters } from "@/utils/eventFilters";
 
@@ -69,7 +68,6 @@ interface HotEventSectionProps {
 export function HotEventSection({
   className,
   selectedDate,
-  activeCategories,
   sortBy,
   events,
   selectedCategories = EMPTY_CATEGORY_SET,
@@ -83,21 +81,6 @@ export function HotEventSection({
    */
   const [likedEventIds, setLikedEventIds] = useState<Set<string>>(new Set());
 
-  /**
-   * 카테고리 레이블 결정
-   * - 전시만: "전시"
-   * - 팝업만: "팝업"
-   * - 둘 다 또는 둘 다 아님: "이벤트"
-   */
-  const categoryLabel = useMemo(() => {
-    if (!activeCategories) return "이벤트";
-
-    const { exhibition, popup } = activeCategories;
-
-    if (exhibition && !popup) return "전시";
-    if (!exhibition && popup) return "팝업";
-    return "이벤트";
-  }, [activeCategories]);
 
   /**
    * API 요청에 사용할 카테고리 배열
@@ -106,13 +89,6 @@ export function HotEventSection({
    * - size = 0: undefined 반환 (백엔드가 전체 카테고리로 해석)
    */
   const selectedCategoriesArray = useMemo(() => {
-    // #region agent log
-    const setRef = selectedCategories;
-    const setSize = selectedCategories?.size || 0;
-    const setValues = selectedCategories ? Array.from(selectedCategories) : [];
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:selectedCategoriesArray',message:'useMemo recalculating',data:{setRef:setRef===EMPTY_CATEGORY_SET?'CONSTANT':typeof setRef,setSize,setValues,timestamp:Date.now()},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1,H3'})}).catch(()=>{});
-    // #endregion
-
     // Pill 상태 기반으로 API 요청 파라미터 생성
     if (selectedCategories && selectedCategories.size > 0) {
       return Array.from(selectedCategories) as CalendarCategory[];
@@ -146,18 +122,12 @@ export function HotEventSection({
    * - 날짜 선택 안 됐을 때만 호출 (enabled 옵션)
    * - 필터 파라미터 통합 (지역, 카테고리, 서브카테고리)
    */
-  const mergedParams = useMemo(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:mergedParams',message:'useMemo recalculating',data:{selectedCategoriesArray,sortBy,apiFilterParams,apiFilterParamsKeys:Object.keys(apiFilterParams||{})},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H2,H3'})}).catch(()=>{});
-    // #endregion
-
-    return {
-      limit: 24,
-      categories: selectedCategoriesArray,
-      sortBy,
-      ...apiFilterParams,
-    };
-  }, [selectedCategoriesArray, sortBy, apiFilterParams]);
+  const mergedParams = useMemo(() => ({
+    limit: 24,
+    categories: selectedCategoriesArray,
+    sortBy,
+    ...apiFilterParams,
+  }), [selectedCategoriesArray, sortBy, apiFilterParams]);
 
   const {
     data: popularEventsData,
@@ -182,10 +152,6 @@ export function HotEventSection({
    * - 클라이언트 필터링 적용 (price, amenities, dateRange, eventStatus)
    */
   const displayEvents = useMemo(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/17c24278-00b5-4df3-afee-ae4cbc820ac3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HotEventSection.tsx:displayEvents',message:'useMemo recalculating',data:{selectedDate,hasPopularData:!!popularEventsData,popularCount:popularEventsData?.events?.length||0,selectedCategoriesSize:selectedCategories?.size||0},timestamp:Date.now(),runId:'debug-flickering',hypothesisId:'H1,H3'})}).catch(()=>{});
-    // #endregion
-
     let allEvents: Event[] = [];
 
     // 1️⃣ 날짜 선택 안 됨 → 인기 이벤트 (API 또는 props)
@@ -269,21 +235,6 @@ export function HotEventSection({
     }));
   }, [sortedEvents, likedEventIds]);
 
-  /**
-   * 섹션 제목 결정
-   * - 날짜 선택 안 됨: "HOT EVENT"
-   * - 날짜 선택됨: "1월 8일 전시 60개"
-   */
-  const _sectionTitle = useMemo(() => {
-    if (!selectedDate) {
-      return "HOT EVENT";
-    }
-
-    const dateStr = formatDateKorean(selectedDate);
-    const count = eventsWithLikeState.length;
-
-    return `${dateStr} ${categoryLabel} ${count}개`;
-  }, [selectedDate, categoryLabel, eventsWithLikeState.length]);
 
   /**
    * 좋아요 클릭 핸들러
@@ -295,10 +246,8 @@ export function HotEventSection({
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id); // 좋아요 취소
-        console.log("좋아요 취소:", id);
       } else {
         newSet.add(id); // 좋아요 추가
-        console.log("좋아요 추가:", id);
       }
       return newSet;
     });
@@ -309,16 +258,17 @@ export function HotEventSection({
 
   /**
    * 빈 상태 타입 결정
+   * - 이벤트가 있으면: null (정상 표시)
+   * - 이벤트 없음: "no-events" (선택하신 조건에 맞는 행사가 없어요!)
    */
   const emptyStateType: "no-date" | "no-events" | null = useMemo(() => {
+    // 이벤트가 있으면 null 반환 (정상 표시)
     if (eventsWithLikeState.length > 0) return null;
 
-    // 날짜 선택됨 + 이벤트 없음
-    if (selectedDate) return "no-events";
-
-    // 날짜 선택 안 됨
-    return "no-date";
-  }, [selectedDate, eventsWithLikeState.length]);
+    // 이벤트가 0개 → "no-events" 표시
+    // (날짜 선택 여부와 무관하게, 조건에 맞는 행사가 없으면 메시지 표시)
+    return "no-events";
+  }, [eventsWithLikeState.length]);
 
   return (
     <section

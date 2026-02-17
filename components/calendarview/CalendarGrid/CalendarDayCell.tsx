@@ -113,12 +113,6 @@ function CalendarDayCellComponent({
           borderRadius: CALENDAR_DESIGN_TOKENS.borderRadius.cell,
         }}
         onClick={() => {
-          console.log(
-            "📅 날짜 클릭:",
-            iso,
-            "| onDateClick:",
-            typeof onDateClick
-          );
           onDateClick?.(iso);
         }}
         role="button"

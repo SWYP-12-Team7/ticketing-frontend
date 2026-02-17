@@ -73,16 +73,23 @@ export function convertLocationFilterToAPIParams(
   // 3. subcategories: 팝업 + 전시 카테고리 병합
   const subcategories = [...popupCategories, ...exhibitionCategories];
 
-  // 4. API 파라미터 반환
-  return {
-    regionId: regionId || undefined,
-    categories: categories.length > 0 ? categories : undefined,
-    // ⚠️ "all" 값이 포함된 경우 undefined로 변환 (백엔드가 전체 조회로 처리)
-    subcategories:
-      subcategories.length > 0 && !subcategories.includes("all")
-        ? subcategories
-        : undefined,
-  };
+  // 4. API 파라미터 반환 (undefined 값을 가진 키 제거하여 안정적인 참조 유지)
+  const result: CalendarEventFilterParams = {};
+  
+  if (regionId) {
+    result.regionId = regionId;
+  }
+  
+  if (categories.length > 0) {
+    result.categories = categories;
+  }
+  
+  // ⚠️ "all" 값이 포함된 경우 undefined로 변환 (백엔드가 전체 조회로 처리)
+  if (subcategories.length > 0 && !subcategories.includes("all")) {
+    result.subcategories = subcategories;
+  }
+  
+  return result;
 }
 
 /**
