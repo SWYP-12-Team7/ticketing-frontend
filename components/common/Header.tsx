@@ -10,6 +10,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 interface HeaderProps {
   className?: string;
@@ -31,24 +32,22 @@ export function Header({ className }: HeaderProps) {
   const notificationCount = 0; // 0: 배지 없음, 1-99: 숫자 표시, 100+: "99+" 표시
 
   /**
-   * 마이페이지 클릭 핸들러
-   * - 비로그인 상태: 로그인 페이지로 이동
-   * - 로그인 상태: /settings/profile로 이동 (Link 기본 동작)
+   * 비로그인 시 로그인 페이지로 이동하는 공통 핸들러
    */
-  const handleProfileClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // 하이드레이션 전이면 클릭 무시
+  const handleAuthRequired = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!_hasHydrated) {
       e.preventDefault();
       return;
     }
-
-    // 비로그인 상태면 로그인 페이지로 이동
     if (!isAuthenticated) {
       e.preventDefault();
+      toast.error("로그인이 필요한 페이지 입니다.");
       router.push("/auth/login");
     }
-    // 로그인 상태면 Link의 기본 동작으로 /settings/profile 이동
   };
+
+  const handleProfileClick = handleAuthRequired;
+  const handleFavoritesClick = handleAuthRequired;
 
   return (
     <>
@@ -196,6 +195,7 @@ export function Header({ className }: HeaderProps) {
 
             <Link
               href="/user/favorites"
+              onClick={handleFavoritesClick}
               className={cn(
                 "group flex size-12 items-center justify-center p-2 transition-colors",
                 pathname.startsWith("/user/favorites")

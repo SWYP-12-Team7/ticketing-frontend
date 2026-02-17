@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getFavorites, removeFavorite, moveFavoriteToFolder } from "@/services/api/favorite";
+import { useAuthStore } from "@/store/auth";
 import type { GetFavoritesParams } from "@/types/favorite";
 
 /**
@@ -135,4 +137,37 @@ export function useMoveFavoriteToFolder() {
       console.error("찜 항목 이동 실패:", error);
     },
   });
+}
+
+/**
+ * 찜한 curationId Set 조회
+ *
+ * @description
+ * - 전체 찜 목록에서 curationId만 추출하여 Set<string>으로 반환
+ * - 로그인 상태에서만 활성화
+ * - 찜 추가/삭제 시 ["favorites"] invalidate로 자동 갱신
+ *
+ * @returns Set<string> - 찜한 curationId 문자열 Set
+ *
+ * @example
+ * ```tsx
+ * const likedIds = useLikedIds();
+ * const isLiked = likedIds.has(event.id);
+ * ```
+ */
+export function useLikedIds(): Set<string> {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const { data } = useQuery({
+    queryKey: [...favoriteKeys.all, "likedIds"],
+    queryFn: () => getFavorites({ page: 0, size: 9999 }),
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+  });
+
+  return useMemo(() => {
+    if (!data?.items) return new Set<string>();
+    return new Set(data.items.map((item) => String(item.curationId)));
+  }, [data]);
 }

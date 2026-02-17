@@ -1,16 +1,21 @@
 
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { EventCard, type Event } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import type { FilterState } from "@/components/search/FilterSidebar";
 import { getFavorites } from "@/services/api/favorite";
+import { useAddFavorite } from "@/queries/settings/useUserTaste";
+import { useLikedIds, useMoveFavoriteToFolder } from "@/queries/favorite";
 import type { FavoriteItem } from "@/types/favorite";
+import type { EventType } from "@/types/user";
 import { RequireAuth } from "@/components/auth";
-import { Console } from "console";
+
+import { FolderList } from "@/components/favorites/FolderList";
+import { MoveFolderModal } from "@/components/favorites/MoveFolderModal";
 
 const DEFAULT_PAGE_SIZE = 10;
 const FilterSidebar = dynamic(
@@ -43,6 +48,12 @@ function FavoriteContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"favorites" | "timeline">("favorites");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedFavoriteIds, setSelectedFavoriteIds] = useState<Set<number>>(new Set());
+  const selectedIdsRef = useRef(selectedFavoriteIds);
+  selectedIdsRef.current = selectedFavoriteIds;
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -133,7 +144,54 @@ function FavoriteContent() {
     return () => controller.abort();
   }, [hasClientFilters]);
 
+  const { mutate: addToFavorites } = useAddFavorite();
+  const { mutate: moveToFolder } = useMoveFavoriteToFolder();
+  const likedIds = useLikedIds();
   const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
+
+  const handleLikeClick = useCallback((id: string) => {
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+    const curationType = (event.type ?? (event.category === "전시" ? "EXHIBITION" : "POPUP")) as EventType;
+    addToFavorites({ curationId: Number(id), curationType });
+  }, [events, addToFavorites]);
+
+  // curationId(string) → favoriteId(number) 매핑
+  const curationToFavoriteId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of favorites) {
+      map.set(String(item.curationId), item.id);
+    }
+    return map;
+  }, [favorites]);
+
+  const toggleFavoriteSelection = useCallback((curationId: string) => {
+    const favoriteId = curationToFavoriteId.get(curationId);
+    if (favoriteId === undefined) return;
+    setSelectedFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(favoriteId)) {
+        next.delete(favoriteId);
+      } else {
+        next.add(favoriteId);
+      }
+      return next;
+    });
+  }, [curationToFavoriteId]);
+
+  const handleExitEditMode = useCallback(() => {
+    setIsEditMode(false);
+    setSelectedFavoriteIds(new Set());
+  }, []);
+
+  const handleMoveFolder = useCallback((folderId: number | null) => {
+    const ids = selectedIdsRef.current;
+    ids.forEach((favoriteId) => {
+      moveToFolder({ favoriteId, folderId });
+    });
+    setIsMoveModalOpen(false);
+    handleExitEditMode();
+  }, [moveToFolder, handleExitEditMode]);
 
   const visibleEvents = useMemo(() => {
     if (!hasClientFilters) return events;
@@ -187,99 +245,189 @@ function FavoriteContent() {
   return (
     <main className="min-h-screen bg-background py-5">
       <div className="relative mx-auto max-w-7xl py-10">
-        <div className="mb-6 flex items-center w-[1280px] justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-medium text-orange">
-              {hasClientFilters ? visibleEvents.length : totalCount}
-            </span>
-            <span className="text-2xl font-medium text-foreground mb-5">
-              개의 찜한 행사가 있어요!
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="flex items-center gap-1 text-sm font-medium text-foreground"
-            >
-              <span>정렬순</span>
-              <Image
-                src="/images/searchResult/IC_Sort.svg"
-                alt="정렬"
-                width={20}
-                height={20}
-              />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsFilterOpen(true)}
-              className="flex items-center gap-1.5 text-sm font-medium text-foreground"
-            >
-              <span>필터</span>
-              <Image
-                src="/images/searchResult/IC_Fillter.svg"
-                alt="필터"
-                width={20}
-                height={20}
-              />
-            </button>
-          </div>
+        {/* 상단 탭 네비게이션 */}
+        <div className="mb-10 flex justify-center">
+          <button
+            onClick={() => setActiveTab("favorites")}
+            className={`relative px-6 py-4 text-lg font-bold transition-colors ${activeTab === "favorites"
+              ? "text-orange-500 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-orange-500"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
+          >
+            내가 찜한 행사
+          </button>
+          <button
+            onClick={() => setActiveTab("timeline")}
+            className={`relative px-6 py-4 text-lg font-bold transition-colors ${activeTab === "timeline"
+              ? "text-orange-500 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-orange-500"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
+          >
+            타임라인
+          </button>
         </div>
 
-        {visibleEvents.length === 0 && !isLoading ? (
-          <div className="min-h-[calc(100vh-100px-220px)] flex items-center justify-center">
-            <EmptyState message="찜한 행사가 없습니다" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {pagedEvents.map((event) => (
-              <Fragment key={event.id}>
-                <EventCard event={event} showMeta={false} />
-              </Fragment>
-            ))}
-          </div>
-        )}
+        {activeTab === "favorites" ? (
+          <>
+            {/* 내 폴더 섹션 */}
+            <FolderList onEditClick={() => setIsEditMode(true)} />
 
-        {visibleEvents.length > 0 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
-            >
-              이전
-            </button>
-            {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map(
-              (pageNumber) => (
+            <div className="mb-6 mt-12 flex items-center w-[1280px] justify-between">
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-medium text-black">
+                  전체 찜한 행사{" "}
+                  <span className="text-orange-500">
+                    {hasClientFilters ? visibleEvents.length : totalCount}
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
                 <button
-                  key={`page-${pageNumber}`}
                   type="button"
-                  onClick={() => setPage(pageNumber)}
-                  className={
-                    pageNumber === page
-                      ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
-                      : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
-                  }
+                  className="flex items-center gap-1 text-sm font-medium text-foreground"
                 >
-                  {pageNumber}
+                  <span>정렬순</span>
+                  <Image
+                    src="/images/searchResult/IC_Sort.svg"
+                    alt="정렬"
+                    width={20}
+                    height={20}
+                  />
                 </button>
-              )
+
+                <button
+                  type="button"
+                  onClick={() => setIsFilterOpen(true)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-foreground"
+                >
+                  <span>필터</span>
+                  <Image
+                    src="/images/searchResult/IC_Fillter.svg"
+                    alt="필터"
+                    width={20}
+                    height={20}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {visibleEvents.length === 0 && !isLoading ? (
+              <div className="min-h-[200px] flex items-center justify-center">
+                <EmptyState message="찜한 행사가 없습니다" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                {pagedEvents.map((event) => {
+                  const favoriteId = curationToFavoriteId.get(event.id);
+                  const isSelected = favoriteId !== undefined && selectedFavoriteIds.has(favoriteId);
+                  return (
+                    <div key={event.id} className="relative w-full">
+                      <EventCard
+                        event={{ ...event, isLiked: likedIds.has(event.id) }}
+                        showMeta={false}
+                        className="w-full"
+                        onLikeClick={isEditMode ? undefined : handleLikeClick}
+                      />
+                      {isEditMode && (
+                        <div
+                          className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center rounded-xl bg-[#00000099]"
+                          onClick={() => toggleFavoriteSelection(event.id)}
+                        >
+                          <Image
+                            src={isSelected ? "/images/favorites/check.svg" : "/images/favorites/uncheck.svg"}
+                            alt={isSelected ? "선택됨" : "선택 안됨"}
+                            width={56}
+                            height={56}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(displayTotalPages, p + 1))}
-              disabled={page === displayTotalPages}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
-            >
-              다음
-            </button>
+
+            {visibleEvents.length > 0 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+                >
+                  이전
+                </button>
+                {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <button
+                      key={`page-${pageNumber}`}
+                      type="button"
+                      onClick={() => setPage(pageNumber)}
+                      className={
+                        pageNumber === page
+                          ? "rounded-md bg-orange px-3 py-1.5 text-sm text-white"
+                          : "rounded-md border border-border px-3 py-1.5 text-sm text-foreground"
+                      }
+                    >
+                      {pageNumber}
+                    </button>
+                  )
+                )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPage((p) => Math.min(displayTotalPages, p + 1))
+                  }
+                  disabled={page === displayTotalPages}
+                  className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground disabled:opacity-40"
+                >
+                  다음
+                </button>
+              </div>
+            )}
+
+            {/* 편집 모드 하단 바 */}
+            {isEditMode && (
+              <div className="mt-8 flex justify-center border-t border-gray-200 px-6 py-4">
+                <div className="flex items-center gap-6">
+                  <span className="text-lg font-medium text-basic    ">
+                    {selectedFavoriteIds.size}개 선택됨
+                  </span>
+                  <div className="h-[56px] w-px bg-gray-300" />
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleExitEditMode}
+                      className="rounded-2xl border border-gray-300 h-[56px] px-6  font-medium text-basic transition-colors hover:bg-gray-50"
+                    >
+                      관리종료
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMoveModalOpen(true)}
+                      disabled={selectedFavoriteIds.size === 0}
+                      className={
+                        selectedFavoriteIds.size > 0
+                          ? "rounded-2xl bg-orange h-[56px] px-[142Px]  text-lg font-medium text-white transition-colors hover:bg-orange/90"
+                          : "cursor-not-allowed rounded-2xl bg-[#D3D5DC] h-[56px] px-[142Px]  text-lg font-medium text-white"
+                      }     
+                    >
+                      폴더이동
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex min-h-[400px] items-center justify-center text-gray-400">
+            준비 중인 기능입니다.
           </div>
         )}
 
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex min-h-[50vh] items-center justify-center bg-white/70 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <div className="size-8 animate-spin rounded-full border-4 border-muted border-t-orange" />
           </div>
         )}
@@ -289,6 +437,15 @@ function FavoriteContent() {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         onApply={setAppliedFilters}
+      />
+
+
+      {/* 폴더 이동 모달 */}
+      <MoveFolderModal
+        isOpen={isMoveModalOpen}
+        onClose={() => setIsMoveModalOpen(false)}
+        selectedCount={selectedFavoriteIds.size}
+        onMove={handleMoveFolder}
       />
     </main>
   );

@@ -63,7 +63,7 @@ export default function RootLayout({
           <main className="mx-auto w-full max-w-[1440px] flex-1 px-[80px]">{children}</main>
           <Footer />
         </Providers>
-        <Toaster position="top-right" richColors />
+        <Toaster position="bottom-center" richColors duration={1000} />
       </body>
     </html>
   );
