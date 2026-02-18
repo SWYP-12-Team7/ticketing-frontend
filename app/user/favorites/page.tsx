@@ -16,6 +16,8 @@ import { RequireAuth } from "@/components/auth";
 
 import { FolderList } from "@/components/favorites/FolderList";
 import { MoveFolderModal } from "@/components/favorites/MoveFolderModal";
+import { EditFolderModal } from "@/components/favorites/EditFolderModal";
+import { DeleteFolderModal } from "@/components/favorites/DeleteFolderModal";
 import { useFolders } from "@/queries/settings/useFolder";
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -55,6 +57,8 @@ function FavoriteContent() {
   const selectedIdsRef = useRef(selectedFavoriteIds);
   selectedIdsRef.current = selectedFavoriteIds;
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
+  const [isDeleteFolderModalOpen, setIsDeleteFolderModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -293,7 +297,11 @@ function FavoriteContent() {
         {activeTab === "favorites" ? (
           <>
             {/* 내 폴더 섹션 */}
-            <FolderList onEditClick={() => setIsEditMode(true)} />
+            <FolderList
+              onMoveFavorites={() => setIsEditMode(true)}
+              onEditFolder={() => setIsEditFolderModalOpen(true)}
+              onDeleteFolder={() => setIsDeleteFolderModalOpen(true)}
+            />
 
             <div className="mb-6 mt-12 flex items-center w-[1280px] justify-between">
               <div className="flex items-baseline gap-1">
@@ -481,6 +489,16 @@ function FavoriteContent() {
         onClose={() => setIsMoveModalOpen(false)}
         selectedCount={selectedFavoriteIds.size}
         onMove={handleMoveFolder}
+      />
+
+      <EditFolderModal
+        isOpen={isEditFolderModalOpen}
+        onClose={() => setIsEditFolderModalOpen(false)}
+      />
+
+      <DeleteFolderModal
+        isOpen={isDeleteFolderModalOpen}
+        onClose={() => setIsDeleteFolderModalOpen(false)}
       />
     </main>
   );
