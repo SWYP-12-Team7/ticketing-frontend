@@ -59,47 +59,14 @@ export function Footer({ className }: FooterProps) {
   if (shouldHide) return null;
 
   return (
-    <footer
-      className={cn(
-        "border-t border-[#D9D9D9] bg-white px-20 pt-8 pb-40",
-        className
-      )}
-    >
-      <div className="flex flex-wrap gap-4">
-        {/* 로고 영역 */}
-        <div className="w-[262px] min-w-[240px]">
-          <Link href="/">
-            <Image
-              src="/images/logo.png"
-              alt="와르르"
-              width={217}
-              height={35}
-              className="object-contain"
-            />
-          </Link>
-        </div>
-
-        {/* 링크 영역 */}
-        {Object.entries(footerLinks).map(([category, links]) => (
-          <div key={category} className="w-[237.5px] min-w-[240px] flex flex-col gap-3">
-            <h3 className="pb-4 text-base font-semibold leading-[150%] tracking-[-0.025em] text-[#1E1E1E]">
-              {category}
-            </h3>
-            <ul className="space-y-3">
-              {links.map((link) => (
-                <li key={link.href + link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-base font-normal leading-[150%] tracking-[-0.025em] text-[#1E1E1E] transition-colors hover:underline"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+    <footer className={cn("bg-[#FFF2E6]", className)}>
+      <Image
+        src="/images/Footer.png"
+        alt="푸터"
+        width={1280}
+        height={400}
+        className="h-auto w-full"
+      />
     </footer>
   );
 }

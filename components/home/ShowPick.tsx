@@ -9,6 +9,8 @@ import { OverlayEventCard } from "@/components/common";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import { useLikedIds } from "@/queries/favorite";
+import { useAuthStore } from "@/store/auth";
+import Link from "next/link";
 import type { Event } from "@/types/event";
 import type { EventType } from "@/types/user";
 
@@ -186,6 +188,7 @@ export function ShowPick({
   events,
 }: ShowPickProps) {
   const swiperRef = useRef<SwiperType | null>(null);
+  const { isAuthenticated } = useAuthStore();
   const nickname = useMemo(
     () => (useNickname ? getNickname() : null),
     [useNickname]
@@ -201,7 +204,8 @@ export function ShowPick({
       title
     );
 
-  const displayEvents = events || mockEvents;
+  const requiresLogin = useNickname && !isAuthenticated;
+  const displayEvents = requiresLogin ? mockEvents : (events || mockEvents);
   const { mutate: addToFavorites } = useAddFavorite();
   const likedIds = useLikedIds();
 
@@ -246,57 +250,88 @@ export function ShowPick({
       {/* 헤더 */}
       <div className="mb-[24px] flex items-center justify-between">
         <div>
-          {subtitle && (
-            <p className={cn(
-              "mb-1 text-[14px] font-normal leading-[180%]",
-              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
-            )}>
-              {subtitle}
-            </p>
+          {requiresLogin ? (
+            <>
+              <p className="mb-1 text-[14px] font-normal leading-[180%] text-orange">
+                로그인하면 취향에 맞는 행사를 추천해드려요
+              </p>
+              <h2 className="text-heading-large">나를 위한 맞춤 PICK!</h2>
+            </>
+          ) : (
+            <>
+              {subtitle && (
+                <p className={cn(
+                  "mb-1 text-[14px] font-normal leading-[180%]",
+                  subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
+                )}>
+                  {subtitle}
+                </p>
+              )}
+              <h2 className="text-heading-large">{displayTitle}</h2>
+            </>
           )}
-          <h2 className="text-heading-large">{displayTitle}</h2>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrev}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-          <button
-            onClick={handleNext}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-        </div>
+        {!requiresLogin && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrev}
+              className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              onClick={handleNext}
+              className="flex size-8 items-center justify-center rounded-full border border-border bg-[#BBBBBB]/73 text-[#404040] transition-colors hover:brightness-110"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Swiper */}
-      <Swiper
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-        }}
-        slidesPerView="auto"
-        slidesPerGroup={4}
-        spaceBetween={24}
-        loop
-        speed={500}
-        breakpoints={{
-          0: {
-            slidesPerGroup: 2,
-          },
-          1024: {
-            slidesPerGroup: 4,
-          },
-        }}
-      >
-        {displayEvents.map((event) => (
-          <SwiperSlide key={event.id} style={{ width: "302px" }}>
-            <OverlayEventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      <div className={cn(
+        "relative",
+        requiresLogin && "overflow-hidden rounded-lg border border-orange p-6"
+      )}>
+        <div className={cn(requiresLogin && "pointer-events-none blur-md")}>
+          <Swiper
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            slidesPerView="auto"
+            slidesPerGroup={4}
+            spaceBetween={24}
+            loop
+            speed={500}
+            breakpoints={{
+              0: {
+                slidesPerGroup: 2,
+              },
+              1024: {
+                slidesPerGroup: 4,
+              },
+            }}
+          >
+            {displayEvents.map((event) => (
+              <SwiperSlide key={event.id} style={{ width: "302px" }}>
+                <OverlayEventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+
+        {requiresLogin && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <Link
+              href="/auth/login"
+              className="rounded-full bg-orange px-6 py-3 text-sm font-semibold text-white transition-colors hover:brightness-110"
+            >
+              로그인하고 맞춤 추천 받기
+            </Link>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
