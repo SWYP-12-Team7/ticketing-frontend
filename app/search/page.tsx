@@ -77,7 +77,7 @@ function SearchContent() {
       setIsLoading(true);
       try {
         const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
+          appliedFilters.categories[0] || category || subcategory;
         const typeParam = appliedFilters.type || type;
         const { events: fetched, total, totalPages: pages } =
           await searchCurations({
@@ -123,7 +123,7 @@ function SearchContent() {
       setIsLoading(true);
       try {
         const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
+          appliedFilters.categories[0] || category || subcategory;
         const typeParam = appliedFilters.type || type;
         const baseParams = {
           keyword: keyword || undefined,

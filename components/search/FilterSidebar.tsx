@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { DateRangePicker } from "@/components/common";
@@ -10,6 +10,10 @@ interface FilterSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onApply?: (filters: FilterState) => void;
+  /** 열릴 때 펼칠 섹션: "region" | "category" | "popup" | "exhibition" | "date" */
+  defaultSection?: string;
+  /** 열릴 때 초기 필터 상태 */
+  initialFilters?: FilterState;
 }
 
 export interface FilterState {
@@ -33,7 +37,13 @@ const CATEGORY_TYPE_MAP: Record<keyof typeof CATEGORIES, "POPUP" | "EXHIBITION">
   전시: "EXHIBITION",
 };
 
-export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) {
+export function FilterSidebar({
+  isOpen,
+  onClose,
+  onApply,
+  defaultSection,
+  initialFilters,
+}: FilterSidebarProps) {
   const [expandedSections, setExpandedSections] = useState({
     region: true,
     category: true,
@@ -47,6 +57,27 @@ export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) 
     startDate: null,
     endDate: null,
   });
+
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    // 사이드바가 열릴 때만 동기화
+    if (isOpen && !prevOpenRef.current) {
+      if (defaultSection) {
+        const isCat = ["category", "popup", "exhibition"]
+          .includes(defaultSection);
+        setExpandedSections({
+          region: defaultSection === "region",
+          category: isCat,
+          date: defaultSection === "date",
+        });
+      }
+      if (initialFilters) {
+        setFilters(initialFilters);
+      }
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen, defaultSection, initialFilters]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
