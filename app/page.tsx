@@ -9,6 +9,7 @@ import {
   AdBanner,
 } from "@/components/home";
 import { MainDataLogger } from "@/components/home/MainDataLogger";
+import { UserPickSection } from "@/components/home/UserPickSection";
 import { useMainData } from "@/queries/main/useMainData";
 import type { MainCuration } from "@/types/main";
 import type { Event } from "@/types/event";
@@ -34,7 +35,6 @@ function convertToEvent(curation: MainCuration): Event {
 export default function Home() {
   const { data, isLoading } = useMainData();
 
-  const userEvents = data?.data.userCurations.map(convertToEvent) ?? [];
   const upcomingEvents = data?.data.upcomingCurations.map(convertToEvent) ?? [];
   const freeEvents = data?.data.freeCurations.map(convertToEvent) ?? [];
   const todayEvents = data?.data.todayOpenCurations.map(convertToEvent) ?? [];
@@ -56,22 +56,19 @@ export default function Home() {
         </div>
 
         {/* 닉네임 + PICK */}
-        <ShowPick
-          className="py-6"
-          title="님을 위한 PICK!"
-          subtitle="취향을 분석해 딱 맞는 행사를 찾았어요"
-          subtitleType="orange"
-          useNickname
-          events={userEvents}
+        <UserPickSection
+          className="mt-[100px] py-6"
+          curations={data?.data.userCurations}
         />
 
         {/* 오픈 예정 행사 */}
-        <ShowPick
-          className="py-6"
-          title={<><span className="text-orange">오픈 예정</span> 행사를 미리 만나보세요!</>}
-          subtitle="사전 예약하고 특별한 혜택을 받아보세요"
-          events={upcomingEvents}
-        />
+        <div className="bg-[#F3F4F6] px-6 py-6">
+          <ShowPick
+            title="이번 주 안에 끝나요!"
+            subtitle="사전 예약하고 특별한 혜택이?"
+            events={upcomingEvents}
+          />
+        </div>
 
         {/* 광고 배너 */}
         <AdBanner className="py-6" />
@@ -79,18 +76,19 @@ export default function Home() {
         {/* Hot Deal */}
         <ShowPick
           className="py-6"
-          title={<>지갑 없이 즐기는 <span className="text-orange">무료</span> 행사에 참여하세요!</>}
-          subtitle="부담 없이 가볍게 즐기는 문화 생활을 즐겨보세요"
+          title="지갑 없이 즐기는 무료 행사에 참여하세요"
+          subtitle="부담 없이 가볍게 즐기는 문화 생활!"
           events={freeEvents}
         />
 
         {/* 전문가 PICK 섹션 */}
-        <ShowPick
-          className="py-6"
-          title={<>따끈따끈! <span className="text-orange">방금 오픈</span>한 행사를 만나보세요!</>}
-          subtitle="누구보다 빠르게 새로운 행사를 경험하세요"
-          events={todayEvents}
-        />
+        <div className="bg-[#F3F4F6] px-6 py-6">
+          <ShowPick
+            title="따끈따끈! 방금 오픈한 행사를 만나보세요!"
+            subtitle="누구보다 빠르게 새로운 행사를 경험하세요"
+            events={todayEvents}
+          />
+        </div>
       </div>
     </>
   );
