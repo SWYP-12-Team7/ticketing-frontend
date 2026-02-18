@@ -7,7 +7,6 @@ import type {
   UserTasteResponse,
   AddFavoriteRequest,
   EventType,
-  UpdateFolderNameParams,
   FoldersResponse,
   Folder,
   UserTimelineResponse
@@ -262,7 +261,8 @@ export async function createProfile(
  * console.log(result.isDuplicate); // false
  */
 export async function checkNicknameDuplicate(
-  _nickname: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  nickname: string
 ): Promise<{ isDuplicate: boolean }> {
   // TODO: 백엔드 API 구현 후 실제 API로 교체
   // Mock: 항상 사용 가능으로 반환

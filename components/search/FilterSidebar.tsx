@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ChevronUp } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { DateRangePicker } from "@/components/common";
@@ -44,12 +44,14 @@ export function FilterSidebar({
   defaultSection,
   initialFilters,
 }: FilterSidebarProps) {
+  // React 공식 패턴: 렌더 중 상태 조정 (effect 없이 prop 변경 감지)
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     region: true,
     category: true,
     date: true,
   });
-
   const [filters, setFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -58,26 +60,23 @@ export function FilterSidebar({
     endDate: null,
   });
 
-  const prevOpenRef = useRef(false);
-
-  useEffect(() => {
-    // 사이드바가 열릴 때만 동기화
-    if (isOpen && !prevOpenRef.current) {
-      if (defaultSection) {
-        const isCat = ["category", "popup", "exhibition"]
-          .includes(defaultSection);
-        setExpandedSections({
-          region: defaultSection === "region",
-          category: isCat,
-          date: defaultSection === "date",
-        });
-      }
-      if (initialFilters) {
-        setFilters(initialFilters);
-      }
+  if (isOpen && !prevIsOpen) {
+    if (defaultSection) {
+      const isCat = ["category", "popup", "exhibition"]
+        .includes(defaultSection);
+      setExpandedSections({
+        region: defaultSection === "region",
+        category: isCat,
+        date: defaultSection === "date",
+      });
     }
-    prevOpenRef.current = isOpen;
-  }, [isOpen, defaultSection, initialFilters]);
+    if (initialFilters) {
+      setFilters(initialFilters);
+    }
+  }
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+  }
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
