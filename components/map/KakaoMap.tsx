@@ -126,22 +126,19 @@ export function KakaoMap({
     return () => cancelAnimationFrame(rafId);
   }, [locations.length]);
 
-  useEffect(() => {
-    if (controlledCenter) {
-      const isSameCenter =
-        controlledCenter.lat === center.lat &&
-        controlledCenter.lng === center.lng;
-      if (!isSameCenter) {
-        setCenter(controlledCenter);
-      }
+  // React 공식 패턴: 렌더 중 상태 조정 (effect 없이 prop 동기화)
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (controlledCenter) {
+    const isSameCenter =
+      controlledCenter.lat === center.lat &&
+      controlledCenter.lng === center.lng;
+    if (!isSameCenter) {
+      setCenter(controlledCenter);
     }
-  }, [controlledCenter, center.lat, center.lng]);
-
-  useEffect(() => {
-    if (typeof controlledLevel === "number" && controlledLevel !== level) {
-      setLevel(controlledLevel);
-    }
-  }, [controlledLevel, level]);
+  }
+  if (typeof controlledLevel === "number" && controlledLevel !== level) {
+    setLevel(controlledLevel);
+  }
 
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
