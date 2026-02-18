@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useFolders, useUpdateFolderName } from "@/queries/settings/useFolder";
 
@@ -20,12 +20,14 @@ export function EditFolderModal({ isOpen, onClose }: EditFolderModalProps) {
     [folders, selectedFolderId]
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (selectedFolder) {
-      setFolderName(selectedFolder.name);
-    }
-  }, [isOpen, selectedFolder]);
+  // 렌더 중 상태 조정: 선택된 폴더가 바뀌면 이름 동기화
+  const [prevSelectedFolder, setPrevSelectedFolder] = useState(selectedFolder);
+  if (isOpen && selectedFolder && selectedFolder !== prevSelectedFolder) {
+    setFolderName(selectedFolder.name);
+  }
+  if (selectedFolder !== prevSelectedFolder) {
+    setPrevSelectedFolder(selectedFolder);
+  }
 
   if (!isOpen) return null;
 
