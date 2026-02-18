@@ -146,8 +146,10 @@ function matchesPriceFilter(
  * ```
  */
 function matchesAmenitiesFilter(
-  _event: Event,
-  _amenitiesFilter: LocationEventFilterState["amenities"]
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  event: Event,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  amenitiesFilter: LocationEventFilterState["amenities"]
 ): boolean {
   // TODO: Backend API에서 편의사항 정보 제공 시 활성화
   // 현재는 필터 무시 (모든 이벤트 통과)

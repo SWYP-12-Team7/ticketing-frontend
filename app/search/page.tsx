@@ -77,14 +77,14 @@ function SearchContent() {
       setIsLoading(true);
       try {
         const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
+          appliedFilters.categories[0] || category || subcategory;
         const typeParam = appliedFilters.type || type;
         const { events: fetched, total, totalPages: pages } =
           await searchCurations({
             keyword: keyword || undefined,
             type: typeParam || undefined,
             category: selectedCategory || undefined,
-            page,
+            page: page - 1,
             size,
           });
         if (controller.signal.aborted) return;
@@ -123,7 +123,7 @@ function SearchContent() {
       setIsLoading(true);
       try {
         const selectedCategory =
-          appliedFilters.categories[0] || subcategory || category;
+          appliedFilters.categories[0] || category || subcategory;
         const typeParam = appliedFilters.type || type;
         const baseParams = {
           keyword: keyword || undefined,

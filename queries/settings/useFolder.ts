@@ -146,7 +146,8 @@ export function useCreateFolder() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (folderName: string) => createFolder(folderName),
+    mutationFn: (data: { name: string; color: string }) =>
+      createFolder(data),
     onSuccess: () => {
       // 폴더 목록 리프레시
       queryClient.invalidateQueries({ queryKey: ["folders"] });

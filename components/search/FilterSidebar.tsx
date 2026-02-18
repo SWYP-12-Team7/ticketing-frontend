@@ -10,6 +10,10 @@ interface FilterSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onApply?: (filters: FilterState) => void;
+  /** 열릴 때 펼칠 섹션: "region" | "category" | "popup" | "exhibition" | "date" */
+  defaultSection?: string;
+  /** 열릴 때 초기 필터 상태 */
+  initialFilters?: FilterState;
 }
 
 export interface FilterState {
@@ -33,13 +37,21 @@ const CATEGORY_TYPE_MAP: Record<keyof typeof CATEGORIES, "POPUP" | "EXHIBITION">
   전시: "EXHIBITION",
 };
 
-export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) {
+export function FilterSidebar({
+  isOpen,
+  onClose,
+  onApply,
+  defaultSection,
+  initialFilters,
+}: FilterSidebarProps) {
+  // React 공식 패턴: 렌더 중 상태 조정 (effect 없이 prop 변경 감지)
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     region: true,
     category: true,
     date: true,
   });
-
   const [filters, setFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -47,6 +59,24 @@ export function FilterSidebar({ isOpen, onClose, onApply }: FilterSidebarProps) 
     startDate: null,
     endDate: null,
   });
+
+  if (isOpen && !prevIsOpen) {
+    if (defaultSection) {
+      const isCat = ["category", "popup", "exhibition"]
+        .includes(defaultSection);
+      setExpandedSections({
+        region: defaultSection === "region",
+        category: isCat,
+        date: defaultSection === "date",
+      });
+    }
+    if (initialFilters) {
+      setFilters(initialFilters);
+    }
+  }
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+  }
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));

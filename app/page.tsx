@@ -50,9 +50,9 @@ export default function Home() {
       <div>
         {/* 필터 + 행사일정 + 랭킹 */}
         <div className="flex flex-col gap-6 py-6 md:flex-row">
-          <FilterSection className="w-full md:basis-[28.2%]" />
-          <EventSchedule className="w-full md:basis-[35.9%]" />
-          <Ranking className="w-full md:basis-[35.9%]" />
+          <FilterSection className="w-full md:w-[352px] md:shrink-0" />
+          <EventSchedule className="w-full md:w-[448px] md:shrink-0" />
+          <Ranking className="w-full md:w-[448px] md:shrink-0" />
         </div>
 
         {/* 닉네임 + PICK */}

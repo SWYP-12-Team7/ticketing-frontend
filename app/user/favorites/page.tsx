@@ -16,6 +16,9 @@ import { RequireAuth } from "@/components/auth";
 
 import { FolderList } from "@/components/favorites/FolderList";
 import { MoveFolderModal } from "@/components/favorites/MoveFolderModal";
+import { EditFolderModal } from "@/components/favorites/EditFolderModal";
+import { DeleteFolderModal } from "@/components/favorites/DeleteFolderModal";
+import { useFolders } from "@/queries/settings/useFolder";
 
 const DEFAULT_PAGE_SIZE = 10;
 const FilterSidebar = dynamic(
@@ -54,6 +57,8 @@ function FavoriteContent() {
   const selectedIdsRef = useRef(selectedFavoriteIds);
   selectedIdsRef.current = selectedFavoriteIds;
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
+  const [isDeleteFolderModalOpen, setIsDeleteFolderModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     type: "",
     regions: [],
@@ -147,7 +152,29 @@ function FavoriteContent() {
   const { mutate: addToFavorites } = useAddFavorite();
   const { mutate: moveToFolder } = useMoveFavoriteToFolder();
   const likedIds = useLikedIds();
+  const { data: folders = [] } = useFolders();
   const events = useMemo(() => favorites.map(mapFavoriteToEvent), [favorites]);
+
+  // folderId → { name, color } 매핑
+  const folderMap = useMemo(() => {
+    const map = new Map<number, { name: string; color: string }>();
+    folders.forEach((folder) => {
+      map.set(folder.id, {
+        name: folder.name,
+        color: folder.color,
+      });
+    });
+    return map;
+  }, [folders]);
+
+  // curationId(string) → folderId 매핑
+  const curationToFolderId = useMemo(() => {
+    const map = new Map<string, number | null>();
+    for (const item of favorites) {
+      map.set(String(item.curationId), item.folderId);
+    }
+    return map;
+  }, [favorites]);
 
   const handleLikeClick = useCallback((id: string) => {
     const event = events.find((e) => e.id === id);
@@ -270,7 +297,11 @@ function FavoriteContent() {
         {activeTab === "favorites" ? (
           <>
             {/* 내 폴더 섹션 */}
-            <FolderList onEditClick={() => setIsEditMode(true)} />
+            <FolderList
+              onMoveFavorites={() => setIsEditMode(true)}
+              onEditFolder={() => setIsEditFolderModalOpen(true)}
+              onDeleteFolder={() => setIsDeleteFolderModalOpen(true)}
+            />
 
             <div className="mb-6 mt-12 flex items-center w-[1280px] justify-between">
               <div className="flex items-baseline gap-1">
@@ -317,18 +348,30 @@ function FavoriteContent() {
                 <EmptyState message="찜한 행사가 없습니다" />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              <div className="flex flex-wrap gap-6">
                 {pagedEvents.map((event) => {
                   const favoriteId = curationToFavoriteId.get(event.id);
                   const isSelected = favoriteId !== undefined && selectedFavoriteIds.has(favoriteId);
+                  const folderId = curationToFolderId.get(event.id);
+                  const folder = folderId != null ? folderMap.get(folderId) : null;
                   return (
-                    <div key={event.id} className="relative w-full">
+                    <div key={event.id} className="relative">
                       <EventCard
                         event={{ ...event, isLiked: likedIds.has(event.id) }}
                         showMeta={false}
-                        className="w-full"
                         onLikeClick={isEditMode ? undefined : handleLikeClick}
                       />
+                      {folder && (
+                        <div className="absolute left-[10px] top-[10px] z-20 flex items-center gap-1.5 rounded-full border border-[#D3D5DC] px-3 py-1 bg-white ">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: folder.color }}
+                          />
+                          <span className="text-xs font-medium text-gray-700">
+                            {folder.name}
+                          </span>
+                        </div>
+                      )}
                       {isEditMode && (
                         <div
                           className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center rounded-xl bg-[#00000099]"
@@ -446,6 +489,16 @@ function FavoriteContent() {
         onClose={() => setIsMoveModalOpen(false)}
         selectedCount={selectedFavoriteIds.size}
         onMove={handleMoveFolder}
+      />
+
+      <EditFolderModal
+        isOpen={isEditFolderModalOpen}
+        onClose={() => setIsEditFolderModalOpen(false)}
+      />
+
+      <DeleteFolderModal
+        isOpen={isDeleteFolderModalOpen}
+        onClose={() => setIsDeleteFolderModalOpen(false)}
       />
     </main>
   );

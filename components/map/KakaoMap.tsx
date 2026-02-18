@@ -23,6 +23,8 @@ interface KakaoMapProps {
   center?: { lat: number; lng: number };
   level?: number;
   maxLevel?: number;
+  controlledCenter?: { lat: number; lng: number };
+  controlledLevel?: number;
   locations?: Location[];
   lockView?: boolean;
   onMarkerClick?: (location: Location) => void;
@@ -38,6 +40,8 @@ export function KakaoMap({
   center: initialCenter = { lat: 37.5665, lng: 126.978 },
   level: initialLevel = 5,
   maxLevel = 12,
+  controlledCenter,
+  controlledLevel,
   locations = [],
   lockView = false,
   onMarkerClick,
@@ -121,6 +125,20 @@ export function KakaoMap({
     });
     return () => cancelAnimationFrame(rafId);
   }, [locations.length]);
+
+  // React 공식 패턴: 렌더 중 상태 조정 (effect 없이 prop 동기화)
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (controlledCenter) {
+    const isSameCenter =
+      controlledCenter.lat === center.lat &&
+      controlledCenter.lng === center.lng;
+    if (!isSameCenter) {
+      setCenter(controlledCenter);
+    }
+  }
+  if (typeof controlledLevel === "number" && controlledLevel !== level) {
+    setLevel(controlledLevel);
+  }
 
   const handleMyLocation = () => {
     if (!navigator.geolocation) {

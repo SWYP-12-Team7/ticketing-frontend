@@ -4,6 +4,15 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useCreateFolder } from "@/queries/settings/useFolder";
 
+const FOLDER_COLORS = [
+  "#F97316",
+  "#10B981",
+  "#8B5CF6",
+  "#3B82F6",
+  "#F43F5E",
+  "#6366F1",
+];
+
 interface CreateFolderModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,6 +20,7 @@ interface CreateFolderModalProps {
 
 export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
   const [folderName, setFolderName] = useState("");
+  const [selectedColor, setSelectedColor] = useState(FOLDER_COLORS[0]);
   const { mutate: createFolder, isPending } = useCreateFolder();
 
   if (!isOpen) return null;
@@ -26,9 +36,10 @@ export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
 
     if (!normalizedName) return;
 
-    createFolder(normalizedName, {
+    createFolder({ name: normalizedName, color: selectedColor }, {
       onSuccess: () => {
         setFolderName("");
+        setSelectedColor(FOLDER_COLORS[0]);
         onClose();
       },
     });
@@ -37,11 +48,13 @@ export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
   const handleClose = () => {
     if (isPending) return;
     setFolderName("");
+    setSelectedColor(FOLDER_COLORS[0]);
     onClose();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && isButtonEnabled) {
+      e.preventDefault();
       handleCreate();
     }
   };
@@ -87,6 +100,29 @@ export function CreateFolderModal({ isOpen, onClose }: CreateFolderModalProps) {
             autoFocus
             className="h-12 w-full rounded border border-[#D3D5DC] px-4 text-base font-medium text-basic placeholder:text-[#A6ABB7] focus:border-[#F36012] focus:outline-none"
           />
+        </div>
+
+        {/* 색상 선택 */}
+        <div className="flex w-full flex-col">
+          <label className="mb-2 text-[14px] font-semibold leading-[180%] text-[#6C7180]">
+            폴더 색상
+          </label>
+          <div className="flex items-center gap-3">
+            {FOLDER_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setSelectedColor(color)}
+                className={`h-9 w-9 rounded-full transition-all ${
+                  selectedColor === color
+                    ? "ring-2 ring-offset-2 ring-gray-400 scale-110"
+                    : "hover:scale-105"
+                }`}
+                style={{ backgroundColor: color }}
+                aria-label={`색상 ${color}`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* 버튼 */}

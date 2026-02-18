@@ -1,19 +1,34 @@
-import { cn } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+import { useAuthStore } from "@/store/auth";
 
 interface AdBannerProps {
   className?: string;
 }
 
 export function AdBanner({ className }: AdBannerProps) {
+  const { isAuthenticated } = useAuthStore();
+
+  const banner = (
+    <div className="overflow-hidden rounded-lg">
+      <Image
+        src="/images/mainBanner.png"
+        alt="배너"
+        width={1280}
+        height={140}
+        className="h-auto w-full object-cover"
+        priority
+      />
+    </div>
+  );
+
   return (
     <section className={className}>
-      <div
-        className={cn(
-          "flex h-35 items-center justify-center rounded-lg bg-[#767676] "
-        )}
-      >
-        <span className="text-2xl font-semibold  text-[#000000]">배너</span>
-      </div>
+      {isAuthenticated ? (
+        banner
+      ) : (
+        <Link href="/auth/login">{banner}</Link>
+      )}
     </section>
   );
 }

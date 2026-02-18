@@ -159,9 +159,11 @@ export interface UpdateFolderNameParams {
 export interface Folder {
   id: number;
   name: string;
+  color: string;           // HEX 색상 코드
   totalCount: number;      // 총 찜 개수
   popupCount: number;      // 팝업 개수
   exhibitionCount: number; // 전시 개수
+  thumbnails: string[];    // 썸네일 URL 목록
 }
 
 /**

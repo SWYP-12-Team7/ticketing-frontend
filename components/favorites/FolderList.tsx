@@ -11,14 +11,24 @@ import { CreateFolderModal } from "./CreateFolderModal";
 import "swiper/css";
 import "swiper/css/free-mode";
 
-const FOLDER_COLORS = ["orange", "emerald", "violet", "blue", "rose", "indigo"];
+const HEX_TO_COLOR_NAME: Record<string, string> = {
+    "#F97316": "orange",
+    "#10B981": "emerald",
+    "#8B5CF6": "violet",
+    "#3B82F6": "blue",
+    "#F43F5E": "rose",
+    "#6366F1": "indigo",
+};
 
 interface FolderListProps {
-    onEditClick?: () => void;
+    onMoveFavorites?: () => void;
+    onEditFolder?: () => void;
+    onDeleteFolder?: () => void;
 }
 
-export function FolderList({ onEditClick }: FolderListProps) {
+export function FolderList({ onMoveFavorites, onEditFolder, onDeleteFolder }: FolderListProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { data: folders = [] } = useFolders();
 
     return (
@@ -27,13 +37,49 @@ export function FolderList({ onEditClick }: FolderListProps) {
                 <h2 className="flex items-center gap-2 text-2xl font-semibold #000">
                     내 폴더 <span className="text-orange">{folders.length}</span>
                 </h2>
-                <button
-                    onClick={onEditClick}
-                    className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600"
-                >
-                    폴더 편집하기
-                    <ChevronRight size={16} />
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setIsMenuOpen((prev) => !prev)}
+                        className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600"
+                    >
+                        폴더 편집하기
+                        <ChevronRight size={16} />
+                    </button>
+                    {isMenuOpen && (
+                        <div className="absolute right-0 top-full z-30 mt-2 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    onEditFolder?.();
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                                폴더 수정
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    onDeleteFolder?.();
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                                폴더 삭제
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    onMoveFavorites?.();
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                                찜한 행사 이동
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="w-full overflow-hidden" style={{ overscrollBehavior: 'contain' }}>
@@ -55,14 +101,15 @@ export function FolderList({ onEditClick }: FolderListProps) {
                     grabCursor={true}
                     className="w-full pb-6!"
                 >
-                    {folders.map((folder, index) => (
+                    {folders.map((folder) => (
                         <SwiperSlide key={folder.id} style={{ width: "auto" }}>
                             <div className="select-none">
                                 <FolderCard
                                     id={folder.id}
                                     name={folder.name}
                                     itemCount={folder.totalCount}
-                                    color={FOLDER_COLORS[index % FOLDER_COLORS.length]}
+                                    thumbnails={folder.thumbnails ?? []}
+                                    color={folder.color ? (HEX_TO_COLOR_NAME[folder.color.toUpperCase()] || folder.color) : "orange"}
                                 />
                             </div>
                         </SwiperSlide>

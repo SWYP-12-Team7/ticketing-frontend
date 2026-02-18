@@ -1,10 +1,19 @@
 "use client";
 
-import { Suspense, useState, useMemo } from "react";
+import { Suspense, useState, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CalendarView } from "@/components/calendarview/CalendarView";
 import { HotEventSection } from "@/components/calendarview/HotEventSection";
-import { KakaoMap, MapHoverCard, MapEventSection } from "@/components/map";
+import {
+  KakaoMap,
+  MapFilterBar,
+  MapHoverCard,
+  MapEventSection,
+} from "@/components/map";
+import {
+  FilterSidebar,
+  type FilterState,
+} from "@/components/search/FilterSidebar";
 import { useMapCurations } from "@/queries/map/useMapCurations";
 import type { Event } from "@/components/common";
 
@@ -23,12 +32,18 @@ interface MapViewContentProps {
   onVisibleIdsChange?: (ids: string[]) => void;
   onClusterIdsChange?: (ids: string[]) => void;
   locations: MapLocation[];
+  filterBar?: React.ReactNode;
+  searchCenter?: { lat: number; lng: number };
+  searchLevel?: number;
 }
 
 function MapViewContent({
   onVisibleIdsChange,
   onClusterIdsChange,
   locations,
+  filterBar,
+  searchCenter,
+  searchLevel,
 }: MapViewContentProps) {
   const router = useRouter();
   const [hoveredLocation, setHoveredLocation] = useState<MapLocation | null>(
@@ -72,8 +87,14 @@ function MapViewContent({
           onMarkerHover={handleMarkerHover}
           onClusterClick={onClusterIdsChange}
           onVisibleLocationIdsChange={onVisibleIdsChange}
+          controlledCenter={searchCenter}
+          controlledLevel={searchLevel}
+          showSearch={false}
           className="h-full w-full"
         />
+
+        {/* 필터 칩 바 */}
+        {filterBar}
 
         {/* 호버된 이벤트 카드 */}
         {hoveredLocation && (
@@ -86,21 +107,76 @@ function MapViewContent({
   );
 }
 
+const DEFAULT_FILTERS: FilterState = {
+  type: "",
+  regions: [],
+  categories: [],
+  startDate: null,
+  endDate: null,
+};
+
 function ViewContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "calendar";
   const regionParam = searchParams.get("region") || undefined;
-  const categoryParam = searchParams.get("category") || undefined;
-  const subCategoryParam = searchParams.get("subCategory") || undefined;
+  const categoryParam =
+    searchParams.get("category") || undefined;
+  const subCategoryParam =
+    searchParams.get("subCategory") || undefined;
   const periodParam = searchParams.get("period") || undefined;
-  const [visibleIds, setVisibleIds] = useState<string[] | null>(null);
-  const [clusterIds, setClusterIds] = useState<string[] | null>(null);
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [visibleIds, setVisibleIds] = useState<string[] | null>(
+    null
+  );
+  const [clusterIds, setClusterIds] = useState<string[] | null>(
+    null
+  );
+
+  // 필터 상태
+  const [filters, setFilters] = useState<FilterState>(
+    DEFAULT_FILTERS
+  );
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarSection, setSidebarSection] = useState("category");
+  const [searchTarget, setSearchTarget] = useState<{
+    lat: number;
+    lng: number;
+    label: string;
+  } | null>(null);
+  const [searchLevel, setSearchLevel] = useState<number | null>(null);
+
+  const openSidebar = useCallback((section: string) => {
+    setSidebarSection(section);
+    setSidebarOpen(true);
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+  }, []);
+
+  const handleApplyFilters = useCallback(
+    (next: FilterState) => {
+      setFilters(next);
+    },
+    []
+  );
+
+  const today = useMemo(
+    () => new Date().toISOString().slice(0, 10),
+    []
+  );
+
+  // FilterState → API 파라미터 변환
+  const apiRegion = filters.regions[0] || regionParam;
+  const apiCategory =
+    filters.type || categoryParam || undefined;
+  const apiSubCategory =
+    filters.categories[0] || subCategoryParam;
+
   const { data: mapCurations = [] } = useMapCurations({
     date: today,
-    region: regionParam,
-    category: categoryParam,
-    subCategory: subCategoryParam,
+    region: apiRegion,
+    category: apiCategory,
+    subCategory: apiSubCategory,
     period: periodParam,
   });
 
@@ -109,12 +185,10 @@ function ViewContent() {
       mapCurations
         .filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude))
         .map((item) => {
-          const categoryLabel =
-            item.category?.[0] ?? (item.type === "EXHIBITION" ? "전시" : "팝업");
           const event: Event = {
             id: String(item.id),
             title: item.title,
-            category: categoryLabel,
+            category: item.type === "EXHIBITION" ? "전시" : "팝업",
             type: item.type,
             period: item.dateText ?? "",
             imageUrl: item.thumbnail || "/images/mockImg.png",
@@ -173,6 +247,30 @@ function ViewContent() {
             onVisibleIdsChange={handleVisibleIdsChange}
             onClusterIdsChange={handleClusterIdsChange}
             locations={mapLocations}
+            searchCenter={
+              searchTarget
+                ? { lat: searchTarget.lat, lng: searchTarget.lng }
+                : undefined
+            }
+            searchLevel={searchLevel ?? undefined}
+            filterBar={
+              <MapFilterBar
+                filters={filters}
+                onChipClick={openSidebar}
+                onReset={resetFilters}
+                onSearchSelect={(payload) => {
+                  setSearchTarget(payload);
+                  setSearchLevel(3);
+                }}
+              />
+            }
+          />
+          <FilterSidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            onApply={handleApplyFilters}
+            defaultSection={sidebarSection}
+            initialFilters={filters}
           />
         </Suspense>
       ) : (

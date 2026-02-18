@@ -28,10 +28,12 @@ export function FolderCard({
         indigo: { bg: "bg-indigo-500", lightBg: "bg-indigo-50", text: "text-indigo-900" },
     };
 
-    const selectedColor = colorMap[color] || colorMap.orange;
+    const isHex = color.startsWith("#");
+    const selectedColor = isHex ? null : (colorMap[color] || colorMap.orange);
+    const lightBgStyle = isHex ? { backgroundColor: `${color}1A` } : undefined;
 
     // 공통 스타일: 380x300, radius-xl (approx 20px? Tailwind 'rounded-[20px]' for exactness)
-    const cardClasses = `group relative h-[300px] w-[380px] shrink-0 cursor-pointer overflow-hidden rounded-[20px] ${selectedColor.lightBg} transition-transform hover:scale-[1.02]`;
+    const cardClasses = `group relative h-[300px] w-[380px] shrink-0 cursor-pointer overflow-hidden rounded-[20px] ${selectedColor ? selectedColor.lightBg : ""} transition-transform hover:scale-[1.02]`;
 
     // Info Section: 380x124, rounded-[20px] on top? Or just bottom? usually cards have bottom rounded.
     // The user said "text section is 380x124 radius 20px". 
@@ -40,7 +42,10 @@ export function FolderCard({
     // "이부분도 이 아래부분이 사진을 살짝 덮어야 해요" -> Overlapping.
     // So the info section should be z-index higher than images.
     const infoSection = (
-        <div className={`absolute bottom-0 z-20 h-[124px] w-full rounded-[20px] px-6 py-5 ${selectedColor.bg}`}>
+        <div
+            className={`absolute bottom-0 z-20 h-[124px] w-full rounded-[20px] px-6 py-5 ${selectedColor ? selectedColor.bg : ""}`}
+            style={isHex ? { backgroundColor: color } : undefined}
+        >
             <div className="flex h-full flex-col justify-between">
                 <div>
                     <h3 className="text-2xl font-bold text-white leading-tight">{name}</h3>
@@ -63,7 +68,7 @@ export function FolderCard({
     // Adjust sizing to look like the reference (which I can't see but can infer: overlapping collage).
     if (itemCount >= 3) {
         return (
-            <div className={cardClasses} onClick={onClick}>
+            <div className={cardClasses} style={lightBgStyle} onClick={onClick}>
                 <div className="relative h-full w-full">
                     {/* 왼쪽 (Back) */}
                     <div className="absolute left-8 top-12 h-[160px] w-[120px] -rotate-12 overflow-hidden rounded-xl shadow-md opacity-90">
@@ -96,7 +101,7 @@ export function FolderCard({
     // No borders.
     if (itemCount === 2) {
         return (
-            <div className={cardClasses} onClick={onClick}>
+            <div className={cardClasses} style={lightBgStyle} onClick={onClick}>
                 <div className="relative h-full w-full">
                     {/* 왼쪽 (Back) */}
                     <div className="absolute left-14 top-10 h-[160px] w-[130px] -rotate-6 overflow-hidden rounded-xl shadow-md opacity-90">
@@ -124,7 +129,7 @@ export function FolderCard({
     // "1개일때는 가운데만"
     if (itemCount === 1) {
         return (
-            <div className={cardClasses} onClick={onClick}>
+            <div className={cardClasses} style={lightBgStyle} onClick={onClick}>
                 <div className="relative h-full w-full">
                     <div className="absolute left-1/2 top-8 h-[180px] w-[150px] -translate-x-1/2 overflow-hidden rounded-xl shadow-lg">
                         {thumbnails[0] ? (
@@ -139,7 +144,7 @@ export function FolderCard({
 
     // Fallback (0 or unexpected?)
     return (
-        <div className={cardClasses} onClick={onClick}>
+        <div className={cardClasses} style={lightBgStyle} onClick={onClick}>
             <div className="relative h-full w-full flex items-center justify-center text-gray-400">
                 {/* No items */}
             </div>
