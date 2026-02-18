@@ -6,12 +6,14 @@ import { type ReactNode, useMemo, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { OverlayEventCard } from "@/components/common";
+import { PickCard } from "@/components/common/PickCard";
 import { EmptyState } from "@/components/common/404/EmptyState";
 import { useAddFavorite } from "@/queries/settings/useUserTaste";
 import { useLikedIds } from "@/queries/favorite";
 import { useAuthStore } from "@/store/auth";
 import Link from "next/link";
 import type { Event } from "@/types/event";
+import type { MainCuration } from "@/types/main";
 import type { EventType } from "@/types/user";
 
 import "swiper/css";
@@ -23,6 +25,7 @@ interface ShowPickProps {
   subtitleType?: "orange" | "gray";
   useNickname?: boolean;
   events?: Event[];
+  curations?: MainCuration[];
 }
 
 // 임시 목데이터
@@ -186,6 +189,7 @@ export function ShowPick({
   subtitleType = "gray",
   useNickname = false,
   events,
+  curations,
 }: ShowPickProps) {
   const swiperRef = useRef<SwiperType | null>(null);
   const { isAuthenticated } = useAuthStore();
@@ -216,6 +220,14 @@ export function ShowPick({
     addToFavorites({ curationId: Number(id), curationType });
   };
 
+  const handleCurationLikeClick = (id: number) => {
+    const curation = curations?.find((c) => c.id === id);
+    if (!curation) return;
+    addToFavorites({ curationId: id, curationType: curation.type as EventType });
+  };
+
+  const useCurationCards = !!curations && curations.length > 0 && !requiresLogin;
+
   const handlePrev = () => {
     swiperRef.current?.slidePrev();
   };
@@ -224,19 +236,16 @@ export function ShowPick({
     swiperRef.current?.slideNext();
   };
 
-  if (!displayEvents || displayEvents.length === 0) {
+  if ((!useCurationCards && (!displayEvents || displayEvents.length === 0)) || (useCurationCards && curations.length === 0)) {
     return (
       <section className={cn("", className)}>
         <div className="mb-[24px]">
           {subtitle && (
-            <p className={cn(
-              "mb-1 text-[14px] font-normal leading-[180%]",
-              subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
-            )}>
+            <p className="mb-1 text-[14px] font-normal leading-[180%] text-orange">
               {subtitle}
             </p>
           )}
-          <h2 className="text-heading-large">{displayTitle}</h2>
+          <h2 className="text-heading-large text-[#202937]">{displayTitle}</h2>
         </div>
         <div className="h-[404px] rounded-xl border border-orange">
           <EmptyState message="등록된 행사가 없습니다" className="h-full" />
@@ -260,14 +269,11 @@ export function ShowPick({
           ) : (
             <>
               {subtitle && (
-                <p className={cn(
-                  "mb-1 text-[14px] font-normal leading-[180%]",
-                  subtitleType === "orange" ? "text-orange" : "text-[#6C7180]"
-                )}>
+                <p className="mb-1 text-[14px] font-normal leading-[180%] text-orange">
                   {subtitle}
                 </p>
               )}
-              <h2 className="text-heading-large">{displayTitle}</h2>
+              <h2 className="text-heading-large text-[#202937]">{displayTitle}</h2>
             </>
           )}
         </div>
@@ -300,11 +306,11 @@ export function ShowPick({
               swiperRef.current = swiper;
             }}
             slidesPerView="auto"
-            slidesPerGroup={4}
-            spaceBetween={24}
+            slidesPerGroup={useCurationCards ? 2 : 4}
+            spaceBetween={useCurationCards ? 16 : 24}
             loop
             speed={500}
-            breakpoints={{
+            breakpoints={useCurationCards ? undefined : {
               0: {
                 slidesPerGroup: 2,
               },
@@ -313,11 +319,21 @@ export function ShowPick({
               },
             }}
           >
-            {displayEvents.map((event) => (
-              <SwiperSlide key={event.id} style={{ width: "302px" }}>
-                <OverlayEventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
-              </SwiperSlide>
-            ))}
+            {useCurationCards
+              ? curations.map((curation) => (
+                  <SwiperSlide key={curation.id} style={{ width: "628px" }}>
+                    <PickCard
+                      curation={curation}
+                      isLiked={likedIds.has(String(curation.id))}
+                      onLikeClick={handleCurationLikeClick}
+                    />
+                  </SwiperSlide>
+                ))
+              : displayEvents.map((event) => (
+                  <SwiperSlide key={event.id} style={{ width: "302px" }}>
+                    <OverlayEventCard event={{ ...event, isLiked: likedIds.has(event.id) }} onLikeClick={handleLikeClick} />
+                  </SwiperSlide>
+                ))}
           </Swiper>
         </div>
 
