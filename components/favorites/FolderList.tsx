@@ -11,7 +11,14 @@ import { CreateFolderModal } from "./CreateFolderModal";
 import "swiper/css";
 import "swiper/css/free-mode";
 
-const FOLDER_COLORS = ["orange", "emerald", "violet", "blue", "rose", "indigo"];
+const HEX_TO_COLOR_NAME: Record<string, string> = {
+    "#F97316": "orange",
+    "#10B981": "emerald",
+    "#8B5CF6": "violet",
+    "#3B82F6": "blue",
+    "#F43F5E": "rose",
+    "#6366F1": "indigo",
+};
 
 interface FolderListProps {
     onEditClick?: () => void;
@@ -55,14 +62,14 @@ export function FolderList({ onEditClick }: FolderListProps) {
                     grabCursor={true}
                     className="w-full pb-6!"
                 >
-                    {folders.map((folder, index) => (
+                    {folders.map((folder) => (
                         <SwiperSlide key={folder.id} style={{ width: "auto" }}>
                             <div className="select-none">
                                 <FolderCard
                                     id={folder.id}
                                     name={folder.name}
                                     itemCount={folder.totalCount}
-                                    color={FOLDER_COLORS[index % FOLDER_COLORS.length]}
+                                    color={folder.color ? (HEX_TO_COLOR_NAME[folder.color.toUpperCase()] || folder.color) : "orange"}
                                 />
                             </div>
                         </SwiperSlide>

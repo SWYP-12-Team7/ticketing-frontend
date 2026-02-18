@@ -510,37 +510,30 @@ export async function getFolders(): Promise<FoldersResponse> {
 
 /**
  * 11. 폴더 생성
- * 
+ *
  * @description
  * - API: POST /users/me/folders
- * - Request Body: 단순 문자열 (폴더 이름)
+ * - Request Body: { name: string, color: string } (JSON 객체)
  * - Response: 생성된 폴더 정보 (단일 Folder 객체)
  * - Authorization 헤더는 axiosInstance에서 자동 추가
- * 
- * @param folderName - 생성할 폴더 이름
- * @returns 생성된 폴더 정보 (id, name, totalCount, popupCount, exhibitionCount)
- * 
+ *
+ * @param data - 생성할 폴더 정보 (name, color HEX 코드)
+ * @returns 생성된 폴더 정보
+ *
  * @throws {Error} 403 Forbidden - 인증 실패
  * @throws {Error} API 호출 실패 시
- * 
+ *
  * @example
- * const folder = await createFolder("내가 좋아하는 전시");
+ * const folder = await createFolder({ name: "내가 좋아하는 전시", color: "#F97316" });
  * console.log(folder.id); // 23
  * console.log(folder.name); // "내가 좋아하는 전시"
- * console.log(folder.totalCount); // 0 (새로 생성된 폴더)
  */
-export async function createFolder(folderName: string): Promise<Folder> {
-  // ⚠️ 중요: Request Body가 단순 문자열이므로 JSON.stringify 사용
-  // updateNickname(), updateFolderName()과 동일한 패턴
-  // ⚠️ 주의: Query parameter 보내지 않음 (Swagger 버그)
+export async function createFolder(
+  data: { name: string; color: string }
+): Promise<Folder> {
   const response = await axiosInstance.post<Folder>(
     "/users/me/folders",
-    JSON.stringify(folderName),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+    data
   );
   return response.data;
 }
