@@ -33,6 +33,8 @@ interface MapViewContentProps {
   onClusterIdsChange?: (ids: string[]) => void;
   locations: MapLocation[];
   filterBar?: React.ReactNode;
+  searchCenter?: { lat: number; lng: number };
+  searchLevel?: number;
 }
 
 function MapViewContent({
@@ -40,6 +42,8 @@ function MapViewContent({
   onClusterIdsChange,
   locations,
   filterBar,
+  searchCenter,
+  searchLevel,
 }: MapViewContentProps) {
   const router = useRouter();
   const [hoveredLocation, setHoveredLocation] = useState<MapLocation | null>(
@@ -83,6 +87,9 @@ function MapViewContent({
           onMarkerHover={handleMarkerHover}
           onClusterClick={onClusterIdsChange}
           onVisibleLocationIdsChange={onVisibleIdsChange}
+          controlledCenter={searchCenter}
+          controlledLevel={searchLevel}
+          showSearch={false}
           className="h-full w-full"
         />
 
@@ -130,6 +137,12 @@ function ViewContent() {
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSection, setSidebarSection] = useState("category");
+  const [searchTarget, setSearchTarget] = useState<{
+    lat: number;
+    lng: number;
+    label: string;
+  } | null>(null);
+  const [searchLevel, setSearchLevel] = useState<number | null>(null);
 
   const openSidebar = useCallback((section: string) => {
     setSidebarSection(section);
@@ -234,11 +247,21 @@ function ViewContent() {
             onVisibleIdsChange={handleVisibleIdsChange}
             onClusterIdsChange={handleClusterIdsChange}
             locations={mapLocations}
+            searchCenter={
+              searchTarget
+                ? { lat: searchTarget.lat, lng: searchTarget.lng }
+                : undefined
+            }
+            searchLevel={searchLevel ?? undefined}
             filterBar={
               <MapFilterBar
                 filters={filters}
                 onChipClick={openSidebar}
                 onReset={resetFilters}
+                onSearchSelect={(payload) => {
+                  setSearchTarget(payload);
+                  setSearchLevel(3);
+                }}
               />
             }
           />

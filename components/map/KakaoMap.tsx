@@ -23,6 +23,8 @@ interface KakaoMapProps {
   center?: { lat: number; lng: number };
   level?: number;
   maxLevel?: number;
+  controlledCenter?: { lat: number; lng: number };
+  controlledLevel?: number;
   locations?: Location[];
   lockView?: boolean;
   onMarkerClick?: (location: Location) => void;
@@ -38,6 +40,8 @@ export function KakaoMap({
   center: initialCenter = { lat: 37.5665, lng: 126.978 },
   level: initialLevel = 5,
   maxLevel = 12,
+  controlledCenter,
+  controlledLevel,
   locations = [],
   lockView = false,
   onMarkerClick,
@@ -121,6 +125,23 @@ export function KakaoMap({
     });
     return () => cancelAnimationFrame(rafId);
   }, [locations.length]);
+
+  useEffect(() => {
+    if (controlledCenter) {
+      const isSameCenter =
+        controlledCenter.lat === center.lat &&
+        controlledCenter.lng === center.lng;
+      if (!isSameCenter) {
+        setCenter(controlledCenter);
+      }
+    }
+  }, [controlledCenter, center.lat, center.lng]);
+
+  useEffect(() => {
+    if (typeof controlledLevel === "number" && controlledLevel !== level) {
+      setLevel(controlledLevel);
+    }
+  }, [controlledLevel, level]);
 
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
