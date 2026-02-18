@@ -10,6 +10,7 @@ import {
 } from "@/components/home";
 import { MainDataLogger } from "@/components/home/MainDataLogger";
 import { UserPickSection } from "@/components/home/UserPickSection";
+import { FreePickSection } from "@/components/home/FreePickSection";
 import { useMainData } from "@/queries/main/useMainData";
 import type { MainCuration } from "@/types/main";
 import type { Event } from "@/types/event";
@@ -36,7 +37,6 @@ export default function Home() {
   const { data, isLoading } = useMainData();
 
   const upcomingEvents = data?.data.upcomingCurations.map(convertToEvent) ?? [];
-  const freeEvents = data?.data.freeCurations.map(convertToEvent) ?? [];
   const todayEvents = data?.data.todayOpenCurations.map(convertToEvent) ?? [];
 
   return (
@@ -57,12 +57,12 @@ export default function Home() {
 
         {/* 닉네임 + PICK */}
         <UserPickSection
-          className="mt-[100px] py-6"
+          className="mt-[100px] py-[80px]"
           curations={data?.data.userCurations}
         />
 
         {/* 오픈 예정 행사 */}
-        <div className="bg-[#F3F4F6] px-6 py-6">
+        <div className="mt-[100px] bg-[#F3F4F6] px-6 py-[80px]">
           <ShowPick
             title="이번 주 안에 끝나요!"
             subtitle="사전 예약하고 특별한 혜택이?"
@@ -71,24 +71,22 @@ export default function Home() {
         </div>
 
         {/* 광고 배너 */}
-        <AdBanner className="py-6" />
-
-        {/* Hot Deal */}
-        <ShowPick
-          className="py-6"
-          title="지갑 없이 즐기는 무료 행사에 참여하세요"
-          subtitle="부담 없이 가볍게 즐기는 문화 생활!"
-          events={freeEvents}
-        />
+        <AdBanner className="mt-[100px] py-[80px]" />
 
         {/* 전문가 PICK 섹션 */}
-        <div className="bg-[#F3F4F6] px-6 py-6">
+        <div className="mt-[100px] bg-[#F3F4F6] px-6 py-[80px]">
           <ShowPick
             title="따끈따끈! 방금 오픈한 행사를 만나보세요!"
             subtitle="누구보다 빠르게 새로운 행사를 경험하세요"
             events={todayEvents}
           />
         </div>
+
+        {/* 무료 행사 */}
+        <FreePickSection
+          className="mt-[100px] py-[80px]"
+          curations={data?.data.freeCurations}
+        />
       </div>
     </>
   );

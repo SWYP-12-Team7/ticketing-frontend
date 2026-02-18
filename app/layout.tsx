@@ -61,7 +61,7 @@ export default function RootLayout({
             <Header />
           </Suspense>
           <main className="mx-auto w-full max-w-[1440px] flex-1 px-[80px]">{children}</main>
-          <Footer />
+          <Footer className="mt-[100px]" />
         </Providers>
         <Toaster position="bottom-center" richColors duration={1000} />
       </body>
