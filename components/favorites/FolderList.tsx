@@ -69,6 +69,7 @@ export function FolderList({ onEditClick }: FolderListProps) {
                                     id={folder.id}
                                     name={folder.name}
                                     itemCount={folder.totalCount}
+                                    thumbnails={folder.thumbnails ?? []}
                                     color={folder.color ? (HEX_TO_COLOR_NAME[folder.color.toUpperCase()] || folder.color) : "orange"}
                                 />
                             </div>
