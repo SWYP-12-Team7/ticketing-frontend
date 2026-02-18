@@ -32,16 +32,24 @@ interface InputFieldProps {
  * - 접근성: aria-label, aria-invalid, aria-describedby
  * - 에러 상태 관리
  * - disabled/readOnly 상태 지원
+ * - placeholder는 선택적으로 제공 (기본값 없음)
  *
  * @example
  * ```tsx
+ * // DB 값만 표시 (placeholder 없음)
  * <InputField
  *   label="이름"
  *   value={name}
  *   onChange={setName}
- *   placeholder="입력해 주세요"
- *   helperText="도움말"
- *   error={error}
+ *   disabled
+ * />
+ * 
+ * // 수정 가능 필드 (placeholder 제공)
+ * <InputField
+ *   label="닉네임"
+ *   value={nickname}
+ *   onChange={setNickname}
+ *   placeholder="닉네임을 입력해주세요"
  * />
  * ```
  */
@@ -49,7 +57,7 @@ export function InputField({
   label,
   value,
   onChange,
-  placeholder = "입력해 주세요",
+  placeholder,
   helperText,
   disabled = false,
   readOnly = false,

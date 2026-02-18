@@ -9,8 +9,7 @@
  * - 인기순, 최신순, 마감임박순, 조회순 정렬
  */
 
-import React from "react";
-import { ChevronDown } from "lucide-react";
+import { type ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 import type { EventSortOption } from "@/types/event";
 
@@ -52,7 +51,7 @@ export function EventSortSelector({
   sortBy,
   onSortChange,
 }: EventSortSelectorProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
     onSortChange(e.target.value as EventSortOption);
   };
 

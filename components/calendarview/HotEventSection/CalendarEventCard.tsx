@@ -13,7 +13,7 @@
 
 "use client";
 
-import React from "react";
+import { type MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 import { Heart, Eye } from "lucide-react";
 import Image from "next/image";
@@ -71,7 +71,7 @@ export function CalendarEventCard({
   const tokens = TOKENS.eventCard;
 
   // 좋아요 클릭 핸들러
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const handleLikeClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onLikeClick?.(id);

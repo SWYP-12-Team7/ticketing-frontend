@@ -11,7 +11,6 @@
  * SubcategorySelector와 동일한 스타일 구조를 따름
  */
 
-import React from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarRegion } from "@/types/calendar";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
@@ -48,8 +47,6 @@ export function RegionSelector({
   selectedRegionId,
   onRegionChange,
 }: RegionSelectorProps) {
-  const _selectedRegion = regions.find((r) => r.id === selectedRegionId);
-
   return (
     <div
       className={cn(

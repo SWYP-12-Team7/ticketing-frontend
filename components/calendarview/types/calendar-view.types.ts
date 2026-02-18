@@ -9,7 +9,6 @@
 import type {
   IsoDate,
   CalendarCategory,
-  SelectedCalendarEvent,
 } from "@/types/calendar";
 import type { CalendarCategoryActiveMap } from "../utils/calendar.query-state";
 

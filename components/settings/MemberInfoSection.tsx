@@ -7,6 +7,7 @@ import { WithdrawalModal } from "./WithdrawalModal";
 import { useUserSettingsStore } from "@/store/user-settings";
 import { useAuthStore } from "@/store/auth";
 import { useAddressSearch } from "@/hooks";
+import { useNicknameValidation } from "@/hooks/useNicknameValidation";
 import { AlertCircle } from "lucide-react";
 
 /**
@@ -15,10 +16,13 @@ import { AlertCircle } from "lucide-react";
  * @description
  * - Figma 스펙 완전 반영
  * - 레이아웃:
- *   - 제목 "회원정보" + 수정 버튼 (같은 행, 우측 정렬)
+ *   - 제목 "회원정보" + 수정/완료 버튼 (같은 행, 우측 정렬)
  *   - 입력 필드 순서: 이름 → 이메일 → 닉네임 → 주소 → 상세주소
  *   - 모든 필드: 866px (full width)
- * - 수정 버튼 클릭 시 모든 변경사항 저장 (닉네임 + 주소 + 알림설정)
+ * - 편집 모드 토글:
+ *   - 기본 상태: '수정' 버튼, 닉네임/주소 편집 불가
+ *   - 수정 클릭: '완료' 버튼, 닉네임/주소 편집 가능
+ *   - 완료 클릭: 변경사항 저장 후 다시 기본 상태로 복귀
  * - 회원탈퇴 하단 우측 정렬
  *
  * @remarks
@@ -42,10 +46,22 @@ export function MemberInfoSection() {
     search: searchAddress,
   } = useAddressSearch();
 
+  // 닉네임 유효성 검증 훅
+  const { 
+    error: nicknameError, 
+    validate: validateNickname, 
+    clearError: clearNicknameError,
+    isChecking: isCheckingNickname
+  } = useNicknameValidation();
+
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   /**
    * 주소 검색 핸들러
+   * 
+   * @description
+   * 다음 우편번호 API를 통해 주소 검색 후 currentProfile 업데이트
    */
   const handleAddressSearch = async () => {
     const result = await searchAddress();
@@ -55,20 +71,48 @@ export function MemberInfoSection() {
   };
 
   /**
-   * 전체 프로필 저장 핸들러
+   * 수정/완료 버튼 토글 핸들러
    *
    * @description
-   * 모든 변경사항 저장 (닉네임 + 주소 + 알림설정)
+   * - 편집 모드 OFF → ON: 편집 가능 상태로 전환
+   * - 편집 모드 ON → OFF: FE 검증 → BE 저장 → 편집 불가 상태로 전환
+   * 
+   * @remarks
+   * - 인증되지 않은 사용자는 수정 불가
+   * - FE 검증 실패 시 저장 중단, 에러 메시지 표시
+   * - BE 저장 실패 시 편집 모드 유지하여 재시도 가능
    */
-  const handleSaveProfile = async () => {
+  const handleEditToggle = async () => {
     // 인증 상태 확인
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
       window.location.href = "/auth/login";
       return;
     }
 
-    await saveProfile();
+    // 편집 모드 ON → OFF (저장)
+    if (isEditing) {
+      // 1단계: FE 닉네임 유효성 검증
+      const isNicknameValid = await validateNickname(currentProfile.nickname);
+      if (!isNicknameValid) {
+        // 검증 실패 시 저장 중단, 에러 메시지는 닉네임 필드에 표시
+        return;
+      }
+      
+      // 2단계: FE 검증 통과 후 BE 저장
+      await saveProfile();
+      
+      // 3단계: 저장 성공 시에만 편집 모드 종료
+      const currentError = useUserSettingsStore.getState().error;
+      if (!currentError) {
+        setIsEditing(false);
+        clearNicknameError(); // 성공 시 검증 에러 초기화
+      }
+      // BE 에러가 있으면 편집 모드 유지 (재시도 가능)
+    } else {
+      // 편집 모드 OFF → ON
+      setIsEditing(true);
+      clearNicknameError(); // 편집 모드 진입 시 이전 에러 초기화
+    }
   };
 
   return (
@@ -94,40 +138,38 @@ export function MemberInfoSection() {
         </div>
       )}
 
-      {/* 섹션 제목 + 수정 버튼 - Figma: 866px, flex justify-between */}
+      {/* 섹션 제목 + 수정/완료 버튼 - Figma: 866px, flex justify-between */}
       <div className="flex w-[866px] items-center justify-between">
         <h2 className="text-2xl font-semibold leading-[128%] tracking-[-0.025em] text-basic">
           회원정보
         </h2>
-        {/* 수정 버튼 - Figma: 49×32px */}
+        {/* 수정/완료 토글 버튼 - Figma: 49×32px */}
         <button
           type="button"
-          onClick={handleSaveProfile}
-          disabled={isLoading || !isAuthenticated || !isInitialized}
-          aria-label="프로필 수정"
+          onClick={handleEditToggle}
+          disabled={isLoading || isCheckingNickname || !isAuthenticated || !isInitialized}
+          aria-label={isEditing ? "프로필 저장" : "프로필 수정"}
           className="flex h-8 w-[49px] shrink-0 items-center justify-center rounded border border-[#D3D5DC] bg-white px-3 text-sm font-normal leading-[140%] text-basic whitespace-nowrap transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isLoading ? "저장중..." : "수정"}
+          {isLoading || isCheckingNickname ? "저장중..." : isEditing ? "완료" : "수정"}
         </button>
       </div>
 
-      {/* 이름 - Figma 순서: 1, width: 866px */}
+      {/* 이름 - Figma 순서: 1, width: 866px, DB 값만 표시 (placeholder 없음) */}
       <InputField
         label="이름"
         value={isInitialized ? (currentProfile.name ?? "") : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ name: value })}
-        placeholder="입력해 주세요"
         disabled
         aria-label="이름 (변경 불가)"
         labelColor="tertiary"
       />
 
-      {/* 이메일 - Figma 순서: 2, width: 866px */}
+      {/* 이메일 - Figma 순서: 2, width: 866px, DB 값만 표시 (placeholder 없음) */}
       <InputField
         label="이메일"
         value={isInitialized ? (currentProfile.email ?? "") : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ email: value })}
-        placeholder="입력해 주세요"
         helperText="가까운 곳부터 추천해드려요"
         disabled
         aria-label="이메일 (변경 불가)"
@@ -138,10 +180,14 @@ export function MemberInfoSection() {
       <InputField
         label="닉네임"
         value={currentProfile.nickname ?? ""}
-        onChange={(value) => setCurrentProfile({ nickname: value })}
-        placeholder="입력해 주세요"
+        onChange={(value) => {
+          setCurrentProfile({ nickname: value });
+          clearNicknameError(); // 입력 시 검증 에러 초기화
+        }}
+        placeholder="닉네임을 입력해주세요"
+        error={nicknameError} // FE 검증 에러 표시
         aria-label="닉네임"
-        disabled={!isInitialized}
+        disabled={!isInitialized || !isEditing}
       />
 
       {/* 주소 wrapper - Figma 순서: 4, width: 866px */}
@@ -156,11 +202,11 @@ export function MemberInfoSection() {
             readOnly
             aria-label="주소 (검색 버튼 사용)"
             className="w-[786px]"
-            disabled={!isInitialized}
+            disabled={!isInitialized || !isEditing}
           />
           <AddressSearchButton
             onClick={handleAddressSearch}
-            disabled={isSearchingAddress || !isInitialized}
+            disabled={isSearchingAddress || !isInitialized || !isEditing}
           />
         </div>
 
@@ -168,9 +214,9 @@ export function MemberInfoSection() {
         <InputField
           value={currentProfile.detailAddress ?? ""}
           onChange={(value) => setCurrentProfile({ detailAddress: value })}
-          placeholder="상세주소를 입력해 주세요"
+          placeholder="상세주소를 입력해주세요"
           aria-label="상세주소"
-          disabled={!isInitialized}
+          disabled={!isInitialized || !isEditing}
         />
 
         {/* 상세주소 안내 메시지 - Figma: 항상 표시 */}
