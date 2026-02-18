@@ -109,12 +109,10 @@ function ViewContent() {
       mapCurations
         .filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude))
         .map((item) => {
-          const categoryLabel =
-            item.category?.[0] ?? (item.type === "EXHIBITION" ? "전시" : "팝업");
           const event: Event = {
             id: String(item.id),
             title: item.title,
-            category: categoryLabel,
+            category: item.type === "EXHIBITION" ? "전시" : "팝업",
             type: item.type,
             period: item.dateText ?? "",
             imageUrl: item.thumbnail || "/images/mockImg.png",
