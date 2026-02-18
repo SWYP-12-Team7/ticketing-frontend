@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { kakaoLogin } from "@/services/api/auth";
 import { useAuthStore } from "@/store/auth";
@@ -7,7 +6,6 @@ import { useUserSettingsStore } from "@/store/user-settings";
 import { toast } from "sonner";
 
 export function useKakaoLogin() {
-  const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const loadProfile = useUserSettingsStore((state) => state.loadProfile);
 
@@ -34,11 +32,11 @@ export function useKakaoLogin() {
         duration: 2000,
       });
       
-      if (data.user.onboardingCompleted) {
-        router.replace("/");
-      } else {
-        router.replace("/onboarding/step1");
-      }
+      const targetUrl = data.user.onboardingCompleted ? "/" : "/onboarding/step1";
+      
+      // 하드 리프레시로 ChunkLoadError 방지
+      // router.replace() 대신 window.location.href 사용
+      window.location.href = targetUrl;
     },
     onError: (error) => {
       const axiosError = error as AxiosError;
@@ -56,7 +54,8 @@ export function useKakaoLogin() {
         });
       }
       
-      router.replace("/auth/login");
+      // 하드 리프레시로 ChunkLoadError 방지
+      window.location.href = "/auth/login";
     },
   });
 }
