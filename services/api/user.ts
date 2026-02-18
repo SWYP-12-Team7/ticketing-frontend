@@ -18,20 +18,36 @@ import type {
  * 백엔드 User 객체 → 프론트엔드 UserProfile 변환
  * 
  * @description
- * - 백엔드 응답을 프론트엔드 타입으로 매핑
- * - detailAddress는 백엔드에 없으므로 빈 값
- * - notifications는 백엔드에 없으므로 기본값
+ * - 백엔드 응답(email, nickname, name, address)을 프론트엔드 타입으로 매핑
+ * - kakaoProfileImage: BE 응답에 없으므로 빈 문자열 (카카오 로그인 시 별도 처리 필요)
+ * - detailAddress: BE 미지원, LocalStorage에 저장
+ * - notifications: BE 미지원, LocalStorage에 저장
+ * 
+ * @param user - 백엔드 API 응답
+ * @returns 프론트엔드 UserProfile 객체
+ * 
+ * @example
+ * ```typescript
+ * const backendUser = { email: "user@example.com", nickname: "닉네임", name: "홍길동", address: "서울시" };
+ * const profile = mapBackendUserToProfile(backendUser);
+ * // profile.name === "홍길동"
+ * // profile.kakaoProfileImage === ""
+ * ```
  */
 function mapBackendUserToProfile(user: BackendUserResponse): UserProfile {
   return {
-    kakaoProfileImage: user.profileImage || "",
+    // BE 응답에서 직접 매핑
     name: user.name,
     email: user.email,
     nickname: user.nickname,
     address: user.address,
-    detailAddress: "", // 백엔드 미지원
+    
+    // BE 응답에 없는 필드들 (기본값)
+    kakaoProfileImage: "", // BE 미지원 - 카카오 로그인 시 Auth Store에서 관리
+    detailAddress: "", // BE 미지원 - LocalStorage 저장
+    
+    // 알림 설정 기본값 (BE 미지원 - LocalStorage 저장)
     notifications: {
-      // 기본값 (백엔드 미지원)
       allNews: true,
       popup: true,
       exhibition: true,
@@ -51,27 +67,28 @@ function mapBackendUserToProfile(user: BackendUserResponse): UserProfile {
  * 
  * @description
  * - API: PATCH /users/me/nickname
- * - Request Body: 단순 문자열 (JSON 객체 아님!)
+ * - Request Body: JSON 문자열 리터럴 "string" (JSON 객체 아님!)
+ * - BE는 Swagger 스펙대로 문자열 리터럴을 기대함
+ * - transformRequest로 Axios의 자동 stringify 우회 (double encoding 방지)
  * - Authorization 헤더는 axiosInstance에서 자동 추가
  * 
- * @param nickname - 변경할 닉네임
- * @returns void (200 OK만 반환)
+ * @param nickname - 변경할 닉네임 (2-7자, 한글/영문/숫자만)
+ * @returns void (200 OK)
  * 
- * @throws {Error} API 호출 실패 시
+ * @throws {Error} 400 - INVALID_NICKNAME: 닉네임 형식 오류 (2-7자 위반)
+ * @throws {Error} 401 - 인증 토큰 만료 (자동 갱신 시도)
+ * @throws {Error} 403 - 권한 없음 (재로그인 필요)
  * 
  * @example
  * await updateNickname("새로운닉네임");
+ * // 실제 전송: "새로운닉네임" (따옴표 포함 JSON 문자열)
  */
 export async function updateNickname(nickname: string): Promise<void> {
-  // ⚠️ 중요: Request Body가 단순 문자열이므로 JSON.stringify 사용
-  // { nickname: "..." } 형태가 아님!
   await axiosInstance.patch(
-    "/users/me/nickname", 
-    JSON.stringify(nickname),
+    "/users/me/nickname",
+    nickname,
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      transformRequest: [(data) => JSON.stringify(data)],
     }
   );
 }
@@ -427,8 +444,9 @@ export async function addFavorite(
  * 
  * @description
  * - API: PUT /users/me/folders/{folderId}
- * - Request Body: 단순 문자열 (JSON 객체 아님!)
- * - 닉네임 수정 API와 동일한 패턴
+ * - Request Body: JSON 문자열 리터럴 "string" (JSON 객체 아님!)
+ * - BE는 Swagger 스펙대로 문자열 리터럴을 기대함 (닉네임 수정과 동일 패턴)
+ * - transformRequest로 Axios의 자동 stringify 우회 (double encoding 방지)
  * - Authorization 헤더는 axiosInstance에서 자동 추가
  * 
  * @param folderId - 폴더 ID
@@ -441,20 +459,17 @@ export async function addFavorite(
  * 
  * @example
  * await updateFolderName(23, "내가 좋아하는 전시");
+ * // 실제 전송: "내가 좋아하는 전시" (따옴표 포함 JSON 문자열)
  */
 export async function updateFolderName(
   folderId: number,
   folderName: string
 ): Promise<void> {
-  // ⚠️ 중요: Request Body가 단순 문자열이므로 JSON.stringify 사용
-  // { folderName: "..." } 형태가 아님! (닉네임 수정과 동일 패턴)
   await axiosInstance.put(
     `/users/me/folders/${folderId}`,
-    JSON.stringify(folderName),
+    folderName,
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      transformRequest: [(data) => JSON.stringify(data)],
     }
   );
 }

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserTaste, addFavorite, getUserTimeline } from "@/services/api/user";
+import { useAuthStore } from "@/store/auth";
 import type { EventType } from "@/types/user";
 import type { FavoriteResponse } from "@/types/favorite";
 
@@ -23,9 +24,13 @@ import type { FavoriteResponse } from "@/types/favorite";
  * ```
  */
 export function useUserTaste() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+
   return useQuery({
     queryKey: ["userTaste"],
     queryFn: getUserTaste,
+    enabled: hasHydrated && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,   // 10분 (구 cacheTime)
   });
@@ -126,9 +131,13 @@ export function useAddFavorite() {
  * ```
  */
 export function useUserTimeline() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+
   return useQuery({
     queryKey: ["userTimeline"],
     queryFn: getUserTimeline,
+    enabled: hasHydrated && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,   // 10분
   });

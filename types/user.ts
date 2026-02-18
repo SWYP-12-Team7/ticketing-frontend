@@ -33,37 +33,27 @@ export interface UserMeta {
 
 /**
  * 백엔드 User 객체 (GET /users/me 응답)
+ * 
+ * @description
+ * - 실제 BE API 응답 스펙에 맞춘 타입
+ * - Response: { email, nickname, name, address }
+ * - profileImage, latitude, longitude 등은 응답에 포함되지 않음
+ * 
+ * @example
+ * ```json
+ * {
+ *   "email": "user@example.com",
+ *   "nickname": "닉네임",
+ *   "name": "홍길동",
+ *   "address": "서울시 강남구"
+ * }
+ * ```
  */
 export interface BackendUserResponse {
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  id: number;
   email: string;
   nickname: string;
-  profileImage: string;
-  socialAccounts: BackendSocialAccount[];
   name: string;
   address: string;
-  latitude: number;
-  longitude: number;
-  onboardingCompleted: boolean;
-  onboardingStep: number;
-  deleted: boolean;
-}
-
-/**
- * 백엔드 소셜 계정 정보
- */
-export interface BackendSocialAccount {
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  id: number;
-  user: string;
-  provider: "KAKAO";
-  providerId: string;
-  deleted: boolean;
 }
 
 /**
