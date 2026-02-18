@@ -354,12 +354,12 @@ function FavoriteContent() {
                         onLikeClick={isEditMode ? undefined : handleLikeClick}
                       />
                       {folder && (
-                        <div className="absolute left-[10px] top-[10px] z-20 flex items-center gap-1.5 rounded-full border border-white px-3 py-1">
+                        <div className="absolute left-[10px] top-[10px] z-20 flex items-center gap-1.5 rounded-full border border-[#D3D5DC] px-3 py-1 bg-white ">
                           <span
                             className="h-2.5 w-2.5 shrink-0 rounded-full"
                             style={{ backgroundColor: folder.color }}
                           />
-                          <span className="text-xs font-medium text-white">
+                          <span className="text-xs font-medium text-gray-700">
                             {folder.name}
                           </span>
                         </div>
