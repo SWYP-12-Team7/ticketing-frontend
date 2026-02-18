@@ -191,10 +191,10 @@ export function EventSchedule({ className }: EventScheduleProps) {
       )}
 
       {/* 하단 버튼 */}
-      <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-orange px-3 py-3 text-base font-medium leading-[140%] text-white">
+      {/* <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-orange px-3 py-3 text-base font-medium leading-[140%] text-white">
         타임라인 더보기
         <ChevronRight className="size-6" />
-      </button>
+      </button> */}
     </div>
   );
 }
