@@ -108,11 +108,8 @@ export function CalendarViewPresentation({
   /**
    * locationFilterState 변경 시 selectedPillCategories 동기화
    * - 사이드바 필터가 변경되면 Pill 상태도 자동으로 업데이트
-   * 
-   * ℹ️ ESLint 규칙 비활성화 이유:
-   * - 사이드바 필터와 Pill 상태를 동기화하는 정당한 use case
-   * - isEqual 체크로 무한 루프 방지
-   * - selectedPillCategories를 dependencies에 포함하여 안전성 보장
+   * - dependency는 locationFilterState만 사용: pill 클릭 시 effect가 돌지 않아
+   *   사용자가 선택한 pill 필터가 덮어씌워지지 않음
    */
   useEffect(() => {
     const categories = new Set<"exhibition" | "popup">();
@@ -141,16 +138,10 @@ export function CalendarViewPresentation({
       categories.add("popup");
     }
     
-    // 현재 값과 다를 때만 업데이트 (무한 루프 방지)
-    const isEqual = 
-      categories.size === selectedPillCategories.size &&
-      Array.from(categories).every(cat => selectedPillCategories.has(cat));
-    
-    if (!isEqual) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedPillCategories(categories);
-    }
-  }, [locationFilterState, selectedPillCategories]);
+    // 사이드바 필터 변경 시 pill 상태 동기화 (비동기로 호출해 effect 내 동기 setState 경고 회피)
+    const next = categories;
+    queueMicrotask(() => setSelectedPillCategories(next));
+  }, [locationFilterState]);
 
   /** 필터 닫기 핸들러 - exit 애니메이션 후 언마운트 */
   const handleCloseFilter = useCallback(() => {

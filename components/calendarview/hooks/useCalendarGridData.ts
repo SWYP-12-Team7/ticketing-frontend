@@ -15,7 +15,9 @@ import type {
   IsoDate,
   IsoMonth,
 } from "@/types/calendar";
+import type { CalendarEventFilterParams } from "@/types/calendar";
 import { useCalendarMonthSummary } from "@/queries/calendar/useCalendarMonthSummary";
+import { useCalendarMonthCountsWithSubcategory } from "@/queries/calendar/useCalendarMonthCountsWithSubcategory";
 
 /**
  * Fallback 지역 목록 (API 실패 시 사용)
@@ -61,6 +63,8 @@ interface UseCalendarGridDataParams {
   regionId: string;
   /** 선택된 카테고리 목록 */
   selectedCategories: readonly CalendarCategory[];
+  /** API 필터 파라미터 (서브카테고리 포함 시 날짜별 카운트에 반영) */
+  apiFilterParams?: CalendarEventFilterParams | null;
 }
 
 /**
@@ -101,13 +105,30 @@ export function useCalendarGridData({
   month,
   regionId,
   selectedCategories,
+  apiFilterParams,
 }: UseCalendarGridDataParams) {
   // ===== API 데이터 조회 =====
-  const { data, isLoading, isError, error } = useCalendarMonthSummary({
+  const { data, isLoading: isMonthSummaryLoading, isError, error } = useCalendarMonthSummary({
     month,
     regionId: regionId === "all" ? null : regionId,
     categories: selectedCategories,
   });
+
+  /** 서브카테고리 필터 적용 여부 (적용 시 날짜별 이벤트 API로 카운트 집계) */
+  const hasSubcategoryFilter =
+    !!apiFilterParams?.subcategories?.length &&
+    !apiFilterParams.subcategories.includes("all");
+
+  const {
+    countsByDate: countsByDateWithSubcategory,
+    isLoading: isSubcategoryCountsLoading,
+  } = useCalendarMonthCountsWithSubcategory(
+    {
+      month,
+      apiFilterParams: apiFilterParams ?? {},
+    },
+    { enabled: hasSubcategoryFilter }
+  );
 
   // ===== 월 정보 계산 =====
   const visibleMonthDate = useMemo(
@@ -126,11 +147,17 @@ export function useCalendarGridData({
     [visibleMonthDate]
   );
 
-  // ===== 날짜별 카운트 맵 =====
-  const countsByDate = useMemo(
-    () => buildCountsByDate(data?.days ?? []),
-    [data?.days]
-  );
+  // ===== 날짜별 카운트 맵 (서브카테고리 필터 시 집계 결과, 아니면 월별 요약) =====
+  const countsByDate = useMemo(() => {
+    if (hasSubcategoryFilter) {
+      return countsByDateWithSubcategory;
+    }
+    return buildCountsByDate(data?.days ?? []);
+  }, [hasSubcategoryFilter, countsByDateWithSubcategory, data?.days]);
+
+  const isLoading = hasSubcategoryFilter
+    ? isMonthSummaryLoading || isSubcategoryCountsLoading
+    : isMonthSummaryLoading;
 
   // ===== 지역 목록 =====
   const regions = useMemo(
