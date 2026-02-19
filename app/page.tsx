@@ -57,12 +57,12 @@ export default function Home() {
 
         {/* 닉네임 + PICK */}
         <UserPickSection
-          className="mt-[100px] py-[80px]"
+          className="py-6"
           curations={data?.data.userCurations}
         />
 
         {/* 오픈 예정 행사 */}
-        <div className="mt-[100px] bg-[#F3F4F6] px-6 py-[80px]">
+        <div className="-mx-[80px] bg-[#F3F4F6] px-[80px] py-6">
           <ShowPick
             title="이번 주 안에 끝나요!"
             subtitle="사전 예약하고 특별한 혜택이?"
@@ -71,10 +71,10 @@ export default function Home() {
         </div>
 
         {/* 광고 배너 */}
-        <AdBanner className="mt-[100px] py-[80px]" />
+        <AdBanner className="py-6" />
 
         {/* 전문가 PICK 섹션 */}
-        <div className="mt-[100px] bg-[#F3F4F6] px-6 py-[80px]">
+        <div className="-mx-[80px] bg-[#F3F4F6] px-[80px] py-6">
           <ShowPick
             title="따끈따끈! 방금 오픈한 행사를 만나보세요!"
             subtitle="누구보다 빠르게 새로운 행사를 경험하세요"
@@ -84,7 +84,7 @@ export default function Home() {
 
         {/* 무료 행사 */}
         <FreePickSection
-          className="mt-[100px] py-[80px]"
+          className="py-6"
           curations={data?.data.freeCurations}
         />
       </div>
