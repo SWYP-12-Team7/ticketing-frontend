@@ -39,7 +39,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, startTransition } from "react";
 import { X, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccordionSection } from "./AccordionSection";
@@ -87,7 +87,9 @@ export function LocationEventFilterSidebar({
   const prevIsOpenRef = useRef(false);
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
-      setLocalFilters(filterState);
+      startTransition(() => {
+        setLocalFilters(filterState);
+      });
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, filterState]);
