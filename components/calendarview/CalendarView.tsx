@@ -22,6 +22,7 @@ import {
   INITIAL_FILTER_STATE,
   type LocationEventFilterState,
 } from "@/components/common/LocationEventFilter";
+import { convertLocationFilterToAPIParams } from "@/utils/filterConverter";
 import type { CalendarCategory } from "@/types/calendar";
 
 /**
@@ -82,13 +83,17 @@ export function CalendarView({ selectedDate, onDateClick }: CalendarViewProps) {
     return categories;
   }, [locationFilterState]);
 
-  // 그리드 데이터 조회
-  // 필터바의 지역 및 카테고리 필터를 달력 pill에 반영
+  // 그리드 데이터 조회 (서브카테고리 필터 시 날짜별 카운트 반영)
+  const apiFilterParams = useMemo(
+    () => convertLocationFilterToAPIParams(locationFilterState),
+    [locationFilterState]
+  );
   const firstRegion = locationFilterState.regions[0];
   const gridData = useCalendarGridData({
     month: queryState.month,
     regionId: firstRegion === "all" ? "all" : firstRegion || "all",
     selectedCategories: selectedCategories,
+    apiFilterParams,
   });
 
   // Presentation 컴포넌트에 모든 데이터 전달

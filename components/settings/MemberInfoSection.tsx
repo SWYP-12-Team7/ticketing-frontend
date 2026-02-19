@@ -170,7 +170,7 @@ export function MemberInfoSection() {
         label="이메일"
         value={isInitialized ? (currentProfile.email ?? "") : "로딩 중..."}
         onChange={(value) => setCurrentProfile({ email: value })}
-        helperText="가까운 곳부터 추천해드려요"
+        helperText="카카오로 로그인 했어요"
         disabled
         aria-label="이메일 (변경 불가)"
         labelColor="tertiary"
@@ -185,6 +185,7 @@ export function MemberInfoSection() {
           clearNicknameError(); // 입력 시 검증 에러 초기화
         }}
         placeholder="닉네임을 입력해주세요"
+        helperText="최대 7자까지 사용할 수 있어요"
         error={nicknameError} // FE 검증 에러 표시
         aria-label="닉네임"
         disabled={!isInitialized || !isEditing}

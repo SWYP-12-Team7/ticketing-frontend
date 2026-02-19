@@ -10,7 +10,7 @@
  * - 접근성 (ARIA 속성, role, tabIndex)
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { isSameMonth, toIsoDateLocal } from "@/lib/calendar-date";
 import type { CalendarDayCellProps } from "../types";
 import { CALENDAR_DESIGN_TOKENS } from "../constants/calendar.design-tokens";
@@ -37,8 +37,13 @@ function CalendarDayCellComponent({
   const isSunday = day.getDay() === CALENDAR_LAYOUT.SUNDAY_INDEX;
 
   const isDateSelected = selectedDate === iso;
+  const [isHovered, setIsHovered] = useState(false);
+
   const showExhibition = inMonth && activeCategories.exhibition;
   const showPopup = inMonth && activeCategories.popup;
+
+  /** 호버 시 테두리 적용 (선택된 셀은 선택 스타일 유지) */
+  const useHoverStyle = inMonth && !isDateSelected && isHovered;
 
   // Pill 선택 상태 확인 (선택된 날짜이면서 해당 카테고리가 선택됨)
   const isExhibitionPillSelected =
@@ -103,15 +108,21 @@ function CalendarDayCellComponent({
           backgroundColor: isDateSelected
             ? CALENDAR_DESIGN_TOKENS.colors.cell.selected
             : CALENDAR_DESIGN_TOKENS.colors.cell.current,
-          borderWidth: isDateSelected
+          borderWidth: useHoverStyle
             ? CALENDAR_DESIGN_TOKENS.borders.cellSelected
-            : CALENDAR_DESIGN_TOKENS.borders.cellDefault,
+            : isDateSelected
+              ? CALENDAR_DESIGN_TOKENS.borders.cellSelected
+              : CALENDAR_DESIGN_TOKENS.borders.cellDefault,
           borderStyle: "solid",
-          borderColor: isDateSelected
-            ? CALENDAR_DESIGN_TOKENS.colors.border.selected
-            : CALENDAR_DESIGN_TOKENS.colors.border.default,
+          borderColor: useHoverStyle
+            ? CALENDAR_DESIGN_TOKENS.colors.border.cellHover
+            : isDateSelected
+              ? CALENDAR_DESIGN_TOKENS.colors.border.selected
+              : CALENDAR_DESIGN_TOKENS.colors.border.default,
           borderRadius: CALENDAR_DESIGN_TOKENS.borderRadius.cell,
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={() => {
           onDateClick?.(iso);
         }}

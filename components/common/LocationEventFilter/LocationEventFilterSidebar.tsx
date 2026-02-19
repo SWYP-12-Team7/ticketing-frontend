@@ -39,7 +39,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, startTransition } from "react";
 import { X, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccordionSection } from "./AccordionSection";
@@ -83,10 +83,16 @@ export function LocationEventFilterSidebar({
   const [localFilters, setLocalFilters] =
     useState<LocationEventFilterState>(filterState);
 
-  // filterState가 변경되면 로컬 상태 동기화
+  // 사이드바가 열릴 때만 부모 필터 상태를 로컬에 동기화 (열린 뒤 사용자가 바꾼 값이 덮어씌워지지 않도록)
+  const prevIsOpenRef = useRef(false);
   useEffect(() => {
-    setLocalFilters(filterState);
-  }, [filterState]);
+    if (isOpen && !prevIsOpenRef.current) {
+      startTransition(() => {
+        setLocalFilters(filterState);
+      });
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, filterState]);
 
   // Accordion 확장 상태
   const [expandedSections, setExpandedSections] = useState({
