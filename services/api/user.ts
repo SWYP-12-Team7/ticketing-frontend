@@ -84,13 +84,7 @@ function mapBackendUserToProfile(user: BackendUserResponse): UserProfile {
  * // 실제 전송: "새로운닉네임" (따옴표 포함 JSON 문자열)
  */
 export async function updateNickname(nickname: string): Promise<void> {
-  await axiosInstance.patch(
-    "/users/me/nickname",
-    nickname,
-    {
-      transformRequest: [(data) => JSON.stringify(data)],
-    }
-  );
+  await axiosInstance.patch("/users/me/nickname", { nickname });
 }
 
 /**
