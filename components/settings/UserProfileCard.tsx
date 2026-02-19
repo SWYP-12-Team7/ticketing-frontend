@@ -4,11 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import { User, Mail, Loader2 } from "lucide-react";
 import { useUserSettingsStore } from "@/store/user-settings";
+import { useAuthStore } from "@/store/auth";
 
 export function UserProfileCard() {
   // 저장된 프로필만 표시 (저장 버튼 클릭 시에만 업데이트)
   const savedProfile = useUserSettingsStore((state) => state.savedProfile);
   const isInitialized = useUserSettingsStore((state) => state.isInitialized);
+  const profileImage = useAuthStore((state) => state.user?.profileImage);
   const [imageError, setImageError] = useState(false);
 
   // 로딩 중일 때 스켈레톤 UI 표시
@@ -41,9 +43,9 @@ export function UserProfileCard() {
         {/* 프로필 이미지 */}
         <div className="flex h-28 w-[246px] items-center justify-center">
           <div className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-[#A6C4E0]">
-            {savedProfile.kakaoProfileImage && !imageError ? (
+            {profileImage && !imageError ? (
               <Image
-                src={savedProfile.kakaoProfileImage}
+                src={profileImage}
                 alt="프로필 이미지"
                 fill
                 className="object-cover"
