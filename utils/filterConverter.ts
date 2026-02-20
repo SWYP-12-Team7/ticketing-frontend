@@ -11,6 +11,7 @@ import type {
   CalendarEventFilterParams,
   CalendarCategory,
 } from "@/types/calendar";
+import { REGIONS } from "@/components/common/LocationEventFilter/constants";
 
 /**
  * LocationEventFilterState를 API 요청 파라미터로 변환
@@ -54,8 +55,11 @@ export function convertLocationFilterToAPIParams(
 
   // 1. regionId: 첫 번째 지역만 사용 (API는 단일 지역만 지원)
   // ⚠️ "all" 값은 undefined로 변환 (백엔드가 region=all을 빈 배열로 응답)
+  // 영문 ID를 한글 label로 변환 (예: "seoul" → "서울")
   const regionId =
-    regions.length > 0 && regions[0] !== "all" ? regions[0] : undefined;
+    regions.length > 0 && regions[0] !== "all"
+      ? REGIONS.find((r) => r.id === regions[0])?.label ?? regions[0]
+      : undefined;
 
   // 2. categories: 선택된 카테고리 판단
   const categories: CalendarCategory[] = [];
