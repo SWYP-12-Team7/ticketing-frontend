@@ -193,19 +193,25 @@ export async function getCalendarEventsByDate(
   }
 
   /**
-   * ⚠️ 백엔드 API의 category 파라미터 버그
-   * - category 파라미터를 보내면 항상 0개 반환
-   * - 해결책: 전체 데이터를 조회하고 프론트엔드에서 필터링
+   * category 파라미터 생성
+   * - 선택된 카테고리를 백엔드 형식으로 변환 ("exhibition" → "EXHIBITION")
+   * - 카테고리가 없으면 undefined (백엔드가 전체로 해석)
    */
+  const categoryParam =
+    categories?.length && categories.length < 2
+      ? categories
+          .map((cat) => (cat === "exhibition" ? "EXHIBITION" : "POPUP"))
+          .join(",")
+      : undefined;
 
-  // API 요청 (category 파라미터 제외)
+  // API 요청
   const response = await axiosInstance.get<BackendCalendarListResponse>(
     "/curations/calendar/list",
     {
       params: {
-        date, // ISO Date: "2026-02-08"
-        region: regionId || undefined, // Optional
-        // category 파라미터 제외 (백엔드 버그)
+        date,
+        region: regionId || undefined,
+        category: categoryParam,
       },
     }
   );
@@ -250,17 +256,6 @@ export async function getCalendarEventsByDate(
     latitude: item.latitude,
     longitude: item.longitude,
   }));
-
-  /**
-   * 프론트엔드에서 카테고리 필터링
-   * - 백엔드 API 버그로 인해 전체 데이터 조회 후 필터링
-   */
-  if (categories?.length) {
-    events = events.filter((event) => {
-      const eventCategory = event.category === "전시" ? "exhibition" : "popup";
-      return categories.includes(eventCategory);
-    });
-  }
 
   // 서브카테고리 필터링 (필터바의 패션, 뷰티, 미술 등)
   if (params.subcategories?.length && !params.subcategories.includes("all")) {
