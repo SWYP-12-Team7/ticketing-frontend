@@ -1,4 +1,5 @@
 import axiosInstance from "@/services/axios";
+import { AxiosError } from "axios";
 import type { 
   UserProfile, 
   BackendUserResponse,
@@ -312,14 +313,20 @@ export async function updateUserProfile(
   profile: Partial<UserProfile>
 ): Promise<UserProfile> {
   try {
+    console.log("🔍 [PROFILE UPDATE] 시작:", profile);
+    
     // 닉네임 변경 (undefined가 아닐 때만)
     if (profile.nickname !== undefined) {
+      console.log("🔍 [NICKNAME API] 호출 전:", profile.nickname);
       await updateNickname(profile.nickname);
+      console.log("✅ [NICKNAME API] 성공");
     }
 
     // 주소 변경 (undefined가 아닐 때만)
     if (profile.address !== undefined) {
+      console.log("🔍 [ADDRESS API] 호출 전:", profile.address);
       await updateAddress(profile.address);
+      console.log("✅ [ADDRESS API] 성공");
     }
 
     // ⚠️ detailAddress는 백엔드에서 지원하지 않음
@@ -329,9 +336,19 @@ export async function updateUserProfile(
     // → Zustand persist로 LocalStorage에만 저장됨
 
     // 최신 프로필 조회하여 반환
-    return await getUserProfile();
+    console.log("🔍 [GET PROFILE API] 호출 전");
+    const result = await getUserProfile();
+    console.log("✅ [GET PROFILE API] 성공:", result);
+    
+    return result;
   } catch (error) {
-    console.error("프로필 업데이트 실패:", error);
+    const axiosError = error as AxiosError;
+    console.error("❌ [PROFILE UPDATE] 실패:", {
+      error,
+      status: axiosError.response?.status,
+      url: axiosError.config?.url,
+      data: axiosError.response?.data,
+    });
     throw error;
   }
 }

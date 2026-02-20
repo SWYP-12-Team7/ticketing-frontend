@@ -86,3 +86,20 @@ export function buildMonthGrid(monthDate: Date, weeks = 5): Date[] {
 
   return days;
 }
+
+/**
+ * 해당 월의 모든 날짜를 IsoDate 배열로 반환
+ *
+ * @param isoMonth - YYYY-MM 형식
+ * @returns 해당 월 1일 ~ 말일의 IsoDate 배열
+ */
+export function getIsoDatesInMonth(isoMonth: IsoMonth): IsoDate[] {
+  const [y, m] = isoMonth.split("-").map(Number);
+  const lastDay = new Date(y, m, 0).getDate();
+  const dates: IsoDate[] = [];
+  for (let d = 1; d <= lastDay; d += 1) {
+    const day = String(d).padStart(2, "0");
+    dates.push(`${y}-${String(m).padStart(2, "0")}-${day}` as IsoDate);
+  }
+  return dates;
+}

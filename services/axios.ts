@@ -52,6 +52,11 @@ axiosInstance.interceptors.response.use(
     // ⚠️ timeline, taste 같은 부가 기능은 403 허용 (로그아웃 안 함)
     if (error.response?.status === 403) {
       const url = error.config?.url || '';
+      console.error("🚨 [403 FORBIDDEN]", {
+        url,
+        method: error.config?.method,
+        data: error.response?.data,
+      });
       
       // timeline, taste API는 403이어도 로그아웃하지 않음
       const nonCriticalApis = ['/timeline', '/taste'];
@@ -63,6 +68,7 @@ axiosInstance.interceptors.response.use(
       // 나머지 중요한 API는 로그아웃 처리
       const { accessToken } = useAuthStore.getState();
       if (accessToken) {
+        console.error("🚪 [LOGOUT TRIGGERED] 403으로 인한 로그아웃:", url);
         console.warn(`[403 로그아웃] ${url} - 자동 로그아웃 실행`);
         useAuthStore.getState().logout();
         if (typeof window !== "undefined") {

@@ -31,6 +31,8 @@ export const CALENDAR_DESIGN_TOKENS = {
       default: "#E5E7EA",
       /** 선택된 셀 테두리 */
       selected: "#FFD8B7",
+      /** 셀 호버 테두리 (Figma Property 1=호버링) */
+      cellHover: "#FFDDBF",
     },
     /** Pill 색상 */
     pill: {
