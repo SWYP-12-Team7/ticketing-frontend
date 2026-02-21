@@ -86,8 +86,9 @@ export function SearchDropdown({ className, onSearch }: SearchDropdownProps) {
     setIsOpen(false);
   };
 
-  // Enter 키 처리
+  // Enter 키 처리 (한글 IME 조합 중에는 무시)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "Enter") {
       handleSearch(keyword);
     }
