@@ -5,59 +5,23 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { CarouselCard, type CarouselCardData } from "./CarouselCard";
+import { CarouselCard } from "./CarouselCard";
+import { useCarouselData } from "@/queries/main/useCarouselData";
 
 import "swiper/css";
-
-// 임시 목데이터 (추후 API 연동)
-const MOCK_SLIDES: CarouselCardData[] = [
-  {
-    id: 1,
-    imageUrl: "https://picsum.photos/id/1015/410/512",
-    subtitle: "어제 가장 많이 봤어요!",
-    title: "현대미술 컬렉션: 새로운 시선",
-    period: "2026.02.05 - 2026.03.05",
-  },
-  {
-    id: 2,
-    imageUrl: "https://picsum.photos/id/1016/410/512",
-    subtitle: "감성충만! 현대미술",
-    title: "빛의 축제: 미디어아트전",
-    period: "2026.02.01 - 2026.04.15",
-  },
-  {
-    id: 3,
-    imageUrl: "https://picsum.photos/id/1018/410/512",
-    subtitle: "이번 주 인기 행사",
-    title: "서울 재즈 페스티벌 2024",
-    period: "2026.02.07 - 2026.02.09",
-  },
-  {
-    id: 4,
-    imageUrl: "https://picsum.photos/id/1020/410/512",
-    subtitle: "새로 오픈했어요",
-    title: "모네에서 앤디워홀까지",
-    period: "2026.01.25 - 2026.04.30",
-  },
-  {
-    id: 5,
-    imageUrl: "https://picsum.photos/id/1024/410/512",
-    subtitle: "마감 임박!",
-    title: "디지털 아트 서울 2024",
-    period: "2026.02.03 - 2026.02.20",
-  },
-];
 
 export function MainCarouselInner() {
   const swiperRef = useRef<SwiperType | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { data: apiSlides = [], isLoading } = useCarouselData();
 
   // loop용 슬라이드 2배 복제
   const slides = useMemo(() => {
-    const doubled = [...MOCK_SLIDES, ...MOCK_SLIDES];
+    if (apiSlides.length === 0) return [];
+    const doubled = [...apiSlides, ...apiSlides];
     return doubled.map((s, i) => ({ ...s, _key: `${s.id}-${i}` }));
-  }, []);
+  }, [apiSlides]);
 
   const toggleAutoplay = useCallback(() => {
     const swiper = swiperRef.current;
@@ -82,12 +46,22 @@ export function MainCarouselInner() {
     swiperRef.current?.slideToLoop(index);
   }, []);
 
+  if (isLoading || apiSlides.length === 0) {
+    return (
+      <section className="relative flex h-[604px] w-full items-center justify-center bg-[#1a1a1a]">
+        <div className="animate-pulse text-white/50 text-sm">
+          {isLoading ? "로딩 중..." : ""}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative w-full overflow-hidden bg-[#1a1a1a]">
       {/* 블러 배경 */}
       <div className="absolute inset-0">
         <img
-          src={MOCK_SLIDES[activeIndex]?.imageUrl}
+          src={apiSlides[activeIndex]?.imageUrl}
           alt=""
           className="h-full w-full scale-105 object-cover blur-xl"
         />
@@ -102,7 +76,7 @@ export function MainCarouselInner() {
             swiperRef.current = swiper;
           }}
           onRealIndexChange={(swiper) => {
-            setActiveIndex(swiper.realIndex % MOCK_SLIDES.length);
+            setActiveIndex(swiper.realIndex % apiSlides.length);
           }}
           slidesPerView="auto"
           centeredSlides
@@ -116,7 +90,7 @@ export function MainCarouselInner() {
           className="main-carousel h-[512px] w-full"
         >
           {slides.map((slide, index) => {
-            const realIndex = index % MOCK_SLIDES.length;
+            const realIndex = index % apiSlides.length;
             const isActive = realIndex === activeIndex;
             return (
               <SwiperSlide
@@ -153,7 +127,7 @@ export function MainCarouselInner() {
 
         {/* 하단 페이지네이션 */}
         <div className="mt-3 flex items-center justify-center gap-1.5">
-          {MOCK_SLIDES.map((slide, index) => (
+          {apiSlides.map((slide, index) => (
             <button
               type="button"
               key={slide.id}
