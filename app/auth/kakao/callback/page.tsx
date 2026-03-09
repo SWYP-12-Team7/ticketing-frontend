@@ -30,11 +30,6 @@ function KakaoCallbackContent() {
     }
 
     // 3. 처리 시작
-    console.log("[KAKAO CALLBACK] 인증 코드 처리 시작", {
-      code: code.substring(0, 20) + "...",
-      codeLength: code.length,
-    });
-
     isProcessing.current = true;
     processedCode.current = code;
 
@@ -44,7 +39,6 @@ function KakaoCallbackContent() {
     // 5. Cleanup 함수에서 상태 유지 (재실행 방지)
     return () => {
       // isProcessing은 유지 (재실행 방지)
-      console.log("[KAKAO CALLBACK] cleanup 실행 (재실행 방지 유지)");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ✅ 의도적으로 빈 배열 (한 번만 실행, 중복 방지)

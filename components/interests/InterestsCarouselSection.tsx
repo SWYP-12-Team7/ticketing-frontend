@@ -63,9 +63,7 @@ export function InterestsCarouselSection() {
     const favoriteItem = data?.favorites.find((f) => String(f.id) === id);
     if (favoriteItem) {
       removeFavoriteItem(favoriteItem.id, {
-        onSuccess: () => {
-          console.log("찜하기 해제 성공:", id);
-        },
+        onSuccess: () => {},
         onError: (error) => {
           console.error("찜하기 해제 실패:", error);
           alert("찜 삭제에 실패했습니다");
