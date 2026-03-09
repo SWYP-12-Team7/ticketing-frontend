@@ -7,6 +7,8 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { SettingsInitializer } from "@/components/settings";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // ===== 폰트 설정 =====
 
@@ -64,6 +66,8 @@ export default function RootLayout({
           <Footer className="mt-[100px]" />
         </Providers>
         <Toaster position="bottom-center" richColors duration={1000} />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
