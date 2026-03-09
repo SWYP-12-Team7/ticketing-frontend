@@ -211,12 +211,10 @@ function ViewContent() {
   // 현재 지도 화면에 보이는 마커 기준으로 이벤트 필터링
   const handleVisibleIdsChange = (ids: string[]) => {
     if (clusterIds) return;
-    console.log(`[HOT EVENT] visible ids count: ${ids.length}`);
     setVisibleIds(ids);
   };
 
   const handleClusterIdsChange = (ids: string[]) => {
-    console.log(`[HOT EVENT] cluster ids count: ${ids.length}`);
     setClusterIds(ids);
   };
 

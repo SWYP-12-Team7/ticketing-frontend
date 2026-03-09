@@ -31,8 +31,6 @@ export default function Error({
       error.message.includes("ChunkLoadError") ||
       error.name === "ChunkLoadError"
     ) {
-      console.log("🔄 ChunkLoadError 감지 → 페이지 새로고침");
-      
       // 무한 새로고침 방지: sessionStorage 체크
       const reloadCount = Number(sessionStorage.getItem("chunk-reload-count") || "0");
       
