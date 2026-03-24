@@ -73,9 +73,6 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps) {
     try {
       const reason = selectedReason === "기타" ? otherReason : selectedReason;
 
-      // 탈퇴 사유 로깅 (백엔드에서 받지 않으므로 프론트엔드 로그만)
-      console.log("📊 [Analytics] 탈퇴 사유:", reason);
-
       // 실제 회원탈퇴 API 호출
       await withdrawUser();
 
